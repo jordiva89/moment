@@ -1,0 +1,237 @@
+:root{
+  --crema:#F4EDDE; --crema2:#EFE5D0; --oscuro:#2B241C; --oscuro2:#3A3127;
+  --verde:#5C7048; --verde2:#48583A; --dorado:#B08D3E; --terracota:#C4622D;
+  --gris:#8A7F6E; --radius:18px;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  /* La fuente del sistema va PRIMERO: es la única que cubre todos los alfabetos.
+     Poner una fuente latina delante (Segoe UI) hacía que en chino, árabe, ruso o
+     hindi el sistema no encontrara los caracteres y mostrara cuadrados vacíos.
+     Con system-ui, Android usa Noto en cada alfabeto y todo se ve bien. */
+  font-family:system-ui,-apple-system,'Segoe UI',Roboto,'Noto Sans','Noto Sans Arabic',
+              'Noto Sans SC','Noto Sans JP','Noto Sans Devanagari',sans-serif;
+  background:var(--crema);
+  color:var(--oscuro); overscroll-behavior:none;
+}
+body.loading{background:var(--oscuro)}
+button{font-family:inherit}
+.hidden{display:none!important}
+
+/* ---------- SPLASH (única, primaria) ---------- */
+#splash{
+  position:fixed; inset:0; z-index:100; background:var(--oscuro);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:22px; text-align:center; padding:24px;
+}
+#splash img{width:min(52vw,220px); border-radius:24%; box-shadow:0 10px 40px rgba(0,0,0,.5)}
+#splash .sub{
+  font-size:1.05rem; color:var(--dorado); margin:2px 0 10px; letter-spacing:.02em;
+}
+#splash h1{
+  color:var(--dorado); font-size:1.9rem; letter-spacing:.14em; margin:0;
+  font-weight:600; text-transform:uppercase;
+}
+#splash p{color:var(--crema2); opacity:.85; margin:0; font-size:1.02rem; letter-spacing:.06em}
+#splash.out{opacity:0; transition:opacity .45s ease; pointer-events:none}
+
+/* ---------- LAYOUT ---------- */
+#app{display:flex; flex-direction:column; min-height:100dvh}
+/* sin anclaje de scroll: si no, el navegador compensa el cambio de alto al plegar
+   una caja y deshace el desplazamiento que hacemos a propósito */
+html, body, #app, #main{overflow-anchor:none}
+/* la cabecera pegajosa no debe tapar el destino de ningún desplazamiento */
+html{scroll-padding-top:76px}
+main{flex:1; padding:18px 18px calc(84px + env(safe-area-inset-bottom)); max-width:640px; margin:0 auto; width:100%}
+header.top{
+  position:sticky; top:0; z-index:5; background:var(--crema);
+  padding:14px 18px 10px; display:flex; align-items:center; gap:10px;
+  border-bottom:1px solid #e2d7bf;
+}
+header.top img{width:34px;height:34px;border-radius:9px}
+header.top .t{font-weight:700; letter-spacing:.04em}
+header.top .s{font-size:.72rem; color:var(--gris); display:block; margin-top:1px}
+
+/* ---------- NAV ---------- */
+nav{
+  position:fixed; bottom:0; left:0; right:0; z-index:10;
+  background:var(--oscuro); display:flex; justify-content:space-around;
+  padding:8px 4px calc(8px + env(safe-area-inset-bottom));
+}
+nav button{
+  background:none; border:none; color:#B9AD97; font-size:.68rem;
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+  padding:6px 10px; border-radius:12px; cursor:pointer; min-width:64px;
+}
+nav button .ic{font-size:1.35rem; line-height:1}
+nav button.active{color:var(--dorado)}
+
+/* ---------- CARDS & UI ---------- */
+.card{
+  background:linear-gradient(180deg,#FFFDF7,#F8F1E2);
+  border:1px solid #E4D9C2; border-radius:var(--radius);
+  padding:20px; margin-bottom:16px; box-shadow:0 2px 10px rgba(43,36,28,.06);
+}
+.card h2{margin:0 0 8px; font-size:1.15rem; color:var(--verde2)}
+.card h3{margin:0 0 6px; font-size:1.05rem}
+.cat-tag{
+  display:inline-block; font-size:.68rem; letter-spacing:.08em; text-transform:uppercase;
+  background:var(--verde); color:#fff; border-radius:999px; padding:3px 10px; margin-bottom:10px;
+}
+.cat-tag.t2{background:var(--terracota)} .cat-tag.t3{background:var(--dorado)}
+.ptext{white-space:pre-wrap; line-height:1.55; font-size:1rem}
+.plink{display:inline-block; margin-top:10px; color:var(--terracota); font-weight:600; word-break:break-all}
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  border:none; border-radius:14px; padding:13px 20px; font-size:1rem; font-weight:600;
+  cursor:pointer; transition:transform .08s ease, background .15s ease, color .15s ease;
+}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--verde); color:#fff}
+.btn.gold{background:var(--dorado); color:#fff}
+.btn.terra{background:var(--terracota); color:#fff}
+.btn.ghost{background:#FFFDF7; border:1.5px solid var(--verde); color:var(--verde2)}
+.btn.small{padding:9px 14px; font-size:.88rem; border-radius:11px}
+.btn.block{width:100%; margin-top:10px}
+/* Botón de texto: para acciones secundarias que antes eran texto pulsable.
+   Se ve ligero, casi como un enlace, pero es un <button> de verdad: accesible
+   con teclado y anunciado como botón por los lectores de pantalla. */
+.tbtn{
+  display:inline-block; background:none; border:0; padding:4px 2px; margin:0;
+  font:inherit; font-size:.9rem; color:var(--verde2); cursor:pointer;
+  text-decoration:underline; text-underline-offset:3px;
+  text-decoration-color:rgba(92,112,72,.35); border-radius:6px;
+}
+.tbtn:hover{ text-decoration-color:var(--verde) }
+.tbtn:active{ opacity:.65 }
+.tbtn:focus-visible{ outline:2px solid var(--dorado); outline-offset:2px }
+.tbtn.peligro{ color:#B3402A; text-decoration-color:rgba(179,64,42,.35) }
+.tbtn.suave{ color:var(--gris); font-size:.85rem }
+/* Cabecera pulsable de las tarjetas: también un botón real, sin aspecto de botón */
+.dhead, .cardhead h2{ }
+.dhead:focus-visible, .cardhead h2:focus-visible{ outline:2px solid var(--dorado); outline-offset:-2px }
+.row{display:flex; gap:10px; flex-wrap:wrap}
+.muted{color:var(--gris); font-size:.85rem}
+.center{text-align:center}
+.fav-btn{
+  background:none; border:none; font-size:1.7rem; cursor:pointer; line-height:1;
+  color:#C9BBA0; padding:4px;
+}
+.fav-btn.on{color:var(--terracota)}
+input[type=text],input[type=url],textarea,select{
+  width:100%; border:1.5px solid #D8CCB2; border-radius:12px; padding:12px;
+  font-size:1rem; font-family:inherit; background:#FFFDF7; color:var(--oscuro);
+}
+textarea{min-height:110px; resize:vertical}
+label.fld{display:block; font-size:.85rem; font-weight:600; margin:14px 0 6px; color:var(--verde2)}
+input[type=range].favrange{
+  width:100%; margin:6px 0 2px; accent-color:var(--verde); height:28px;
+}
+
+/* ---------- ONBOARDING / RELOJ ---------- */
+.ob-step{max-width:520px; margin:0 auto}
+.clockwrap{display:flex; flex-direction:column; align-items:center; gap:18px; margin:10px 0 6px}
+.clockface{display:block; margin:0 auto}
+.timeset{display:flex; align-items:center; justify-content:center; gap:6px}
+.timeset .unit{display:flex; flex-direction:column; align-items:center; gap:2px}
+.timeset .val{
+  font-size:2.6rem; font-weight:700; font-variant-numeric:tabular-nums;
+  min-width:86px; text-align:center; color:var(--oscuro);
+  background:#FFFDF7; border:1.5px solid #D8CCB2; border-radius:14px; padding:4px 8px;
+}
+.timeset .colon{font-size:2.4rem; font-weight:700; padding:0 2px; margin-top:26px}
+.stp{border:none; background:var(--verde); color:#fff; width:64px; height:38px; border-radius:10px; font-size:1.25rem; cursor:pointer}
+.stp:active{transform:scale(.96)}
+.optgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:8px}
+.optgrid.g7{grid-template-columns:repeat(4,1fr)}
+.optgrid.g2{grid-template-columns:repeat(2,1fr)}
+.optbtn{
+  border:1.5px solid #D8CCB2; background:#FFFDF7; border-radius:12px; padding:14px 6px;
+  font-size:1.05rem; font-weight:600; cursor:pointer; color:var(--oscuro);
+}
+.optbtn.sel{background:var(--verde); color:#fff; border-color:var(--verde)}
+.infobox{
+  background:var(--crema2); border-left:4px solid var(--dorado); border-radius:10px;
+  padding:14px; font-size:.92rem; line-height:1.5; margin-top:14px;
+}
+.progress{display:flex; gap:6px; justify-content:center; margin-bottom:18px}
+.progress span{width:9px;height:9px;border-radius:50%;background:#D8CCB2}
+.progress span.on{background:var(--verde)}
+
+/* ---------- DÍA (acordeón) ---------- */
+.cardhead{display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap}
+.card.anteriores{
+  margin-top:26px; background:linear-gradient(180deg,#F3EDE0,#EDE4D0);
+  border-style:dashed; border-color:#CBBD9E;
+}
+.card.anteriores h2{color:var(--gris); font-size:1rem}
+.card.anteriores .ditem{opacity:.92}
+.ditem{
+  background:#FFFDF7; border:1px solid #E4D9C2; border-radius:14px;
+  margin-bottom:10px; overflow:hidden;
+}
+.ditem.next{border-color:var(--dorado); background:#FBF4E4}
+.ditem.done{border-color:var(--verde); background:#F2F5EC}
+.ditem.done .hora,.ditem.done h4{color:var(--verde2)}
+.dhead{
+  display:flex; gap:10px; align-items:center; padding:14px; cursor:pointer;
+}
+.dhead .hora{font-weight:700; min-width:52px}
+.dhead .grow{flex:1; min-width:0}
+.dhead h4{margin:0 0 3px; font-size:.98rem}
+.dhead .flecha{color:var(--gris); font-size:.9rem; transition:transform .15s ease}
+.pau{background:none; border:none; color:#BEB4A2; opacity:.45; font-size:1.05rem; cursor:pointer; padding:2px 4px; filter:grayscale(1)}
+.pau.on{color:var(--dorado); opacity:1; filter:none}
+.bell{background:none; border:none; color:#BEB4A2; opacity:.5; font-size:1.15rem; cursor:pointer; padding:2px 4px}
+.bell.on{color:#B3402A; opacity:1}
+.ditem.open .flecha{transform:rotate(180deg)}
+.dbody{padding:0 14px 14px; border-top:1px dashed #E4D9C2; padding-top:12px}
+
+/* ---------- LIB ---------- */
+.libitem{
+  background:#FFFDF7; border:1px solid #E4D9C2; border-radius:14px;
+  padding:14px; margin-bottom:10px; display:flex; gap:10px; align-items:flex-start;
+}
+.libitem .grow{flex:1; min-width:0}
+.libitem h4{margin:0 0 3px; font-size:.98rem}
+.libitem .prev{font-size:.82rem; color:var(--gris); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
+.catpill{font-size:.65rem; color:var(--verde2); font-weight:700; text-transform:uppercase; letter-spacing:.06em}
+.searchrow{display:flex; gap:8px; margin-bottom:12px}
+.tlink{color:var(--verde2); text-decoration:underline; cursor:pointer}
+.chkrow{display:flex; gap:10px; align-items:center; font-size:.92rem; margin-bottom:8px}
+.badge{background:var(--dorado); color:#fff; font-size:.7rem; border-radius:999px; padding:2px 8px}
+
+/* ---------- MODAL (solo formulario) ---------- */
+#modal{
+  position:fixed; inset:0; z-index:50; background:rgba(30,24,17,.55);
+  display:flex; align-items:flex-end; justify-content:center;
+}
+#modal .sheet{
+  background:var(--crema); width:100%; max-width:640px; max-height:88dvh; overflow:auto;
+  border-radius:22px 22px 0 0; padding:22px 20px calc(24px + env(safe-area-inset-bottom));
+}
+#modal .sheet.full{ max-height:100dvh; height:100dvh; border-radius:0; max-width:none; }
+.snoozeinfo{font-size:.82rem; color:var(--gris); margin-top:8px}
+.backbar{display:flex; align-items:center; gap:8px; margin-bottom:12px}
+.toast{
+  position:fixed; bottom:calc(96px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%);
+  background:var(--oscuro); color:var(--crema); padding:12px 18px; border-radius:18px;
+  font-size:.9rem; z-index:60; box-shadow:0 4px 18px rgba(0,0,0,.3);
+  /* el aviso se adapta a la pantalla y parte en varias líneas: nunca se corta */
+  max-width:min(92vw, 460px); width:max-content; text-align:center; line-height:1.4;
+  white-space:pre-line; overflow-wrap:anywhere;
+}
+
+/* ---- Alfabetos no latinos ----
+   El árabe y el hebreo llevan signos por encima y por debajo de la línea: con el
+   interlineado latino se solapan. El chino y el japonés se leen mejor algo más sueltos. */
+:lang(ar), :lang(he), :lang(fa), :lang(ur){ line-height:1.75 }
+:lang(zh), :lang(ja), :lang(ko){ line-height:1.7; letter-spacing:.01em }
+/* ---- Escritura de derecha a izquierda (árabe, hebreo, persa, urdu) ----
+   Preparado de antemano: al poner dir="rtl" en <html>, la interfaz se refleja sola.
+   Por eso conviene usar margin-inline / padding-inline en vez de left/right. */
+[dir="rtl"] .dhead, [dir="rtl"] .cardhead{ flex-direction:row-reverse }
+[dir="rtl"] .tbtn, [dir="rtl"] .fld, [dir="rtl"] .muted{ text-align:right }
+[dir="rtl"] input, [dir="rtl"] select, [dir="rtl"] textarea{ direction:rtl; text-align:right }
+[dir="rtl"] ul{ padding-right:20px; padding-left:0 }
