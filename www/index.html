@@ -156,6 +156,14 @@ function cargarIdiomasPropios(){
 cargarIdiomasPropios();
 
 /* Nombre visible de un idioma, para las listas. */
+/* Bandera del idioma, para los selectores. Los idiomas importados declaran la
+   suya en el archivo; si no, se usa un globo terráqueo. */
+const BANDERAS = {es:'🇪🇸', en:'🇬🇧', fr:'🇫🇷', de:'🇩🇪', it:'🇮🇹', pt:'🇵🇹',
+  ar:'🇸🇦', zh:'🇨🇳', ja:'🇯🇵', ru:'🇷🇺', ca:'🏴', eu:'🏴', gl:'🏴', nl:'🇳🇱', pl:'🇵🇱'};
+function banderaIdioma(c){
+  const d = idiomasPropios[c];
+  return (d && d.bandera) || BANDERAS[c] || '🌐';
+}
 function nombreIdioma(c){
   if (c === 'es') return 'Español';
   if (c === 'en') return 'English';
@@ -425,7 +433,7 @@ function applyNavLang(){
   document.querySelectorAll('[data-lbl-html]').forEach(el=>{ el.innerHTML=t(el.getAttribute('data-lbl-html')); });
 }
 
-const APP_VERSION = '3.73';   // visible en Ajustes: confirma qué versión está corriendo
+const APP_VERSION = '3.74';   // visible en Ajustes: confirma qué versión está corriendo
 
 /* ---- Entorno nativo (Capacitor / APK) ---- */
 const IS_NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
@@ -3496,29 +3504,6 @@ function renderSet(){
         <input type="checkbox" ${cfg.catsPref && cfg.catsPref[cp.id]?'checked':''} onchange="setCatPref(${JSON.stringify(cp.id).replace(/"/g,'&quot;')}, this.checked)"> ${cp.propia?esc(cp.id):esc(catLabel(cp.id))}
       </label>`).join('')}
 
-      ${creditoIdioma()?`<p class="muted" style="margin:0 0 12px;font-size:.85rem">${t('cr_txt').replace('{n}', esc(creditoIdioma()))}</p>`:''}
-
-      <label class="fld">${t('id_label')}</label>
-      <p class="muted" style="margin:0 0 8px;font-size:.85rem">${t('id_txt')}</p>
-      ${idiomasDisponibles().map(c=>`<div class="row" style="align-items:center;margin:0 0 6px">
-        <button class="btn small ${getLang()===c?'primary':'ghost'}" style="flex:1;text-align:left"
-          onclick="setLang('${c}');renderSet()">${esc(nombreIdioma(c))}${IDIOMAS_BASE.includes(c)?'':' ·'}</button>
-        ${IDIOMAS_BASE.includes(c)?'':`<button type="button" class="tbtn peligro" onclick="quitarIdioma('${c}')">${t('id_remove')}</button>`}
-      </div>`).join('')}
-      <input type="file" id="id_file" accept=".json,application/json" style="display:none"
-        onchange="importarArchivo(this.files[0]);this.value=''">
-      <button class="btn ghost block" onclick="document.getElementById('id_file').click()">${t('id_import')}</button>
-      ${IS_NATIVE?`<label class="fld">${t('im_found')}</label>
-      <p class="muted" style="margin:0 0 8px;font-size:.85rem">${t('im_found_txt')}</p>
-      <div id="detectados"></div>
-      <button class="btn ghost block" onclick="renderDetectados()">${t('im_scan')}</button>`:''}
-      <label class="fld">${t('lb_label')}</label>
-      <p class="muted" style="margin:0 0 8px">${t('lb_txt')}</p>
-      <div class="optgrid g2" style="margin:0 0 4px">
-        <button class="optbtn ${langRespaldo()==='es'?'sel':''}" onclick="elegirRespaldo('es')">Español</button>
-        <button class="optbtn ${langRespaldo()==='en'?'sel':''}" onclick="elegirRespaldo('en')">English</button>
-      </div>
-
       <label class="fld">${t('pt_esp_label')}</label>
       <p class="muted" style="margin:0 0 8px">${t('pt_esp_txt')}</p>
       ${especialesLista().map(p=>`<button class="btn ghost block" style="text-align:left" onclick="crearMomentoDe('${p.id}')">⏰ ${esc(p.title)}</button>`).join('')}
@@ -3561,9 +3546,23 @@ function renderSet(){
     `)}
     ${secAjustes('cuenta', t('set_privacy'), `
       <label class="fld">${I18N.es.priv_language} · ${I18N.en.priv_language}</label>
+      <p class="muted" style="margin:0 0 8px;font-size:.85rem">${t('id_txt')}</p>
+      <div class="optgrid g2" style="margin-bottom:8px">
+        ${idiomasDisponibles().map(c=>`<button class="optbtn ${getLang()===c?'sel':''}"
+          onclick="setLang('${c}');renderSet()">${banderaIdioma(c)} ${esc(nombreIdioma(c))}</button>`).join('')}
+      </div>
+      ${idiomasDisponibles().filter(c=>!IDIOMAS_BASE.includes(c)).map(c=>`<p class="center" style="margin:0 0 6px">
+        <button type="button" class="tbtn peligro" onclick="quitarIdioma('${c}')">${t('id_remove')}: ${esc(nombreIdioma(c))}</button></p>`).join('')}
+      <input type="file" id="id_file" accept=".json,application/json" style="display:none"
+        onchange="importarArchivo(this.files[0]);this.value=''">
+      <button class="btn ghost block" onclick="document.getElementById('id_file').click()">${t('id_import')}</button>
+      ${creditoIdioma()?`<p class="muted" style="margin:8px 0 0;font-size:.85rem">${t('cr_txt').replace('{n}', esc(creditoIdioma()))}</p>`:''}
+
+      <label class="fld" style="margin-top:16px">${t('lb_label')}</label>
+      <p class="muted" style="margin:0 0 8px;font-size:.85rem">${t('lb_txt')}</p>
       <div class="optgrid g2" style="margin-bottom:16px">
-        <button class="optbtn ${getLang()==='es'?'sel':''}" onclick="setLang('es');renderSet()">🇪🇸 Español</button>
-        <button class="optbtn ${getLang()==='en'?'sel':''}" onclick="setLang('en');renderSet()">🇬🇧 English</button>
+        <button class="optbtn ${langRespaldo()==='es'?'sel':''}" onclick="elegirRespaldo('es')">🇪🇸 Español</button>
+        <button class="optbtn ${langRespaldo()==='en'?'sel':''}" onclick="elegirRespaldo('en')">🇬🇧 English</button>
       </div>
       <label class="fld">${t('ab_title')}</label>
       <p class="muted">${t('pr_intro')}</p>
@@ -3583,6 +3582,11 @@ function renderSet(){
       </label>
       <p class="muted" style="font-size:.85rem">${t('pr_accept_txt')}</p>
       <p class="muted" style="font-size:.85rem">${t('pr_titular')}</p>
+      ${IS_NATIVE?`<label class="fld">${t('im_found')}</label>
+      <p class="muted" style="margin:0 0 8px;font-size:.85rem">${t('im_found_txt')}</p>
+      <div id="detectados"></div>
+      <button class="btn ghost block" style="margin-bottom:16px" onclick="renderDetectados()">${t('im_scan')}</button>`:''}
+
       <label class="fld">${t('lg_label')}</label>
       <p class="muted" style="margin:0 0 8px;font-size:.85rem">${t('lg_txt')}</p>
       <pre style="background:#FFFDF7;border:1px solid #E2D7BF;border-radius:10px;padding:10px;
