@@ -245,7 +245,7 @@ input[type=range].favrange{
    en la misma línea se colocan uno al lado del otro y bajan de línea si no caben,
    nunca solapados. */
 #main p, .dbody, .dbody p, .setbody p, .card p,
-.infobox, .qbox, .qbox p, .prev, .libitem .prev{
+.ptext, .infobox, .qbox, .qbox p, .prev, .libitem .prev{
   text-align:justify; text-justify:inter-word;
   hyphens:auto; -webkit-hyphens:auto; overflow-wrap:break-word;
 }
@@ -265,3 +265,8 @@ p:has(> button), p:has(> .tbtn), div:has(> .btn), div:has(> .tbtn){ text-align:c
 .btn:not(.block){ margin-inline:2px }
 /* Los botones que ocupan todo el ancho no se tocan */
 .btn.block{ display:block; width:100%; text-align:center }
+
+/* El texto de cada práctica se justifica siempre, aunque su tarjeta esté dentro
+   de un contenedor centrado. Es el bloque más largo de la app y en columna
+   estrecha el centrado lo hace difícil de leer. */
+.ptext{ text-align:justify !important; hyphens:auto; -webkit-hyphens:auto }

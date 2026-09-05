@@ -1,4 +1,4 @@
-const CACHE = 'mpt-v3_77';
+const CACHE = 'mpt-v3_78';
 const FILES = ['./', './index.html', './i18n.js', './contenido.js', './practices.js', './estilos.css', './noveno-es.png', './noveno-en.png', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
