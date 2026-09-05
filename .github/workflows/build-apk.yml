@@ -45,6 +45,11 @@ jobs:
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
+      # Copia limpia, sin el APK incrustado: pesa la mitad y sirve para descartar
+      # que el instalador del movil rechace un APK que contiene otro dentro.
+      - name: Guardar la copia sin incrustar
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk /tmp/moment-basico.apk
+
       - name: Incluir el APK dentro de la app y recompilar
         run: |
           cp android/app/build/outputs/apk/debug/app-debug.apk www/moment.apk
@@ -66,10 +71,11 @@ jobs:
           VER=$(node -e "const s=require('fs').readFileSync('www/index.html','utf8');console.log((s.match(/APP_VERSION = '([^']+)'/)||[,'?'])[1])")
           TAG=apk-ultimo
           cp "$APK" "moment-v$VER.apk"
+          cp /tmp/moment-basico.apk "moment-v$VER-basico.apk" 2>/dev/null || true
           gh release delete "$TAG" --yes --cleanup-tag 2>/dev/null || true
-          gh release create "$TAG" "moment-v$VER.apk" \
+          gh release create "$TAG" "moment-v$VER.apk" "moment-v$VER-basico.apk" \
             --title "APK de pruebas v$VER" \
-            --notes "Compilado el $(date -u '+%Y-%m-%d %H:%M UTC') desde el commit ${GITHUB_SHA:0:7}." \
+            --notes "Compilado el $(date -u '+%Y-%m-%d %H:%M UTC'). Si el APK normal da error al instalar, prueba el que acaba en -basico." \\
             --latest=false
           echo "## APK listo" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
