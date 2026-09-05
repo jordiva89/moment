@@ -433,7 +433,7 @@ function applyNavLang(){
   document.querySelectorAll('[data-lbl-html]').forEach(el=>{ el.innerHTML=t(el.getAttribute('data-lbl-html')); });
 }
 
-const APP_VERSION = '3.74';   // visible en Ajustes: confirma qué versión está corriendo
+const APP_VERSION = '3.77';   // visible en Ajustes: confirma qué versión está corriendo
 
 /* ---- Entorno nativo (Capacitor / APK) ---- */
 const IS_NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
@@ -777,7 +777,7 @@ function openEventForm(editId, presetPid){
       <input type="url" id="ev_l" placeholder="https://…">
     </div>
     <label class="fld">${t('ef_repeat')}</label>
-    <select id="ev_r" onchange="document.getElementById('ev_ndias').style.display=this.value==='days'?'block':'none'">
+    <select id="ev_r" onchange="document.getElementById('ev_ndias').style.display=this.value==='days'?'block':'none';evVecesUI()">
       <option value="daily" ${ed&&ed.rep==='daily'?'selected':''}>${t('ef_r_daily')}</option>
       <option value="days" ${ed&&ed.rep==='days'?'selected':''}>${t('ef_r_days')}</option>
       <option value="weekly" ${ed&&ed.rep==='weekly'?'selected':''}>${t('ef_r_weekly')}</option>
@@ -787,6 +787,17 @@ function openEventForm(editId, presetPid){
       <label class="fld">${t('ef_ndays')}</label>
       <select id="ev_n">${Array.from({length:29},(_,k)=>`<option value="${k+2}" ${ed&&ed.n===k+2?'selected':''}>${k+2} ${t('ef_ndays_opt')}</option>`).join('')}</select>
     </div>
+    <label class="fld" id="ev_veces_lbl">${t('ef_times')}</label>
+    <p class="muted" id="ev_veces_txt" style="margin:0 0 6px;font-size:.85rem">${t('ef_times_txt')}</p>
+    <select id="ev_veces" onchange="evVecesUI()">
+      <option value="0"${!ed||!ed.veces?' selected':''}>${t('ef_times_inf')}</option>
+      ${[7,13,21,30].map(k=>`<option value="${k}"${ed&&ed.veces===k?' selected':''}>${t('ef_times_n').replace('{n}',k)}</option>`).join('')}
+      <option value="otro"${ed&&ed.veces>0&&![7,13,21,30].includes(ed.veces)?' selected':''}>${t('ef_times_other')}</option>
+    </select>
+    <input type="number" id="ev_veces_n" min="2" max="365" placeholder="${t('ef_times_ph')}"
+      value="${ed&&ed.veces>0&&![7,13,21,30].includes(ed.veces)?ed.veces:''}"
+        style="display:none;margin-top:6px">
+
     <label class="fld">${t('ef_dayrep')}</label>
     <select id="ev_dm" onchange="evDayModeUI()">
       <option value="once" ${!ed||!ed.dmode||ed.dmode==='once'?'selected':''}>${t('ef_dr_once')}</option>
@@ -794,7 +805,7 @@ function openEventForm(editId, presetPid){
       <option value="list" ${ed&&ed.dmode==='list'?'selected':''}>${t('ef_dr_list')}</option>
     </select>
     <div id="ev_dint" style="display:none">
-      <div class="row">
+      <div class="row cbtn">
         <div style="flex:1">
           <label class="fld">${t('ef_dr_count')}</label>
           <select id="ev_dc">${Array.from({length:11},(_,k)=>`<option value="${k+2}" ${ed&&ed.dcount===k+2?'selected':''}>${k+2}</option>`).join('')}</select>
@@ -830,6 +841,17 @@ function openEventForm(editId, presetPid){
   openModal();
 }
 // Muestra los campos que correspondan al modo de repetición diaria elegido
+/* El límite solo tiene sentido si el momento se repite. Y el campo del número
+   libre solo aparece si se elige «otro». */
+function evVecesUI(){
+  const rep=document.getElementById('ev_r'), sel=document.getElementById('ev_veces');
+  const lbl=document.getElementById('ev_veces_lbl'), txt=document.getElementById('ev_veces_txt');
+  const num=document.getElementById('ev_veces_n');
+  if(!sel) return;
+  const repite = rep && rep.value!=='once';
+  [lbl,txt,sel].forEach(el=>{ if(el) el.style.display = repite ? '' : 'none'; });
+  if(num) num.style.display = (repite && sel.value==='otro') ? '' : 'none';
+}
 function evDayModeUI(){
   const v=(document.getElementById('ev_dm')||{}).value;
   const gi=document.getElementById('ev_dint'), gl=document.getElementById('ev_dlist');
@@ -854,6 +876,14 @@ function saveEvent(){
   const sel=document.getElementById('ev_p').value;
   const rep=document.getElementById('ev_r').value;
   const n=parseInt(document.getElementById('ev_n').value)||2;
+  // límite de repeticiones
+  let veces=0;
+  const selV=document.getElementById('ev_veces');
+  if(selV && document.getElementById('ev_r').value!=='once'){
+    veces = selV.value==='otro'
+      ? Math.max(0, parseInt(document.getElementById('ev_veces_n').value||'0',10)||0)
+      : (parseInt(selV.value,10)||0);
+  }
   // pauta de repetición DENTRO del día
   const dmode=document.getElementById('ev_dm').value;
   const dcount=parseInt(document.getElementById('ev_dc').value)||1;
@@ -891,7 +921,7 @@ function saveEvent(){
     dayState.plan=dayState.plan.filter(sl=>!(sl.ev===ev.id && !sl.done));
   } else {
     const now=new Date();
-    ev={id:'e'+Date.now(), title:t, time:H*60+M, pid, rep, n, dmode, dcount, dgap, dtimes,
+    ev={id:'e'+Date.now(), title:t, time:H*60+M, pid, rep, n, veces, dmode, dcount, dgap, dtimes,
       startY:now.getFullYear(), startM:now.getMonth()+1, startD:now.getDate()};
     userEvents.push(ev);
     ensureDayPlan();
@@ -1726,11 +1756,21 @@ function eventsFor(dstr){
     const sd=new Date(ev.startY, ev.startM-1, ev.startD);
     const diff=Math.round((date-sd)/(24*60*60*1000));
     if(diff<0) return false;
-    if(ev.rep==='daily')   return true;
-    if(ev.rep==='days')    return ev.n>0 && diff%ev.n===0;
-    if(ev.rep==='weekly')  return date.getDay()===sd.getDay();
-    if(ev.rep==='monthly') return date.getDate()===sd.getDate();
-    return diff===0;
+    // ¿Toca hoy, según la frecuencia?
+    let toca, vuelta;   // vuelta = qué repetición es esta, empezando en 0
+    if(ev.rep==='daily'){ toca=true; vuelta=diff; }
+    else if(ev.rep==='days'){ toca = ev.n>0 && diff%ev.n===0; vuelta = ev.n>0 ? Math.floor(diff/ev.n) : 0; }
+    else if(ev.rep==='weekly'){ toca = date.getDay()===sd.getDay(); vuelta = Math.floor(diff/7); }
+    else if(ev.rep==='monthly'){
+      toca = date.getDate()===sd.getDate();
+      vuelta = (date.getFullYear()-sd.getFullYear())*12 + (date.getMonth()-sd.getMonth());
+    }
+    else { toca = diff===0; vuelta = 0; }
+    if(!toca) return false;
+    // Límite de repeticiones: probar algo durante 7, 21 días… y que se apague solo.
+    // Sin ev.veces (o 0) se repite indefinidamente, como hasta ahora.
+    if(ev.veces>0 && vuelta>=ev.veces) return false;
+    return true;
   });
 }
 // Horas a las que ocurre un momento propio dentro de un mismo día.
@@ -1799,7 +1839,7 @@ function repText(ev){
 }
 // Texto del patrón completo: repetición entre días + repetición dentro del día
 function repFullText(ev){
-  const base=repText(ev);
+  const base=repText(ev) + (ev.veces>0 ? ' · '+t('ev_total').replace('{n}', ev.veces) : '');
   const n=eventTimes(ev).length;
   if(n<=1) return base;
   if(ev.dmode==='int') return base+' · '+n+' '+t('rep_ntimes')+' ('+t('rep_each')+' '+ev.dgap+' h)';
@@ -2778,7 +2818,7 @@ function openAddForm(){
     <p class="muted" style="margin-top:6px">${t('na_email_note').replace('{e}',METRICS_EMAIL)}</p>
     <input type="file" id="np_file" accept=".docx,.json,.txt,.js" style="display:none" onchange="importPracticesFile(this.files[0])">
     <button class="btn ghost block" style="margin-top:16px" onclick="document.getElementById('np_file').click()">${t('na_upload')}</button>
-    <p class="center" style="margin-top:8px"><button type="button" class="tbtn" onclick="descargarPlantilla()">${t('na_download_tpl')}</button></p>
+    <p class="center cbtn" style="margin-top:8px"><button type="button" class="tbtn" onclick="descargarPlantilla()">${t('na_download_tpl')}</button></p>
     <p class="muted" style="margin-top:6px">${t('na_formats')}</p>`;
   openModal(true);
 }
@@ -3235,7 +3275,7 @@ function renderFav(){
       <h2 style="margin:14px 0 6px;font-size:1.7rem">${t('path_title')}</h2>
       <p class="muted" style="margin:0 0 14px;font-size:1.08rem">${t('path_sub')}</p>
       <img src="${getLang()==='en'?'noveno-en.png':'noveno-es.png'}" alt="" style="width:100%;height:auto;display:block;margin:0 auto">
-      <p style="margin:14px 0 4px"><button type="button" class="tbtn" onclick="document.getElementById('nc_redes').scrollIntoView({behavior:'smooth'})">${t('path_soc_link')}</button></p>
+      <p class="cbtn" style="margin:14px 0 4px"><button type="button" class="tbtn" onclick="document.getElementById('nc_redes').scrollIntoView({behavior:'smooth'})">${t('path_soc_link')}</button></p>
     </div>
     ${botonPlegarTodo('toggleAllNC()', ncCollapsed['texto'] && ncCollapsed['citas'])}
     <div class="card" data-nc="texto">
@@ -3423,7 +3463,7 @@ function secAjustes(id, titulo, cuerpo){
     <div class="cardhead" data-card="${id}"><h2 onclick="${alt}=!${alt};renderSet();${ver}" style="cursor:pointer;margin:0">${titulo} <span class="muted">${abierta?'▲':'▼'}</span></h2></div>
     <div class="setbody" data-sec="${id}" style="${abierta?'':'display:none'}">
       ${cuerpo}
-      <p class="center" style="margin-top:10px"><button type="button" class="tbtn suave" onclick="${alt}=true;renderSet();${ver}">${t('set_collapse')}</button></p>
+      <p class="center cbtn" style="margin-top:10px"><button type="button" class="tbtn suave" onclick="${alt}=true;renderSet();${ver}">${t('set_collapse')}</button></p>
     </div>
   </div>`;
 }
@@ -3448,15 +3488,15 @@ function renderSet(){
       ${perm==='denied'?`<p class="muted" style="margin-top:8px">${t('nt_denied')}</p>`:''}
       ${IS_NATIVE?`<label class="fld" style="margin-top:16px">${t('nt_punct')}</label>
       <p class="muted">${t('nt_punct_txt')}</p>
-      <p style="margin:4px 0 0"><button type="button" class="tbtn" onclick="abrirAjusteExacto()">${t('nt_punct_open')}</button></p>
+      <p class="cbtn" style="margin:4px 0 0"><button type="button" class="tbtn" onclick="abrirAjusteExacto()">${t('nt_punct_open')}</button></p>
       <label class="fld" style="margin-top:16px">${t('nt_sound')}</label>
       <p class="muted">${t('nt_sound_txt')}</p>
       <button class="btn ${alarmMode?'gold':'ghost'} block" onclick="toggleAlarmMode()">${alarmMode?t('nt_alarm_on'):t('nt_alarm_off')}</button>
       <p class="muted" id="bgestado" style="font-size:.78rem;margin-top:4px;text-align:center">${bgEstadoTxt()}</p>
       <p class="muted" style="font-size:.8rem;margin-top:10px">${t('nt_blocked_q')}</p>
-      <p class="center" style="margin-top:8px"><button type="button" class="tbtn" onclick="abrirGuiaBloqueado()">${t('nt_guide')}</button></p>
+      <p class="center cbtn" style="margin-top:8px"><button type="button" class="tbtn" onclick="abrirGuiaBloqueado()">${t('nt_guide')}</button></p>
       ${alarmChannelOk===false?`<p class="muted" style="font-size:.8rem;margin-top:6px;color:#B3402A">${t('nt_no_channel')}</p>`:''}`:''}
-      <p class="center" style="margin-top:14px"><button type="button" class="tbtn" onclick="testNotif()">${t('nt_test')}</button></p>
+      <p class="center cbtn" style="margin-top:14px"><button type="button" class="tbtn" onclick="testNotif()">${t('nt_test')}</button></p>
     `)}
     ${secAjustes('patron', t('set_pattern'), `
       <label class="fld">${t('pt_first_hour')}</label>
@@ -3539,10 +3579,10 @@ function renderSet(){
       <p class="muted"><b>${t('st_top_slots')}</b> ${r.topHoras.length?r.topHoras.join(', '):'—'}</p>
       <p class="muted"><b>${t('st_top_disc')}</b> ${r.topCamb.length?r.topCamb.map(c=>c.t+' ('+c.n+')').join(' · '):'—'}</p>
       <p class="muted">${t('st_last_send')} ${fmtFecha(stats.lastSend)}</p>`; })()}
-      <p class="center"><button type="button" class="tbtn" onclick="sendMetrics()">${t('st_send_metrics')}</button></p>
+      <p class="center cbtn"><button type="button" class="tbtn" onclick="sendMetrics()">${t('st_send_metrics')}</button></p>
       <p class="muted" style="margin-top:14px">${t('st_feedback_txt')}</p>
       <button class="btn ghost block" onclick="enviarFeedback()">${t('st_feedback_btn')}</button>
-      <p class="center" style="margin-top:14px"><button type="button" class="tbtn peligro" onclick="openResetStats()">${t('st_reset')}</button></p>
+      <p class="center cbtn" style="margin-top:14px"><button type="button" class="tbtn peligro" onclick="openResetStats()">${t('st_reset')}</button></p>
     `)}
     ${secAjustes('cuenta', t('set_privacy'), `
       <label class="fld">${I18N.es.priv_language} · ${I18N.en.priv_language}</label>
@@ -3551,7 +3591,7 @@ function renderSet(){
         ${idiomasDisponibles().map(c=>`<button class="optbtn ${getLang()===c?'sel':''}"
           onclick="setLang('${c}');renderSet()">${banderaIdioma(c)} ${esc(nombreIdioma(c))}</button>`).join('')}
       </div>
-      ${idiomasDisponibles().filter(c=>!IDIOMAS_BASE.includes(c)).map(c=>`<p class="center" style="margin:0 0 6px">
+      ${idiomasDisponibles().filter(c=>!IDIOMAS_BASE.includes(c)).map(c=>`<p class="center cbtn" style="margin:0 0 6px">
         <button type="button" class="tbtn peligro" onclick="quitarIdioma('${c}')">${t('id_remove')}: ${esc(nombreIdioma(c))}</button></p>`).join('')}
       <input type="file" id="id_file" accept=".json,application/json" style="display:none"
         onchange="importarArchivo(this.files[0]);this.value=''">
@@ -3569,7 +3609,7 @@ function renderSet(){
       <p class="muted">${t('pr_astro')}</p>
       <button class="btn primary block" style="margin:12px 0" onclick="abrirFormularioSuscripcion()">${t('pr_subscribe')}</button>
       <p class="muted" style="font-size:.82rem;text-align:center">${t('pr_sub_txt')}</p>
-      <p class="center" style="margin-top:12px"><button type="button" class="tbtn" onclick="verLegal('cond')">${t('pr_terms')}</button> · <button type="button" class="tbtn" onclick="verLegal('priv')">${t('pr_privacy')}</button></p>
+      <p class="center cbtn" style="margin-top:12px"><button type="button" class="tbtn" onclick="verLegal('cond')">${t('pr_terms')}</button> · <button type="button" class="tbtn" onclick="verLegal('priv')">${t('pr_privacy')}</button></p>
       <label class="fld" style="margin-top:16px">${t('bk_title')}</label>
       <p class="muted">${t('bk_txt')}</p>
       <button class="btn ghost block" onclick="exportarDatos()">${t('bk_export')}</button>
@@ -3595,7 +3635,7 @@ function renderSet(){
       <p class="muted" style="margin-top:14px">${t('pr_version')} <b>v${APP_VERSION}</b></p>
       <p class="muted">${t('pr_upgrade')}</p>
       <p class="muted" style="margin-top:14px;font-size:.82rem">${t('pr_reset_warn')}</p>
-      <p class="center"><button type="button" class="tbtn peligro" onclick="restaurarTodo()">${t('pr_reset')}</button></p>
+      <p class="center cbtn"><button type="button" class="tbtn peligro" onclick="restaurarTodo()">${t('pr_reset')}</button></p>
     `)}
     <div class="card"><h2 style="margin:0 0 12px">${t('nc_social')}</h2>${ncSocialBlock()}</div>`;
 }

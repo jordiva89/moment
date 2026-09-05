@@ -97,6 +97,9 @@ nav button.active{color:var(--dorado)}
 /* Botón de texto: para acciones secundarias que antes eran texto pulsable.
    Se ve ligero, casi como un enlace, pero es un <button> de verdad: accesible
    con teclado y anunciado como botón por los lectores de pantalla. */
+/* Botón de texto: para acciones secundarias que antes eran texto pulsable.
+   Se ve ligero, casi como un enlace, pero es un <button> de verdad: accesible
+   con teclado y anunciado como botón por los lectores de pantalla. */
 .tbtn{
   display:inline-block; background:none; border:0; padding:4px 2px; margin:0;
   font:inherit; font-size:.9rem; color:var(--verde2); cursor:pointer;
@@ -235,3 +238,30 @@ input[type=range].favrange{
 [dir="rtl"] .tbtn, [dir="rtl"] .fld, [dir="rtl"] .muted{ text-align:right }
 [dir="rtl"] input, [dir="rtl"] select, [dir="rtl"] textarea{ direction:rtl; text-align:right }
 [dir="rtl"] ul{ padding-right:20px; padding-left:0 }
+
+/* ---- Justificado y centrado ----
+   Los textos van justificados a ambos lados, con partición de palabras para que
+   no queden huecos raros entre palabras. Los botones, centrados; si hay varios
+   en la misma línea se colocan uno al lado del otro y bajan de línea si no caben,
+   nunca solapados. */
+#main p, .dbody, .dbody p, .setbody p, .card p,
+.infobox, .qbox, .qbox p, .prev, .libitem .prev{
+  text-align:justify; text-justify:inter-word;
+  hyphens:auto; -webkit-hyphens:auto; overflow-wrap:break-word;
+}
+/* los títulos, etiquetas y avisos cortos no se justifican */
+h1,h2,h3,h4,.fld,.catpill,.cat-tag,.toast,.dhead,.cardhead,
+#splash p, .center, p.center{ text-align:center; hyphens:manual }
+h2,h3,h4,.fld,.dhead,.cardhead{ text-align:left }
+
+/* Un párrafo o una caja que solo contiene botones: centrado */
+p:has(> button), p:has(> .tbtn), div:has(> .btn), div:has(> .tbtn){ text-align:center }
+/* Filas de botones: uno al lado del otro, centrados, y bajan de línea si no caben */
+.row, .btnrow, .optgrid{ justify-content:center; flex-wrap:wrap; gap:8px }
+/* La clase .cbtn marca los contenedores de botones: centrados siempre, sin
+   depender de :has(), que no todos los motores soportan. */
+.cbtn{ text-align:center !important; display:block }
+.cbtn .tbtn, .cbtn .btn{ margin:3px 4px }
+.btn:not(.block){ margin-inline:2px }
+/* Los botones que ocupan todo el ancho no se tocan */
+.btn.block{ display:block; width:100%; text-align:center }
