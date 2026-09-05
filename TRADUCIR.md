@@ -62,6 +62,11 @@ sus propios momentos, no el de la app).
 node tools/validar-idioma.js idiomas/ar.json ar
 ```
 
+También puedes probarlo en el móvil sin esperar a nadie: pasa el archivo al
+teléfono y añádelo desde **Ajustes → Idiomas → Añadir un idioma desde un
+archivo**. La app lo revisa y te dice qué falla. Si lo dejas en la carpeta de
+Descargas, el botón «Buscar archivos de Moment» lo encuentra solo.
+
 ### Reglas que la validación comprueba
 
 - **Los marcadores se conservan.** Si el original dice `Han pasado {d} días`, la
@@ -72,6 +77,12 @@ node tools/validar-idioma.js idiomas/ar.json ar
   enfermedad, síntoma. Ni promesas del tipo «reduce el estrés» o «mejora el sueño».
 - **No inventes prácticas.** Solo se traducen las que existen.
 
+### Un detalle que te ahorrará trabajo
+
+Si traduces las claves `fmt_title`, `fmt_cat`, `fmt_text` y `fmt_link`, la
+**plantilla de prácticas** pasa a generarse en tu idioma —con `Titre:` en vez de
+`Título:`, por ejemplo— y la app sabe leerla igual. No hay que tocar nada más.
+
 **No pasa nada si la traducción está incompleta.** Lo que falte se mostrará en
 español o en inglés, según elija cada persona. Es preferible medio idioma bien
 traducido que uno entero a medias.
@@ -80,13 +91,13 @@ traducido que uno entero a medias.
 
 ## Qué pasa después
 
-Tu propuesta pasa por **tres capas**, y ninguna sustituye a las otras:
+Tu propuesta pasa por **dos filtros**, y el segundo es el que decide:
 
-1. **Validación automática.** Se ejecuta sola en GitHub. Comprueba lo verificable:
-   claves, marcadores, HTML, vocabulario prohibido.
-2. **Retrotraducción asistida.** Tu texto se traduce de vuelta al español para que
-   pueda revisarse el contenido, no solo la forma.
-3. **Revisión humana.** La última palabra es de Jordi Beold.
+1. **Validación automática.** Se ejecuta sola en GitHub al enviar la propuesta.
+   Comprueba lo verificable: claves, marcadores, HTML, vocabulario prohibido.
+2. **Revisión humana.** La última palabra es de Jordi Beold. Si el idioma no lo
+   lee, buscará a alguien de confianza que lo hable. **No se usan traducciones
+   automáticas para revisar traducciones.**
 
 Además, antes de publicar un idioma se revisa **a mano en el móvil** cómo quedan
 los botones y las cajas: algunos idiomas ocupan hasta un 30% más y los textos
