@@ -1,0 +1,54 @@
+name: Release para Google Play y web
+
+# Se lanza A MANO desde la pestaña Actions de GitHub (botón "Run workflow").
+# Genera dos archivos firmados con tu clave de siempre:
+#   - app-release.aab  → el que se sube a Google Play
+#   - app-release.apk  → el que se publica en la web (opción B)
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v5
+      - name: Preparar Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Preparar Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Instalar dependencias
+        run: npm install
+      - name: Generar el proyecto Android
+        env:
+          VERSION_CODE: ${{ github.run_number }}
+          ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+        run: |
+          npx cap add android
+          node tools/prepare-android.js
+          node tools/setup-signing.js
+          node tools/set-version.js
+          npx cap sync android
+      - name: Compilar AAB (Google Play) y APK (web)
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew bundleRelease
+          ./gradlew assembleRelease
+      - name: Publicar el AAB para Google Play
+        uses: actions/upload-artifact@v6
+        with:
+          retention-days: 5
+          name: momento-para-ti-play-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
+      - name: Publicar el APK de release para la web
+        uses: actions/upload-artifact@v6
+        with:
+          retention-days: 5
+          name: momento-para-ti-web-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
