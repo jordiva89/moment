@@ -589,6 +589,31 @@ máximo de veinte. No rastrea el teléfono ni necesita permiso de almacenamiento
 | Retrotraducción asistida | **Descartada:** la revisión es manual |
 | Descarga automática desde la web | **Descartado a propósito** |
 
+## 14 bis. Al cambiar el identificador: desinstalar antes
+
+**Si se cambia `appId`, hay que DESINSTALAR la versión anterior antes de instalar
+la nueva.** Si no, Android puede rechazar la instalación con «el paquete parece no
+válido», aunque el APK sea perfectamente correcto.
+
+Esto costó varias horas de diagnóstico. Se comprobó, sobre el APK descargado, que
+todo estaba bien: firma v1 con sus digests coherentes, firma v2 verificada
+matemáticamente, `resources.arsc` sin comprimir y alineado, dex íntegros, sin
+`testOnly`, manifiesto correcto. El archivo no tenía ningún defecto: el bloqueo
+venía del dispositivo, por el rastro de la instalación anterior.
+
+**Antes de desinstalar, exportar la copia de seguridad** desde Ajustes: al cambiar
+el identificador la app nueva empieza vacía.
+
+Comprobaciones útiles si algún día vuelve a fallar una instalación:
+
+```bash
+unzip -l app.apk | grep -E 'CERT|resources.arsc'   # firma v1 y recursos
+python3 -c "d=open('app.apk','rb').read(); print(b'APK Sig Block 42' in d)"
+```
+
+Y en el manifiesto: `minSdkVersion` (Android 14 exige 23 o más), `testOnly`
+(impide instalar) y `debuggable`.
+
 ## 15. Pendientes conocidos
 
 - `build-release.yml` publica como artefacto, no como Release: si da error de
@@ -597,4 +622,5 @@ máximo de veinte. No rastrea el teléfono ni necesita permiso de almacenamiento
   enlazados, por la desmedicalización del vocabulario.
 - Sin pruebas en dispositivo real: la batería es jsdom, no Android.
 - `listarArchivosMoment` (nativo) no se ha podido probar aquí: **verificar en el
-  móvil** que encuentra los archivos de Descargas tras recompilar.
+  móvil** que encuentra los archivos de Descargas.
+- El APK se compila en modo **release** y firmado: no lleva marca de depuración.
