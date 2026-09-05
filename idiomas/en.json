@@ -1,0 +1,1385 @@
+{
+ "codigo": "en",
+ "nombre": "English",
+ "esquema": 1,
+ "autor": "Jordi Beold",
+ "licencia": "AGPL-3.0",
+ "revisado": true,
+ "fijos": {
+  "ob_lang_title": "Choose your language",
+  "ob_lang_sub": "You can change it later in Settings.",
+  "priv_language": "Language",
+  "priv_lang_es": "Español",
+  "priv_lang_en": "English",
+  "pr_accept_chk": "Responsibility acceptance active",
+  "pr_accept_txt": "If you turn it off, the app will stay locked until you read and accept the notice again.",
+  "pr_titular": "Open-source app that lives entirely on your device. Service controller: Jordi Beold (artistic name) · data: jordibeold@jordibeold.com. This project intends to become an association and, later, The Ninth Path Foundation.",
+  "legal_close": "Close"
+ },
+ "categorias": {
+  "armonizacion": "Harmonization",
+  "constelaciones": "Constellations",
+  "energia": "Energy",
+  "introspeccion": "Introspection",
+  "meditacion": "Meditation",
+  "psicomagia": "Psychomagic",
+  "respiracion": "Breathing",
+  "valores": "Values"
+ },
+ "interfaz": {
+  "tab_program": "Agenda",
+  "tab_library": "Library",
+  "tab_path": "The Ninth Path",
+  "tab_settings": "Settings",
+  "path_title": "The Ninth Path",
+  "path_soon": "Something special will be here very soon.",
+  "path_sub": "Holistic spirituality for a coherent, free and purposeful way of life.",
+  "path_soc_link": "See The Ninth Path’s social channels.",
+  "nc_cta": "Walk the path every day: join our channels and grow with us. Your support makes this project possible — thank you from the heart. 🙏",
+  "fp_prev": "← Previous",
+  "fp_back": "Back",
+  "fp_next": "Next →",
+  "fp_snooze": "⏲ Snooze",
+  "fp_go_app": "🏠 Go to the app",
+  "notif_act_snooze": "⏲ Snooze",
+  "notif_act_open": "Open",
+  "notif_act_done": "✓ Done",
+  "ts_done_ok": "Practice completed! 🌱",
+  "ts_done_extra": "Extra practice completed! 🌟",
+  "ts_snoozed": "Snoozed {m} min",
+  "ts_snoozed_to": "Snoozed {m} min → {h}",
+  "canal_std_nombre": "Moment",
+  "canal_std_desc": "Practice suggestions",
+  "sh_prop_subject": "New practice suggested: ",
+  "sh_prop_intro": "A practice suggestion for \"Moment\"",
+  "app_title": "Moment",
+  "app_title_br": "Moment",
+  "app_sub": "Moment for you",
+  "app_slogan": "Small practices for big changes",
+  "lib_offline": "Your library is stored on your device and works offline.",
+  "tpl_filename": "practices-template.docx",
+  "tpl_title": "Practices template",
+  "bk_title": "Backup",
+  "bk_txt": "Save all your data (settings, moments, your own practices, favorites and statistics) to a file, so you can recover it if you switch phones or reinstall the app.",
+  "bk_export": "⬇ Export my data",
+  "bk_import": "⬆ Import a backup",
+  "bk_file_title": "Moment backup",
+  "bk_fileprefix": "moment-backup-",
+  "bk_confirm": "This will replace the app’s current data with the backup. Continue?",
+  "bk_done": "Backup imported ✔ The app will restart…",
+  "bk_bad": "The file doesn’t look like a Moment for you backup",
+  "bk_read_fail": "Couldn’t read the file",
+  "bk_export_fail": "Couldn’t prepare the backup",
+  "bk_ok_title": "Backup saved ✔",
+  "bk_ok_body": "Your backup is in the phone’s <b>Downloads</b> folder, under this name:",
+  "bk_ok_share": "If you are switching phones or want to keep it somewhere else, you can send it now by email, messaging or the cloud.",
+  "bk_share_btn": "📤 Send or save elsewhere",
+  "ob_imp_title": "Do you already have a backup?",
+  "ob_imp_sub": "If you are coming from another phone or have reinstalled the app, you can load your backup file here and recover your settings, your moments and your statistics.",
+  "ob_imp_yes": "📂 Load my backup",
+  "ob_imp_no": "Start from scratch",
+  "lib_no_results": "No results.",
+  "boot_loaded": "Loaded. Tap a tab below.",
+  "share_preparing_a": "Preparing the file… choose",
+  "share_preparing_b": "in the menu",
+  "default_link_text": "Open the link and follow the practice.",
+  "ob_continue": "Continue",
+  "ob_start": "Start",
+  "ob_hint_title": "A tip to get started",
+  "ob_hint_custom": "You can create your own \"Moments for you\" in Settings → Your pattern: you choose the time, the practice and how often it repeats. If you also tick \"Only suggest my custom moments, not the standard ones\", your day will be made up of those alone. You can also combine both: your moments alongside the app’s suggestions. Or just go with the flow and experiment until you find what works best for you.",
+  "ab_title": "About the app",
+  "cat_new_ph": "New category name",
+  "ob_hour_title": "What time would you like your first practice?",
+  "ob_hour_sub": "We'll build your daily moments starting from this time.",
+  "clk_pick_h": "Tap the hour",
+  "clk_pick_m": "Tap the minutes",
+  "nc_quotes": "Quotes",
+  "nc_social": "Follow the Ninth Path",
+  "fold_all": "Collapse all",
+  "unfold_all": "Expand all",
+  "ob_back": "← Back",
+  "ob_freq_title": "How often would you like a suggestion?",
+  "ob_freq_each": "Every",
+  "ob_freq_h": "h",
+  "ob_span_title": "For how many hours a day should we suggest practices?",
+  "ob_span_sub": "Counting from your first practice. Note that both the first and the last hour count as suggestions.",
+  "ob_rem_title": "How reminders work",
+  "ob_rem_box": "A snoozed practice waits 1 minute, then 1 more, then 2, 3, 5, 8, 13, 21, 34 and 55 minutes before reminding you again — never overlapping the next notification.",
+  "ob_rem_notif": "Every notification is called \"Moment for you\" and plays your phone’s default sound. To receive them, allow notifications below.",
+  "ob_notif_on": "🔔 Notifications on",
+  "ob_notif_ask": "🔕 Allow notifications",
+  "h_today": "Your day",
+  "h_past": "Earlier today",
+  "h_next": "Next day",
+  "hm_own": "✦ Your moment",
+  "st_done": "done",
+  "st_next": " · next",
+  "st_muted": " · 🔕 muted",
+  "open_ex": "Open practice ↗",
+  "done_now": "🌟 Done now",
+  "done_mark": "✔ Done",
+  "change": "✨ Change",
+  "no_more": "No more moments for today.",
+  "mute_off": "Mute this notification",
+  "mute_on": "Unmute this notification",
+  "snoozed_1": "time",
+  "snoozed_n": "times",
+  "hdr_today": "Today",
+  "hdr_moments": "moments",
+  "hdr_done": "completed",
+  "hdr_extra": "extra",
+  "hdr_next_at": "next at",
+  "hdr_yest": "Yesterday",
+  "hdr_yest_done": "done",
+  "hdr_yest_snoozed": "snoozed",
+  "hdr_nodata": "no data",
+  "snoozed_pre": "Snoozed",
+  "snoozed_next": "next reminder at",
+  "lib_search": "Search practice…",
+  "lib_new": "＋ Create new practice",
+  "lib_box_practices": "Practices",
+  "lib_box_own": "Yours",
+  "lib_box_fav": "Favorites",
+  "lib_clear": "Clear search",
+  "what_is": "What is this?",
+  "fmt_title": "Title: ",
+  "fmt_cat": "Category: ",
+  "fmt_text": "Text: ",
+  "fmt_link": "Link: ",
+  "sh_mail_sub1": "Practice for the app: ",
+  "sh_mail_subn": "{n} practices for the app",
+  "sh_mail_hi": "Hi Jordi,",
+  "sh_mail_1": "I’m sharing this practice in case you want to include it:",
+  "sh_mail_n": "I’m sharing these practices in case you want to include them:",
+  "sh_mail_bye": "Best regards.",
+  "lib_box_done": "Done",
+  "lib_suf_own": " · yours",
+  "lib_del_own": "🗑 Delete this practice of mine",
+  "lib_done_n": "done",
+  "lib_done_1v": "time",
+  "lib_done_nv": "times",
+  "lib_paused_suf": " · paused",
+  "pause_add": "⏸ Pause",
+  "pause_remove": "▶ Unpause",
+  "pause_add_t": "Pause",
+  "pause_remove_t": "Unpause",
+  "box_paused": "Paused",
+  "lib_all_cats": "All categories",
+  "set_expand_all": "Expand all",
+  "set_collapse_all": "Collapse all",
+  "set_collapse": "▲ Collapse",
+  "set_notif": "Notifications",
+  "set_pattern": "Your practice pattern",
+  "set_share": "Share the \"Moment for you\" app",
+  "set_stats": "Statistics",
+  "set_privacy": "Data & privacy",
+  "nt_next": "Next notification:",
+  "nt_next_today": "today at",
+  "nt_next_none": "none left for today",
+  "nt_native": "Android handles reminders: they ring on time even when the app is closed, with {n} days scheduled ahead. They reschedule themselves whenever you change a practice or your pattern.",
+  "nt_web": "As a web app, Android may freeze reminders while the app is closed; you’ll get the pending one when you reopen it. For best timing, keep it in the recent background.",
+  "nt_on": "🔔 Notifications on",
+  "nt_off": "🔕 Notifications off",
+  "nt_denied": "The system permission is blocked: enable it in Android settings.",
+  "nt_punct": "Timing",
+  "nt_punct_txt": "Android may delay reminders by a few minutes to save battery. The \"Alarms & reminders\" permission makes them ring to the exact minute (despite its name, it controls timing, not sound). The system grants it, not the app.",
+  "nt_punct_open": "Open \"Alarms & reminders\" ↗",
+  "nt_sound": "Alarm sound",
+  "nt_sound_txt": "With alarm mode, reminders ring with your <b>alarm clock sound and volume</b>, even on silent or \"Do Not Disturb\". The button turns it on and off instantly. To also ring while your phone is <b>locked</b>, your Android must let the app work in the background: check the status in the links below.",
+  "nt_alarm_on": "🔔 Alarm mode on (rings on silent)",
+  "nt_alarm_off": "😴 Alarm mode off",
+  "nt_blocked_q": "<b>Not ringing while your phone is locked?</b> Some brands (realme, OPPO, Xiaomi, Huawei…) add battery-saving layers that hold back reminders when locked. The guide walks through each one, with direct links.",
+  "nt_guide": "🔒 Full guide to make the alarm ring even with the phone locked",
+  "nt_no_channel": "⚠️ The native alarm channel isn’t in this build: rebuild the APK with the updated tools/prepare-android.js. In the meantime, reminders arrive through the normal channel (not lost), but without alarm sound on silent.",
+  "nt_test": "🧪 Test notification",
+  "pt_first_hour": "Time of your first practice",
+  "pt_each": "A suggestion every",
+  "pt_each_btn": "Every",
+  "pt_snooze_txt": "A snoozed practice waits 1 minute, then 1 more, then 2, 3, 5, 8, 13, 21, 34 and 55 minutes before reminding you again — never overlapping the next notification.",
+  "pt_start_txt": "The time of your first suggestion of the day. Everything else is spread out from there.",
+  "pt_each_txt": "How often a practice is suggested to you within the active period.",
+  "pt_span_label": "Hours of suggestions per day",
+  "pt_span_txt": "How many hours the suggestions run from your start time. Note that both the first and the last hour count as suggestions.",
+  "pt_fav_label_a": "Favorite practices per day:",
+  "pt_fav_label_b": "of",
+  "pt_fav_label_c": "moments",
+  "pt_fav_txt": "How many of the day’s suggestions will come from your favourites (the ones you mark with ★ in the Library). If you ask for more than you have saved, the rest is filled in with other practices; if you have more, they are picked at random among them, without repeating on the same day.",
+  "pt_const_label": "Constellations of the day",
+  "pt_const_no": "Don’t suggest constellations",
+  "pt_const_ini": "One constellation at the start of the day",
+  "pt_const_med": "One constellation at midday",
+  "pt_const_fin": "One constellation at the end of the day",
+  "pt_const_txt": "Choose when in the day you want a constellation: at the start, midway, at the end, in several of them or in none.",
+  "pt_vis_label": "Preferred categories",
+  "pt_vis_chk": "Visualization",
+  "pt_cats_txt": "You will be offered at least one practice from each category you tick. If you tick more categories than your day has moments, as many as fit will be included.",
+  "pt_esp_label": "Special ones",
+  "pt_esp_txt": "Practices meant for a particular time of day. Create a \"Moment for you\" with any of them and choose the time yourself.",
+  "canal_nombre": "Moment (alarm)",
+  "canal_desc": "Reminders that ring even when the phone is on silent",
+  "pt_moments_label": "Your own \"Moments for you\"",
+  "pt_moments_txt": "Your own moments, at the time you decide and with the practice you choose. They are added to \"Your day\" with their own reminder, like any other suggestion, and can repeat several times a day. If one clashes with a pattern suggestion, the app will ask what you prefer. You can pause, edit or delete them whenever you like.",
+  "pt_only_own": "Only suggest my custom moments, not the standard ones",
+  "pt_create": "＋ Create a \"Moment for you\"",
+  "rep_daily": "every day",
+  "rep_days_a": "every",
+  "rep_days_b": "days",
+  "rep_weekly": "every",
+  "rep_monthly_a": "monthly (day",
+  "rep_monthly_b": ")",
+  "ef_edit": "Edit",
+  "ef_create_h": "Create a",
+  "ef_hour": "Time",
+  "ef_exercise": "Exercise",
+  "ef_new_ex": "— Create a new exercise for this moment —",
+  "ef_new_title": "New exercise title",
+  "ef_new_title_ph": "E.g.: Calming breath",
+  "ef_new_text": "New exercise text",
+  "ef_new_text_ph": "Describe the practice step by step…",
+  "ef_link": "Link (optional)",
+  "ef_repeat": "Repeat",
+  "ef_r_daily": "Every day",
+  "ef_r_days": "Every X days",
+  "ef_r_weekly": "Weekly",
+  "ef_r_monthly": "Monthly",
+  "ef_ndays": "Every how many days",
+  "ef_ndays_opt": "days",
+  "ef_save": "Save changes",
+  "ef_create": "Create",
+  "ef_cancel": "Cancel",
+  "ev_pick_hour": "Choose a time",
+  "ev_title_req": "Give the practice a title",
+  "ev_text_req": "Write the exercise or add a link",
+  "ev_pick_ex": "Choose an exercise",
+  "ev_saved": "Moment",
+  "ev_updated": "updated",
+  "ev_created": "saved",
+  "st_remind_q": "{d} days have passed: send the usage metrics by email now?",
+  "lg_label": "Technical issues",
+  "lg_none": "No issues recorded.",
+  "lg_txt": "Internal notes about failures the app was able to work around. They help with diagnosis and never leave your phone unless you send the feedback email.",
+  "lg_clear": "Clear the log",
+  "lg_cleared": "Log cleared",
+  "id_label": "Languages",
+  "id_txt": "Spanish and English ship with the app. Other languages are downloaded from the website and added here. Once imported they are stored on your phone and work offline.",
+  "id_import": "📂 Add a language from a file",
+  "id_remove": "Remove",
+  "id_removed": "Language removed",
+  "id_remove_q": "Remove the {n} language? You can add it again whenever you like.",
+  "id_bad": "That file is not a valid language",
+  "iv_formato": "The file does not have the expected format.",
+  "iv_codigo": "A valid language code is missing.",
+  "iv_base": "That language already ships with the app.",
+  "iv_esquema": "The file targets another version of the app.",
+  "iv_interfaz": "The interface block is missing.",
+  "iv_practicas": "The practices block is missing.",
+  "iv_html": "The texts contain HTML or links, which are not allowed.",
+  "im_found": "Files found on your phone",
+  "im_scan": "🔎 Look for Moment files",
+  "im_found_txt": "Looks in your Downloads folder for Moment backups, languages or practices so you can import them with one tap.",
+  "im_scanning": "Looking…",
+  "im_none": "No practices found: check the template format 😕",
+  "im_use": "Use",
+  "im_t_copia": "Backup",
+  "im_t_idioma": "Language",
+  "im_t_practicas": "Practices",
+  "im_unknown": "I do not recognise this file. It should be a Moment backup, a language or practices.",
+  "id_rejected": "This file cannot be added:",
+  "id_confirm": "Add the {n} language?\n\nTranslated practices: {p}\nTranslated by: {a}\n\nAnything missing will be shown in your fallback language.",
+  "id_added": "Language added: {n}",
+  "cr_txt": "Translated by {n}. Thank you for helping Moment speak more languages.",
+  "lb_label": "Library fallback language",
+  "lb_txt": "If a practice is not translated into your language, it will be shown in this one. Spanish and English always ship with the app.",
+  "lb_ask_title": "Part of the translation is missing",
+  "lb_ask_txt": "This library is not fully translated into your language. Which language would you rather see the missing practices in? You can change it in Settings.",
+  "lb_set": "Fallback language: {l}",
+  "mk_moment_btn": "⏰ Create a “Moment for you” with this practice",
+  "ef_dayrep": "Does it repeat during the day?",
+  "ef_dr_once": "Once only",
+  "ef_dr_int": "Several times a day, every X hours",
+  "ef_dr_list": "At specific times I choose",
+  "ef_dr_count": "Times per day",
+  "ef_dr_gap": "Every (hours)",
+  "ef_dr_times": "Additional times",
+  "ef_dr_add": "+ Add time",
+  "ef_dr_del": "Remove",
+  "ef_dr_first": "The first one is the time above. Repetitions past midnight carry over to the next day.",
+  "rep_ntimes": "times a day",
+  "rep_each": "every",
+  "ev_need_times": "Add at least one more time, or choose another repetition",
+  "ev_times_max": "Maximum 12 moments per day",
+  "ev_paused_t": "Moment paused ⏸",
+  "ev_unpaused_t": "Moment unpaused ▶",
+  "ev_deleted": "Moment deleted",
+  "cf_title": "It overlaps another suggestion",
+  "cf_at": "At",
+  "cf_body": "you already have another suggestion in \"Your day\". What would you prefer?",
+  "cf_replace": "Remove the preset suggestion at that time",
+  "cf_both": "Suggest both at that time",
+  "cf_at_pl": "At",
+  "cf_body_pl": "you already have other suggestions in \"Your day\". What would you prefer?",
+  "cf_replace_pl": "Remove the preset suggestions at those times",
+  "cf_both_pl": "Keep them all",
+  "sh_title": "Share with Jordi Beold?",
+  "sh_body": "Would you like to send this \"Moment for you\" to Jordi Beold, in case it fits as a practice in the app?",
+  "sh_yes": "Yes, prepare the email",
+  "sh_no": "No, thanks",
+  "mo_edit": "Edit",
+  "mo_delete": "Delete",
+  "mo_none": "You haven’t created any yet.",
+  "sr_intro": "Share the app with anyone you like. The installation file will be sent along with a short invitation message.",
+  "sr_world": "🌍 Share with the world",
+  "sr_copy": "📋 Copy invitation message",
+  "sr_copied": "Invitation message copied 📋",
+  "sr_copy_fail": "Couldn’t copy",
+  "sr_wa": "Tip: WhatsApp doesn’t show the text when a file is attached. The message copies itself — paste it into the chat next to the file.",
+  "sr_trust": "🛡 <b>A note on trust:</b> anyone who receives the app can check for themselves that it’s safe — for example by uploading the APK file to virustotal.com, or asking an AI to analyze its contents. The app doesn’t connect to the internet, contains no trackers, and all data stays on the phone; any analysis will confirm it. Sharing this reassurance helps more people feel comfortable trying it.",
+  "st_last_conn": "Last opened:",
+  "st_last_done": "Last practice done:",
+  "st_pattern": "Your pattern:",
+  "st_pattern_a": "moments/day · start",
+  "st_pattern_b": "every",
+  "st_pattern_c": "h ·",
+  "st_pattern_d": "h active",
+  "st_last_days_a": "Last",
+  "st_last_days_b": "days:",
+  "st_extra": "extra",
+  "st_snoozed_a": "snoozed",
+  "st_snoozed_b": "snoozes",
+  "st_top_slots": "Slots with most snoozes:",
+  "st_top_disc": "Most skipped:",
+  "st_last_send": "Last metrics sent:",
+  "st_send_metrics": "📧 Send metrics by email",
+  "st_feedback_txt": "Ideas, improvements, or something not working as expected? Your feedback helps \"Moment for you\" grow so much. Thank you from the heart! 🙏",
+  "st_feedback_btn": "💬 Send feedback about Moment",
+  "st_feedback_subj": "Feedback about Moment",
+  "dv_title": "— Technical details for troubleshooting —",
+  "dv_note": "(Added automatically so the problem can be reproduced. If you would rather not send them, delete this block before sending the email.)",
+  "dv_write": "Write your message here:",
+  "dv_phone": "Phone",
+  "dv_os": "System",
+  "dv_screen": "Screen",
+  "dv_app": "App",
+  "dv_lang": "App language",
+  "dv_sys": "system",
+  "dv_notif": "Reminders",
+  "dv_on": "on",
+  "dv_off": "off",
+  "dv_mode": "mode",
+  "dv_alarm": "alarm",
+  "dv_normal": "normal",
+  "dv_chan": "Alarm channel",
+  "dv_batt": "Battery",
+  "dv_batt_free": "unrestricted",
+  "dv_batt_saving": "battery saving on",
+  "dv_dnd": "Do not disturb",
+  "dv_dnd_on": "on",
+  "dv_dnd_off": "off",
+  "dv_pattern": "Pattern",
+  "dv_start": "start",
+  "dv_each": "every",
+  "dv_active": "h active",
+  "st_reset": "Reset statistics",
+  "pr_intro": "This app is fully usable with no sign-up, no payments, and without collecting your information: everything stays on your phone. If you like, you can join the mailing list and we’ll let you know when there’s a new version with more exercises or better features.",
+  "pr_astro": "<b>A new service for daily introspection based on the day’s astrological transits is coming soon. Don’t miss it: sign up to stay up to date.</b>",
+  "pr_subscribe": "✉ Join the mailing list",
+  "pr_sub_txt": "The form opens in your browser: there you enter your email and agree to receive the emails. The app doesn’t store or send your address. To unsubscribe, use the link at the bottom of any email.",
+  "pr_terms": "Terms of use",
+  "pr_privacy": "Privacy policy",
+  "pr_first_install": "First installed:",
+  "pr_last_update": "Last updated:",
+  "pr_version": "App version:",
+  "pr_upgrade": "Future versions install over the current one, keeping all your settings and library, with no need to uninstall.",
+  "pr_reset_warn": "⚠️ Resetting will delete all your own practices, your own moments, favorites, paused practices and settings, and will reset the practice schedule from scratch.",
+  "pr_reset": "Restore initial setup",
+  "gd_title": "🔒 Ringing with the phone locked",
+  "gd_realme": "Your phone (realme/OPPO)",
+  "gd_some": "Some phones",
+  "gd_intro": "add several battery-saving layers that hold back or silence reminders when locked. Go through them in order; the names may vary a little by language and version.",
+  "gd_s1": "<b>1. App battery.</b> <i>Only if reminders fail.</i> Allow <b>background activity</b> and <b>auto-launch</b>. This is the option that uses the most battery, so leave it for when the following steps are not enough. You can also get there via Settings → Battery → \"App battery management\" → Moment.",
+  "gd_s2": "<b>2. Optimized standby.</b> In Settings → Battery → <b>More settings</b>, find <b>\"Optimized standby\"</b> (also called \"Sleep standby optimization\") and <b>turn it off</b>: it freezes apps when the screen goes off and is the most common cause on realme/OPPO.",
+  "gd_s3": "<b>3. Quick app freeze.</b> On that same \"More settings\" screen, if <b>\"Quick app freeze\"</b> (Quick Freeze) exists, open it and <b>exclude Moment</b> from its list (or turn it off).",
+  "gd_s4": "<b>4. App permissions.</b> In the app info → Permissions, turn off <b>\"Pause app activity if unused\"</b>: over time it revokes permissions and stops notifications.",
+  "gd_s5": "<b>5. Lock in recents.</b> Open the <b>recent apps</b> screen (the ▢ button, or swipe up from the bottom and hold): you’ll see open apps as cards. <b>Long-press the Moment for you card</b> (or tap its three dots ⋮) and choose <b>Lock</b> 🔒. That way the system won’t close it. Note: this lock can be lost when you restart the phone or update the app — set it again now and then. (No direct shortcut.)",
+  "gd_s6": "<b>6. Sound.</b> Alarm mode rings even on silent, but it uses the <b>alarm volume</b>: check it’s not at zero. Then test: \"Test notification\" → lock the phone → wait about 20 seconds.",
+  "gd_diag": "<b>Diagnostic hint:</b> if the reminder arrives <b>all at once</b> when you unlock, the system held it back — review steps 1 to 5. If it arrives on time but <b>without alarm sound</b>, check the channel.",
+  "gd_open": "Open ↗",
+  "gd_open_bat": "Open Battery ↗",
+  "gd_open_app": "Open app info ↗",
+  "gd_open_sound": "Open Sound ↗",
+  "gd_open_channel": "Open alarm channel ↗",
+  "gd_ok": "Got it",
+  "ih_title": "Your growth",
+  "ih_intro": "Here you’ll find statistics of your earlier self and your current self, to see the changes. If you feel demanding, guilty, or proud (or the like) for doing less or more, I invite you to let it be felt but choose another path of expression — one more true to your being, more mature. Maybe, on seeing the notification, you simply decide to breathe consciously, or to forgive and forgive yourself. Whatever is, is; we accept it and keep giving our best, for you and for others.",
+  "ih_level": "<b>Growth level:</b> advances with the total practices completed — seed 🌰, sprout 🌱, seedling 🌿, rooted 🪴, in bloom 🌷 and tree 🌳.",
+  "ih_streak": "<b>Streak:</b> consecutive days practicing. The current one holds if you practiced today or yesterday; your best streak is saved too.",
+  "ih_medals": "<b>Medals:</b> recognize the categories you explore (out of 7) and your longest streaks.",
+  "extra_done": "Extra practice logged! 🌟",
+  "na_title": "Create new practice",
+  "na_intro": "It will be added to your local library and enter the daily suggestions at random like any other practice, and can be marked as a favorite and paused.",
+  "na_title_l": "Title",
+  "na_title_ph": "Practice name",
+  "na_cat": "Category",
+  "na_cat_other": "Other",
+  "na_text": "Exercise text (under 3 minutes)",
+  "na_text_ph": "Describe the practice step by step…",
+  "na_link": "Link (optional)",
+  "na_save": "Save",
+  "na_cancel": "Cancel",
+  "na_email_note": "When you save, your email will open with the practice already written, addressed to {e}; if you like, send it to us so we can consider including it in future versions of \"Moment\" for everyone.",
+  "na_upload": "📄 Upload a file with new practices",
+  "na_download_tpl": "⬇ Download template (Word document)",
+  "na_formats": "Accepts Word documents (.docx) or text files in the template format (Title: / Category: / Text:), and also the advanced JSON format.",
+  "ts_copied": "Message copied 📋 Paste it into the chat next to the file",
+  "ts_no_attach": "Couldn’t attach the file; the invitation will be shared",
+  "ts_no_open_notif": "Couldn’t open the practice from the notification",
+  "ts_no_snooze": "Can’t snooze any further",
+  "ts_not_pending": "This practice is no longer pending",
+  "ts_notif_on": "Notifications on ✔",
+  "ts_notif_off_t": "Notifications off",
+  "ts_perm_no": "Permission not granted",
+  "ts_no_notif_support": "This browser doesn’t support notifications",
+  "ts_notif_blocked": "Blocked by the system: enable them in Android Settings → Apps → Notifications",
+  "ts_no_more_avail": "No more practices available",
+  "ts_unmarked": "Practice unmarked",
+  "ts_extra_done": "Extra practice completed! 🌟 Another will be suggested at its time",
+  "ts_already_done": "This practice is already completed",
+  "ts_next_sooner": "The next suggestion comes sooner: this one is skipped",
+  "ts_seen_all": "You’ve seen all of today’s practices!",
+  "ts_new_sugg": "New suggestion ✨",
+  "ts_unpaused": "Practice unpaused ▶",
+  "ts_paused": "Practice paused ⏸",
+  "ts_notif_gone": "The practice from that notification is no longer available",
+  "ts_tpl_fail": "Couldn’t prepare the template 😕",
+  "ts_tpl_gen_fail": "Couldn’t generate the template",
+  "ts_docx_fail": "Couldn’t read the Word document 😕",
+  "ts_json_fail": "Couldn’t read the file: check the JSON format",
+  "ts_add_titletext": "Add a title and some text or a link",
+  "ts_added_sent": "Practice added and sent to the community 🌿",
+  "ts_practice_del": "Practice deleted",
+  "ts_stats_reset": "Statistics reset ♻️",
+  "ts_update_apk": "Update the APK to open this setting directly",
+  "ts_open_batt": "Open Settings → Battery → Moment for you",
+  "ts_bg_ok": "Background already allowed ✔",
+  "ts_bg_tip": "Tip: in Settings → Battery, allow the app to run in the background",
+  "ts_pattern_upd": "Pattern updated",
+  "ts_no_perm_needed": "Your Android version doesn’t require this permission",
+  "ts_enable_notif_first": "Enable notifications first",
+  "ts_test_4s": "Will ring in 4 seconds: lock your phone to test it 🔒",
+  "ts_test_sent": "Test notification sent",
+  "cf_del_moment": "Delete this moment of yours? (Occurrences already done are kept in today’s history)",
+  "bg_optional": "<b>Only if needed.</b> Removing battery saving is the last resort: it is what adds the most consumption, since it keeps the app out of Android’s sleep mode. Try the reminders as they are first; enable it only if they arrive late or not at all.",
+  "cf_reset": "This will delete all your own practices, your own moments, favorites, paused practices and settings, and reset the practice schedule. Continue?",
+  "cf_send_import": "Would you like to send {x} to Jordi Beold so they can be included in the app?",
+  "cf_send_1": "this practice",
+  "cf_send_n": "these {n} practices",
+  "im_added": "{n} practices added to the library 🌿",
+  "im_only_examples": "Only the template examples were there: write your practices and upload it again 🌿",
+  "rs_title": "Reset statistics",
+  "rs_body": "Your usage statistics (done, extra, snoozed, slots and skips) and the history in the \"Done\" box will be deleted. Your settings, favorites and practices are left untouched.",
+  "rs_send": "Before deleting them, if you like, you can email them to us at <b>{e}</b>: with them we can study how to improve the service for you and for everyone.",
+  "rs_send_btn": "📧 Email before deleting",
+  "rs_delete_btn": "♻️ Delete statistics now",
+  "share_dialog": "Share with",
+  "err_title": "Oops…",
+  "err_body": "Something went wrong on startup. Try closing and reopening the app. If it persists, you can restore setup in Settings → Data.",
+  "err_retry": "Retry",
+  "fav_saved": "Saved to favorites",
+  "fav_save": "Save as favorite",
+  "bg_open_batt": "Open the app battery settings ↗",
+  "mx_title": "MOMENT FOR YOU — usage metrics",
+  "mx_date": "Report date:",
+  "mx_installed": "Installed on:",
+  "mx_freq": "— Usage frequency —",
+  "mx_last_conn": "Last opened:",
+  "mx_last_done": "Last practice done:",
+  "mx_config": "— Settings —",
+  "mx_moments": "Moments per day:",
+  "mx_first": "Time of first practice:",
+  "mx_interval": "Interval: every",
+  "mx_interval_h": "h",
+  "mx_active": "Active period:",
+  "mx_active_h": "h/day",
+  "mx_fav_def": "Favorites per day set:",
+  "mx_last_a": "— Last",
+  "mx_last_b": "days (max. 30) —",
+  "mx_done": "Practices done:",
+  "mx_extra": "Extra practices:",
+  "mx_snoozed": "Practices snoozed:",
+  "mx_snoozes": "snoozes",
+  "mx_top_slots": "Slots with most snoozes:",
+  "mx_fav_saved": "Favorites saved:",
+  "mx_top_disc": "Most skipped practices:",
+  "mx_none": "none",
+  "mx_subject": "Moment metrics —",
+  "bg_allowed_full": "Background work: <b style=\"color:var(--verde)\">allowed ✔</b> — the alarm will be able to ring with the phone locked. On realme/OPPO, also allow \"auto-launch\" within those settings.",
+  "bg_limited_full": "Background work: <b>limited</b> (the normal state) — this keeps consumption to a minimum. If a reminder arrives late with the phone locked, you can allow background work from here.",
+  "wd_sun": "Sunday",
+  "wd_mon": "Monday",
+  "wd_tue": "Tuesday",
+  "wd_wed": "Wednesday",
+  "wd_thu": "Thursday",
+  "wd_fri": "Friday",
+  "wd_sat": "Saturday",
+  "lvl_seed": "Seed",
+  "lvl_sprout": "Sprout",
+  "lvl_plant": "Seedling",
+  "lvl_rooted": "Rooted",
+  "lvl_bloom": "In bloom",
+  "lvl_tree": "Tree",
+  "lvl_to_next_a": "practices to \"",
+  "lvl_to_next_b": "\"",
+  "lvl_max": "Top level reached!",
+  "medal_explorer": "🏅 Explorer ({n} categories)",
+  "medal_cats_a": "🧭 ",
+  "medal_cats_b": "/{n} categories explored",
+  "medal_streak_fire": "🔥 ",
+  "medal_streak_star": "✨ ",
+  "medal_streak_days": "-day streak!",
+  "medal_streak_day": "-day streak!",
+  "streak_now": "Current streak:",
+  "streak_best": "Best streak:",
+  "day_s": "day",
+  "days_s": "days",
+  "notif_muted_toast": "Notification muted 🔕",
+  "notif_unmuted_toast": "Notification unmuted 🔔"
+ },
+ "practicas": {
+  "p001": {
+   "t": "Supportive touch",
+   "x": "Warm physical contact calms the nervous system. When you notice stress, take 2-3 deep breaths.\n\nPlace your hand on your heart: feel its gentle pressure and warmth, and the chest rising and falling with the breath. Stay as long as you need.\n\nIf the heart doesn't feel right, explore: a hand on the cheek, cradling the face, stroking your arms, a gentle squeeze with crossed arms, a hand on the belly, or one hand inside the other on your lap.\n\nUse it several times through the day and let it become a habit of kindness toward yourself."
+  },
+  "p002": {
+   "t": "Karma Yoga",
+   "x": "The yoga of action: selfless service.\n\nToday, choose an act of service expecting nothing in return: caring for a shared space, leaving something better than you found it, doing well a task no one will see.\n\nDo it with full attention and without seeking recognition: the practice is the giving itself."
+  },
+  "p003": {
+   "t": "Raja Yoga: three essential practices (according to the Ninth Path)",
+   "x": "1. Awareness of being: knowing that I have superconsciousness (intuition, something greater), that I am consciousness (the observer) and subconsciousness (instinct, reaction).\n\n2. From there, feeling this nature which is natural: the harmony and connection between the three parts in one.\n\n3. Draw strength from the superconsciousness and distribute it through your body."
+  },
+  "p004": {
+   "t": "Shaking (shaking the body)",
+   "x": "Standing with loose knees, begin shaking the whole body: legs, hips, shoulders, arms and hands.\n\nLet the vibration run through everything, loosen the jaw and add sound if you like.\n\nShake 5-10 minutes, releasing tension and stagnant energy.\n\nThen stop in stillness, eyes closed, and feel the body vibrate and settle."
+  },
+  "p005": {
+   "t": "Palming (resting the eyes)",
+   "x": "Rub your palms vigorously until warm.\n\nCup them over your closed eyes without pressing, fingers resting on the forehead.\n\nBreathe slowly in that warm darkness for 1-3 minutes, releasing eye and mental strain.\n\nRemove the hands slowly and open the eyes gently. Ideal after screens."
+  },
+  "p006": {
+   "t": "Prayer",
+   "x": "A daily moment of connection, in your own words or with a prayer from your tradition.\n\nBegin by giving thanks for three concrete things from the day.\n\nExpress what you carry inside: worries, wishes, people you want to send goodness to.\n\nAsk for the strength or clarity you need and surrender what does not depend on you.\n\nClose in silence for a few moments, listening."
+  },
+  "p007": {
+   "t": "Tantric muscle (pelvic floor)",
+   "x": "The tantric muscle lies between the anus and the genitals in men, and the vagina in women.\n\nContract it, hold a few seconds, release and repeat several times.\n\nYou can practice anywhere, anytime: a discreet way to bring attention to the pelvic floor and feel it awake."
+  },
+  "p008": {
+   "t": "The three centers in motion",
+   "x": "1st, sexual center (waist, instinctive connection): make wide, loose circles with the hips, opening the pelvis.\n\n2nd, affective center (chest-heart, emotional connection): circles with the chest, ever wider and stronger, mouth open and relaxed.\n\n3rd, mental center (head, spiritual connection): gentle neck rotations.\n\nLast movement: merge the three into one, letting the whole body join in."
+  },
+  "p009": {
+   "t": "Tantric keys for everyday life",
+   "x": "Six simple keys for living with more presence and pleasure in every moment — give it to yourself:\n\nPresence: being here with what is, remembering the vitality we are.\n\nMouth breathing: feel the body with the 'wave breath'.\n\nFree, spontaneous movement of the body, and sound: let the voice out, it is very liberating.\n\nGiving yourself what you need (often small things: rest, a pause, silence, dancing, asking for a hug).\n\nAnd celebrating everything you feel and discover… pleasant or not!"
+  },
+  "p010": {
+   "t": "Kahuna meditation: the three selves",
+   "x": "To harmonize the three levels of consciousness and bring about balance, renewal and vitality.\n\nThe three selves:\n· Unihipili (subconscious): keeper of vital energy (mana), emotions, memory and the body. Like a child in need of care and direction.\n· Uhane (conscious): the rational mind and free will. The parent who guides the subconscious.\n· Aumakua (superconscious): the divine part connected to the universal source. It does not intervene unless expressly asked.\n\n1) Build mana: do several rounds of ha breathing — inhale through the nose for a count of 4 and exhale through the mouth for a count of 8, with a soft 'haaa' sound — until the body feels charged and the mind settles.\n\n2) Connect with the unihipili: from the conscious self, speak to it with trust and love; release accumulated guilt and blockages, and send it mana.\n\n3) Ask the aumakua: with conscious and subconscious aligned, send your intention together with the mana to the higher self along the aka cord (the invisible link between subconscious and superconscious; there is no direct route from the conscious self).\n\n4) Receive the blessing: the aumakua transforms that energy and returns it as a rain of blessings (rain of mana).\n\nThe aim is not to silence the mind, but to achieve perfect cooperation between your three states of consciousness."
+  },
+  "p011": {
+   "t": "Cutting the aka cords (kala)",
+   "x": "To free yourself from draining energetic ties: people, situations or thoughts from the past.\n\nVisualize the aka threads that bind you to that person or situation.\n\nWith the intention of the conscious self (uhane), ask the subconscious (unihipili) to withdraw the energy stored in them.\n\nWith a physical gesture — a hand cutting through the air — or purely mentally, cut the cord and seal your energy field with white or golden light sent from the aumakua."
+  },
+  "p012": {
+   "t": "Cleansing memories (ho'oponopono)",
+   "x": "A process of correction and forgiveness to clear the memories held in the subconscious that block the aka channel.\n\nRecognize that what disturbs you comes from a memory replaying in your unihipili (subconscious).\n\nFrom the conscious self, direct the four key phrases: 'I'm sorry, forgive me, I love you, thank you.'\n\nAsk the aumakua to transmute that memory into light. Repeat it calmly, as many times as you need."
+  },
+  "p013": {
+   "t": "I am the child of all of you",
+   "x": "Family constellations exercise 'I am the child of all of you'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p014": {
+   "t": "Taking the mother",
+   "x": "Family constellations exercise 'Taking the mother'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p015": {
+   "t": "Taking the father",
+   "x": "Family constellations exercise 'Taking the father'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p016": {
+   "t": "Seeing the mother from the adult self",
+   "x": "Family constellations exercise 'Seeing the mother from the adult self'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p017": {
+   "t": "Seeing the parents as a unity",
+   "x": "Family constellations exercise 'Seeing the parents as a unity'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p018": {
+   "t": "The belonging group. Difficulties that last",
+   "x": "Family constellations exercise 'The belonging group. Difficulties that last'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p019": {
+   "t": "The birth",
+   "x": "Family constellations exercise 'The birth'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p020": {
+   "t": "Finding our place",
+   "x": "Family constellations exercise 'Finding our place'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p021": {
+   "t": "Inner renewal",
+   "x": "Family constellations exercise 'Inner renewal'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p022": {
+   "t": "Tending the wound",
+   "x": "Family constellations exercise 'Tending the wound'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p023": {
+   "t": "Caring for a suffering part of my unconscious",
+   "x": "Family constellations exercise 'Caring for a suffering part of my unconscious'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p024": {
+   "t": "Softening a disproportionate emotional reaction",
+   "x": "Family constellations exercise 'Softening a disproportionate emotional reaction'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p025": {
+   "t": "Embracing the parts that suffer",
+   "x": "Family constellations exercise 'Embracing the parts that suffer'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p026": {
+   "t": "Release of an inner unease",
+   "x": "Family constellations exercise 'Release of an inner unease'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p027": {
+   "t": "Collapsing anchors, cancelling a habitual unease",
+   "x": "Family constellations exercise 'Collapsing anchors, cancelling a habitual unease'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p028": {
+   "t": "Facing a signal from my body",
+   "x": "Family constellations exercise 'Facing a signal from my body'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p029": {
+   "t": "Energetic regulator of emotions and traumas",
+   "x": "Family constellations exercise 'Energetic regulator of emotions and traumas'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p030": {
+   "t": "Integrating traumas and conflicts",
+   "x": "Family constellations exercise 'Integrating traumas and conflicts'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p031": {
+   "t": "The renewing gaze",
+   "x": "Family constellations exercise 'The renewing gaze'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p032": {
+   "t": "Resolving a conflict",
+   "x": "Family constellations exercise 'Resolving a conflict'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p033": {
+   "t": "Untangling a conflict (projection or double transference)",
+   "x": "Family constellations exercise 'Untangling a conflict (projection or double transference)'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p034": {
+   "t": "I can't stand them",
+   "x": "Family constellations exercise 'I can't stand them'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p035": {
+   "t": "My mirror",
+   "x": "Family constellations exercise 'My mirror'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p036": {
+   "t": "What I reject",
+   "x": "Family constellations exercise 'What I reject'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p037": {
+   "t": "What I reject in myself",
+   "x": "Family constellations exercise 'What I reject in myself'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p038": {
+   "t": "People who don't change",
+   "x": "Family constellations exercise 'People who don't change'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p039": {
+   "t": "Cutting a dependency",
+   "x": "Family constellations exercise 'Cutting a dependency'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p040": {
+   "t": "The anger",
+   "x": "Family constellations exercise 'The anger'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p041": {
+   "t": "Facing a difficult situation",
+   "x": "Family constellations exercise 'Facing a difficult situation'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p042": {
+   "t": "The solution attempted in vain",
+   "x": "Family constellations exercise 'The solution attempted in vain'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p043": {
+   "t": "I am me",
+   "x": "Family constellations exercise 'I am me'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p044": {
+   "t": "Stepping out of an identification",
+   "x": "Family constellations exercise 'Stepping out of an identification'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p045": {
+   "t": "Integration of polarities / conflicting parts",
+   "x": "Family constellations exercise 'Integration of polarities / conflicting parts'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p046": {
+   "t": "Integrating the masculine and the feminine",
+   "x": "Family constellations exercise 'Integrating the masculine and the feminine'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p047": {
+   "t": "The ego",
+   "x": "Family constellations exercise 'The ego'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p048": {
+   "t": "Fears",
+   "x": "Family constellations exercise 'Fears'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p049": {
+   "t": "What frightens me",
+   "x": "Family constellations exercise 'What frightens me'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p050": {
+   "t": "My responsibility",
+   "x": "Family constellations exercise 'My responsibility'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p051": {
+   "t": "Destiny",
+   "x": "Family constellations exercise 'Destiny'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p052": {
+   "t": "Collective destiny",
+   "x": "Family constellations exercise 'Collective destiny'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p053": {
+   "t": "Changing the past",
+   "x": "Family constellations exercise 'Changing the past'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p054": {
+   "t": "Changing a life-script decision",
+   "x": "Family constellations exercise 'Changing a life-script decision'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p055": {
+   "t": "Repetitive dramas or tragedies",
+   "x": "Family constellations exercise 'Repetitive dramas or tragedies'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p056": {
+   "t": "Anniversary dates",
+   "x": "Family constellations exercise 'Anniversary dates'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p057": {
+   "t": "The field that carries me",
+   "x": "Family constellations exercise 'The field that carries me'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p058": {
+   "t": "The pure movement",
+   "x": "Family constellations exercise 'The pure movement'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p059": {
+   "t": "The broken order",
+   "x": "Family constellations exercise 'The broken order'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p060": {
+   "t": "Putting our life in order",
+   "x": "Family constellations exercise 'Putting our life in order'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p061": {
+   "t": "Which path to choose?",
+   "x": "Family constellations exercise 'Which path to choose?'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p062": {
+   "t": "Increasing my resources",
+   "x": "Family constellations exercise 'Increasing my resources'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p063": {
+   "t": "Creating an anchor",
+   "x": "Family constellations exercise 'Creating an anchor'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p064": {
+   "t": "Programming for success",
+   "x": "Family constellations exercise 'Programming for success'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p065": {
+   "t": "Gathering the jewels of the past",
+   "x": "Family constellations exercise 'Gathering the jewels of the past'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p066": {
+   "t": "Emotions that create new reality",
+   "x": "Family constellations exercise 'Emotions that create new reality'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p067": {
+   "t": "Expectations and what is essential for me",
+   "x": "Family constellations exercise 'Expectations and what is essential for me'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p068": {
+   "t": "The essential",
+   "x": "Family constellations exercise 'The essential'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p069": {
+   "t": "Strength lies in attunement",
+   "x": "Family constellations exercise 'Strength lies in attunement'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p070": {
+   "t": "The heart is the guide",
+   "x": "Family constellations exercise 'The heart is the guide'. Find a quiet moment, open the link and let the practice guide you step by step. (The guide is in Spanish.)"
+  },
+  "p071": {
+   "t": "Fireball through the energy system",
+   "x": "Travel the energy containers from 1st to 7th with a ball of fire. Always: inhaling, contract the pelvic-floor muscle; exhaling, release it.\n\nAt each energy container, 3 breaths: the fireball expands on the inhale and contracts on the exhale.\n\nAt each change of energy container, 3 breaths: the ball rises on the inhale and descends on the exhale.\n\nReaching the 7th, feel the ball and its light disperse through the body and expand into the universe; the energy returns as a ball of light and descends with the same movements.\n\nFinally, feel that ball of light disperse through the body and expand toward the earth. You may accompany the visualization with your hands."
+  },
+  "p072": {
+   "t": "Self-love and third container activation",
+   "x": "First posture: inhale as if sipping through a straw; exhaling, open the mouth wide to expel everything, fast and complete. While inhaling, sweep the hands up the energy containers; exhaling, downward.\n\nSecond posture: kneeling, inhaling open the arms outward; exhaling, inward, unblocking the waist and the whole body.\n\nWhen the waist feels unblocked and energy is flowing, enter a meditative state: give yourself love, keeping a slightly intense mouth breathing."
+  },
+  "p073": {
+   "t": "Chromatic energy-system meditation",
+   "x": "Meditation posture, calm breathing, not clinging to thoughts.\n\nBegin at the first container: let a spark of red light arise and grow into a luminous sphere. Give 2-3 minutes per container.\n\nMove up in color: 2nd orange, 3rd golden, 4th pink with a green rim, 5th light blue, 6th indigo and 7th violet and gold radiating rays.\n\nRemain calm and balanced, filled with inner strength."
+  },
+  "p074": {
+   "t": "Breathing through the energy system",
+   "x": "Take your posture and breathe in and out through the nose.\n\nImagine the air entering and leaving through each energy container.\n\nBegin at the 1st and rise to the 7th, giving 3-5 minutes to each.\n\nEnd full of energy, at peace and in balance."
+  },
+  "p075": {
+   "t": "Massage of the energy-system reflex zones",
+   "x": "On the feet, massage gently and delicately with circular movements and a little lubricant.\n\nStart with the right foot: work the container's zone on the top and sole at once; then the left foot.\n\nGive 2-3 minutes per container, starting with the 1st."
+  },
+  "p076": {
+   "t": "Connecting with the energy",
+   "x": "Raise your arms open and stretched above the head, palms facing forward.\n\nFeel you connect with the Universe and energy flows through your whole body.\n\nFeel that energy radiating from your palms and wrapping you in light."
+  },
+  "p077": {
+   "t": "Ken'yoku (dry bathing)",
+   "x": "To cleanse the energy field. Calm, breathing through the nose, connect with the energy.\n\nSweep the right hand from the left shoulder to the right hip, diagonally, sounding 'haaa'. Repeat with the left hand, right shoulder to left hip.\n\nExtend one arm forward and sweep the opposite palm from shoulder to fingers, with the same sound. Repeat with the other arm.\n\nRest the hands on the thighs, let energy flow and end giving thanks."
+  },
+  "p078": {
+   "t": "Luminous breathing (Hikari No Kokyu-Ho)",
+   "x": "Sitting or standing, calm, palms up on the thighs.\n\nInhaling, visualize light entering through your crown and descending to the lower belly.\n\nWhile holding the breath, feel it expand through the whole body.\n\nExhaling, imagine that light leaving through your skin and filling your aura. Repeat and end giving thanks."
+  },
+  "p079": {
+   "t": "Gassho breathing (Gassho Kokyu-Ho)",
+   "x": "Join the palms before the chest, at the level of the thymus.\n\nInhaling, visualize energy entering through the hands and flowing down the arms to the lower belly.\n\nHold it there a moment and, exhaling, imagine it returning to the hands and projecting to infinity.\n\nRepeat the breath and the visualizations."
+  },
+  "p080": {
+   "t": "Breathing to reactivate the energy system",
+   "x": "Always work with the 1st and seventh containers, changing the middle one; three breaths per sequence.\n\nInhale bringing energy to the middle energy container, hold while feeling it, and exhale from it in all directions.\n\nGo through the sequences 1-4-7, then 1-2-7, 1-3-7, 1-5-7 and 1-6-7.\n\nEnd with hands joined before the chest."
+  },
+  "p081": {
+   "t": "Energy shower",
+   "x": "Standing, calm, raise the hands apart with palms facing forward.\n\nImagine receiving a shower of energy that purifies your whole body.\n\nEnergy enters through the hands and negativity leaves through the feet. You can do it in the morning shower."
+  },
+  "p082": {
+   "t": "Warm hands (Ninja Dragon Ki)",
+   "x": "Rub your hands together vigorously.\n\nHold the left hand vertical and, with the right, point the index and middle fingers near the palm, without touching it.\n\nRotate the pointing hand counterclockwise until you feel a current. If not, rub again and switch hands."
+  },
+  "p083": {
+   "t": "Finger exercise for rest",
+   "x": "With the fingers of both hands wide apart, join the matching fingertips.\n\nStarting with the thumbs, rotate them slowly around each other 10 times inward and 10 outward, without touching.\n\nRepeat with index, middle, ring and little fingers. A short pause to let shoulders, neck and hands loosen."
+  },
+  "p084": {
+   "t": "Solar training",
+   "x": "Standing, comfortable and calm, connect with the energy.\n\nWith palms facing each other, visualize holding the sun between your hands for 10 seconds.\n\nDescend through each energy container, imagining each one inside the sun, 10 seconds each.\n\nEnd with hands joined before the chest."
+  },
+  "p085": {
+   "t": "Hatsurei-Ho",
+   "x": "A daily method to strengthen inner energy. Sit in seiza or cross-legged, back straight, eyes closed, hands on thighs.\n\nDo the dry bath (Ken'yoku) and connect with the energy.\n\nPurifying breath: inhaling, energy enters through the crown and descends to the lower belly; hold, feeling it expand, and exhale with the sound 'haaa', projecting light to infinity.\n\nFocus the mind with hands joined above the heart and end giving thanks."
+  },
+  "p086": {
+   "t": "Navel renewal (Heso Chiryo-Ho)",
+   "x": "Gently place the middle finger in the navel and feel the pulse.\n\nKeep it there until you feel relaxed and balanced.\n\nYou may also hold the palm a few centimeters from the navel."
+  },
+  "p087": {
+   "t": "Gazing technique (Gyoshi-Ho)",
+   "x": "Calm and silence the mind.\n\nLook at the area you wish to harmonize with relaxed, unfocused eyes, using peripheral vision.\n\nFeel that area settle and balance."
+  },
+  "p088": {
+   "t": "Breath technique (Koki-Ho)",
+   "x": "Inhale through the nose.\n\nShape the lips as if to whistle and exhale slowly through the mouth, directing the breath to the area you want to bring your attention to."
+  },
+  "p089": {
+   "t": "Vibrational breathing (Hado Kokyu-Ho)",
+   "x": "Comfortable, shoes off, soles on the floor, palms up on the thighs. Relax.\n\nExhale through a wide-open mouth with the sound 'haaa', starting at 10 seconds and lengthening gradually to 40.\n\nCup one ear with a palm and cover the mouth with the other at a short distance; focus on the sound and feel the vibration. Then switch hands."
+  },
+  "p090": {
+   "t": "Vibrational meditation (Hado Meiso-Ho)",
+   "x": "After connecting with the energy, lower the hands palms-down until the middle fingertips touch, at chest height.\n\nPush the energy downward with the hands while exhaling with the sound 'haaa'.\n\nInhaling, raise the hands above the forehead; exhaling, lower them to the base of the spine. Repeat 3 times and stay still."
+  },
+  "p091": {
+   "t": "Self-cleansing (Jijo Joka)",
+   "x": "Standing, feet apart, visualize a line of light descending from sky to earth through your seven energy containers.\n\nLower the hands, palms toward the body, until the fingertips touch at chest height, and with the sound 'haaa' bring them to the base of the spine, releasing energy through the soles.\n\nThen raise the arms to the sky, palms up, and feel universal energy surrounding you."
+  },
+  "p092": {
+   "t": "Sending light to the cells",
+   "x": "Sitting, eyes half-closed, back straight, palms down on the thighs.\n\nBring attention to the crown and scan your body with the mind until you find a tense or blocked area.\n\nAs you exhale, direct energy to that area and thank your cells for their work.\n\nContinue to the next area, simply giving thanks."
+  },
+  "p093": {
+   "t": "Breaking inner blocks",
+   "x": "Raise your hands, connect with your inner energy and feel how you vibrate, where and how it moves.\n\nVisualize a golden sun before you and place inside it the thoughts and emotions you wish to release (fear, anger, grief, hatred).\n\nHold the sun before your chest and 'break' it with a firm gesture, freeing yourself from them."
+  },
+  "p094": {
+   "t": "Meditation with the energy",
+   "x": "Sit comfortably, eyes closed, breathe slowly, hands joined before the face.\n\nConnect with the energy and feel its vibration in the palms.\n\nWith each breath, feel you breathe through the fingers and merge with the energy.\n\nBring the hands to the thighs, palms up (you may join index and thumb) and feel universal love. End giving thanks."
+  },
+  "p095": {
+   "t": "Spinal cleansing (Sekizui Joka Ibuki Ho)",
+   "x": "Spine straight, connect with the energy and rest the hands on the thighs.\n\nFocus on the second container, breathe calmly with eyes closed and visualize your spine as a crystal tube from crown to sacrum.\n\nWith the 'haaa' breath, imagine light entering through the crown and filling the tube, dissolving all impurity.\n\nDo many breaths (up to 70, or 35 longer ones), feeling the light rise to the brow."
+  },
+  "p096": {
+   "t": "Energy charging: the mana generator",
+   "x": "To build up a surplus of vital energy and then direct it.\n\nBreathe deeply and rhythmically, holding the breath for a few seconds in each cycle.\n\nWhile holding, gently contract the abdominal muscles, feeling the energy gather in the solar plexus.\n\nWhen the plexus feels charged and humming, direct that energy where you need it: an area of the body you want to harmonize, or the sending of your request."
+  },
+  "p097": {
+   "t": "How would you treat a friend?",
+   "x": "Think: how do you respond to a good friend who is struggling? Notice what you do, what you say and in what tone.\n\nNow notice how you respond to yourself when you are the one suffering: what you do, what you tell yourself and in what tone.\n\nNotice a difference? Ask yourself why, and imagine how things would change if you treated yourself as you treat your friend.\n\nTry it right now: treat yourself like a good friend and watch what happens."
+  },
+  "p098": {
+   "t": "Changing the self-critical dialogue",
+   "x": "First, notice when you criticize yourself: what exact words do you use? What tone has that voice? Does it remind you of someone?\n\nThen soften the critical voice with compassion (without attacking it!): 'I know you're trying to protect me, but you're hurting me. Let my compassionate side speak'.\n\nReframe the criticism positively, as a friend who loves you would: understanding first, then kind encouragement toward what does you good.\n\nAdd a warm gesture (stroking your arm, holding your face): physical warmth helps the kindness become real."
+  },
+  "p099": {
+   "t": "The glass box exercise",
+   "x": "Purpose: to realize the power of distraction over your own mind. You need a TV and one hour.\n\nSit before the TV, switched on, and watch it for a full hour as what it physically is: a simple box with a glass front.\n\nRepeat to yourself: 'it's just a box; nothing important is happening, only changes of light and sound'.\n\nWhenever drama, conflict or ads catch you, remember again it is only a box. Observe where and how your mind hooks in."
+  },
+  "p100": {
+   "t": "Diffusing the vision",
+   "x": "Purpose: to experience how diffuse vision concentrates attention. Do it seated or standing.\n\nLook ahead and stretch your arms to the sides until you cannot see your hands; wiggling the fingers, bring them slowly forward until you catch them at the edge of sight: that is your peripheral range.\n\nStretch the hands above your head and, without moving the head, lower the arms slowly until you see the fingers: that is your vertical range.\n\nNow unfocus the eyes to embrace your whole field of vision at once, far wider than focusing on one object. Keep the face relaxed; sustaining diffuse vision demands moment-to-moment attention."
+  },
+  "p101": {
+   "t": "Handling attention",
+   "x": "Purpose: to gain experience in the deliberate use of attention.\n\nRelax the body, soften the face and let vision go diffuse.\n\nGather the attention stuck in the past (events, memories) and bring it to the present. Do the same with attention drifting to the future (worries, desires, fears): bring it to the here and now.\n\nWith all that attention gathered, choose three visible objects. Place attention on the first and, as you do, exhale, as if laying a stone upon it. Lift it and move it to the second, then the third.\n\nRepeat placing, lifting and re-placing attention several times with the same three objects."
+  },
+  "p102": {
+   "t": "The portals exercise",
+   "x": "Purpose: to remember your deeper nature when crossing thresholds.\n\nEvery time you pass through an ordinary doorway, silently repeat: 'I remember myself as the Traveler, whose deepest nature is the Clear Light itself'."
+  },
+  "p103": {
+   "t": "Recapitulation",
+   "x": "A practice (described by Castaneda) for reviewing and releasing emotional burdens of the past.\n\nIn a quiet place, relax with deep breaths and set your intention: to release ties and gain clarity.\n\nEyes closed, review emotionally charged memories, from the most recent backwards. Visualize people, places and events vividly and allow whatever emotions arise, without judging them.\n\nImagine a dialogue with those involved: say what was left unsaid. As you do, visualize the emotional energy leaving you and dissolving.\n\nCultivate understanding and forgiveness, toward yourself and others. Close by centering a few moments and, if you wish, go over the experience for a few moments before continuing your day."
+  },
+  "p104": {
+   "t": "Self-observation and self-remembering (Gurdjieff)",
+   "x": "Through the day, observe yourself without judging: thoughts, emotions and actions, discovering your automatic patterns.\n\nPractice self-remembering: keep alive the sense 'I am here' in the midst of what you do, instead of getting lost in thoughts.\n\nPut conscious effort into everyday tasks: do them with intention rather than mechanically.\n\nBalance your three centers (intellectual, emotional and moving) by alternating activities that work each one."
+  },
+  "p105": {
+   "t": "Reprogramming visualization",
+   "x": "Choose an uncomfortable moment: something lived today (or recently) that took your peace away, or a situation you foresee may happen during the day.\n\nRelive it for an instant and feel what it stirred in you. Thank the moment and the other person for showing you a truth about yourself.\n\nNow ask yourself: what would my ideal self — calm, serene and in harmony — say or do in that situation?\n\nVisualize the same scene changing only your own behavior, not the other's (the other is beyond your control). See yourself feeling, thinking, speaking and acting as you would like. Engage all five senses: emotion, word, gesture. If you wish, imagine several scenarios and responses from the other.\n\nAlso visualize the outcome: it may simply be remaining at peace, knowing you did the best you knew.\n\nGive thanks. With practice you will spot these situations ever faster in daily life, and act ever sooner in the direction of your ideal self."
+  },
+  "p106": {
+   "t": "Base procedure for meditating",
+   "x": "Place your hands wherever your body feels they should go.\n\nBring awareness to the body, to the here and now.\n\nBreathing in, gather energy toward the heart; breathing out, distribute it through the whole body.\n\nInhaling say inwardly 'I', exhaling 'am'.\n\nOn the next in-breath: 'This is my body, my body is part of me, I am not my body'.\n\nOn the out-breath, let yourself feel it.\n\nRepeat with mind and with emotions."
+  },
+  "p107": {
+   "t": "Morning meditation (before getting up)",
+   "x": "Still in bed, do the base procedure for meditating.\n\nGive thanks for a new day.\n\nBreathing in: 'I am'; breathing out, complete the sentence:\n\n'I am responsible for my day'. 'I am responsible for my destiny'. 'I am responsible for myself and no one else'."
+  },
+  "p108": {
+   "t": "Inner smile meditation",
+   "x": "A simple, quick Taoist practice. Sit comfortably, close your eyes and sketch a soft smile, like a Buddha's.\n\nFeel the smile's energy in your eyes and face, and let them relax.\n\nLet the smile descend like warm light: smile to your heart and thank it; then to the lungs, liver, kidneys, spleen and stomach.\n\nBring the smile down the digestive tract and finish gathering its energy at the navel."
+  },
+  "p109": {
+   "t": "Microcosmic orbit",
+   "x": "Taoist circulation of energy through the two central channels. Sit with a straight back and rest the tip of the tongue on the palate (it connects the two channels).\n\nBreathing in, imagine energy rising from the perineum up the spine to the crown.\n\nBreathing out, energy descends along the front line of the body: forehead, throat, chest and belly, back to the perineum.\n\nRepeat this circuit with slow breathing for 5-15 minutes, feeling the orbit flow ever more smoothly.\n\nFinish gathering the energy at the navel, covering it with your hands."
+  },
+  "p110": {
+   "t": "Organ meditation",
+   "x": "Lie or sit comfortably and breathe slowly.\n\nVisit your organs one by one with your attention: heart, lungs, stomach, liver, kidneys, intestines…\n\nPause at each, feel it working and thank it for a lifetime of silent labor.\n\nTo each organ, send light and gratitude with every exhalation.\n\nEnd feeling the whole body as a team working for you."
+  },
+  "p111": {
+   "t": "Talking to your cells",
+   "x": "Relax deeply with a few slow breaths.\n\nAddress your cells mentally as millions of small collaborators: greet them and thank them for their work.\n\nGive them kind, positive instructions: 'renew, rebalance, vibrate in harmony'.\n\nVisualize each cell lighting up as it receives your message.\n\nClose with gratitude toward your whole body."
+  },
+  "p112": {
+   "t": "Everest breathing (deep meditation)",
+   "x": "An intense meditation of 4 stages of 15 minutes with continuous rhythmic music. Do it only when you truly want to: its effects are strong.\n\nStage 1 — Breathe: seated, eyes closed, hands clasped behind the back, inhale deeply through the nose, hold as long as possible, exhale softly through the mouth and keep the lungs empty as long as possible. Repeat the cycle 15 minutes.\n\nStage 2 — Gaze at a point: normal breathing and a relaxed gaze on a fixed point in front of you, body still.\n\nStage 3 — Celebrate: standing, eyes closed, body loose and receptive. Let subtle energies move your body; don't make the movement, allow it.\n\nStage 4 — Relax: lie down, eyes closed, in silence and stillness."
+  },
+  "p113": {
+   "t": "Basic meditation",
+   "x": "Take a comfortable, stable meditation posture.\n\nBring awareness to the body and relax it completely.\n\nCalm your emotions and balance the mind.\n\nWatch your breath and let it settle on its own.\n\nConnect with your body, observe yourself completely and rest a while in silence.\n\nReturn slowly to your activity."
+  },
+  "p114": {
+   "t": "Seven-step meditation",
+   "x": "Move your attention, one by one, through seven levels: the physical body; emotions and feelings; the mind; the breath; the Self; silence; and awareness.\n\nStay at each step as long as you need before moving on.\n\nWhen finished, come back slowly."
+  },
+  "p115": {
+   "t": "Meditation on silence",
+   "x": "Remain attentive, fully aware of the silence.\n\nLet that state open the door to a deeper experience.\n\nSeek nothing: simply rest in the silence."
+  },
+  "p116": {
+   "t": "Meditation with the mantra Om",
+   "x": "Sit comfortably, spine straight, eyes closed.\n\nChant the sound Om slowly and steadily.\n\nFeel the vibration filling your whole body.\n\nRepeat for several minutes and end in silence."
+  },
+  "p117": {
+   "t": "Meditation of renewing light",
+   "x": "Visualize, one meter away, a bright, radiant sphere of white light.\n\nA ray of light flows from it into your heart, gathering there into another sphere of the same size.\n\nFrom the heart, the light radiates in every direction through the body.\n\nGive special attention to areas needing care and feel the light renewing them.\n\nLet the light be reabsorbed into the heart.\n\nNow radiate that light to people you know and then to all beings.\n\nCenter yourself again and remain feeling yourself."
+  },
+  "p118": {
+   "t": "Meditation on the breath",
+   "x": "Sit calmly and bring attention to your natural breath.\n\nDo not force it: just watch it come and go.\n\nWhenever the mind wanders, gently return to the breath."
+  },
+  "p119": {
+   "t": "Dynamic meditation",
+   "x": "One hour, five stages; empty stomach, comfortable clothes, eyes closed, with music. Stay alert, like a witness.\n\nStage 1 (10 min): breathe chaotically through the nose, emphasis on the exhalation, fast and intense. Feel the energy build.\n\nStage 2 (10 min): let everything out: shout, cry, jump, dance, laugh. Move freely.\n\nStage 3 (10 min): jump up and down with the mantra 'Hoo!', letting the sound strike your center, until exhausted.\n\nStage 4 (15 min): Stop! Freeze where you are and witness whatever happens.\n\nStage 5 (15 min): celebrate with music and dance, in gratitude."
+  },
+  "p120": {
+   "t": "Kundalini meditation",
+   "x": "Four stages of 15 minutes each.\n\n1st: standing and relaxed, feel the energies rising from your feet; eyes open or closed.\n\n2nd: shake and dance, letting the body move freely.\n\n3rd: still, sitting or standing, eyes closed, watch whatever happens inside and out.\n\n4th: lie down motionless, eyes closed."
+  },
+  "p121": {
+   "t": "Nataraj meditation",
+   "x": "Three stages.\n\n1st (40 min): eyes closed, dance and let yourself be taken completely.\n\n2nd (20 min): lie down motionless.\n\n3rd (5 min): dance again, playfully, until you feel you are the dance itself."
+  },
+  "p122": {
+   "t": "Nadabrahma meditation",
+   "x": "Three stages.\n\n1st (30 min): sit relaxed, eyes closed; hum through the nose so the body vibrates, and become the listener.\n\n2nd (15 min): palms up, move the hands outward in circles from the navel (7.5 min); then palms down, in the opposite direction (7.5 min).\n\n3rd (15 min): sit still and motionless."
+  },
+  "p123": {
+   "t": "Gassho meditation",
+   "x": "Ideal if focusing or visualizing is hard. Practice 20-30 minutes on waking or at night; better upright so you don't fall asleep.\n\nSit with eyes closed, hands joined before the chest.\n\nFocus on the point where the tips of your middle fingers touch.\n\nWatch thoughts and let them go; whenever distracted, return to that point of contact."
+  },
+  "p124": {
+   "t": "So Ham meditation",
+   "x": "It means 'I am that'. Watch your breath effortlessly.\n\nOn the in-breath, inwardly hear the sound 'So'; on the out-breath, 'Ham'.\n\nNotice the brief thought-free gap between inhalation and exhalation.\n\nIf you can't perceive the mantra, accompany the syllables with the breath."
+  },
+  "p125": {
+   "t": "Vipassana meditation",
+   "x": "Back and head straight, eyes closed, normal breathing. Give 5-15 minutes to each technique. It is observation, not concentration: if attention drifts, return gently.\n\nTechnique 1 — The breath: place attention at the nostrils and observe, without judging, the sensation of air entering and leaving (a variant: watch the belly expand and contract).\n\nTechnique 2 — Body sensations: scan the body from the crown downward, pausing about two minutes on each sensation, without judging it.\n\nTechnique 3 — The whole body: be aware of posture and of every act of the body, doing everything with full attention.\n\nTechnique 4 — Thoughts and emotions: watch the stream of thoughts and emotions without joining them, and they settle."
+  },
+  "p126": {
+   "t": "Heart meditation",
+   "x": "Close your eyes in a comfortable posture. If you notice tension anywhere, increase it a moment and release it at once.\n\nBring all attention to the heart area and forget the rest of the body.\n\nFeel it filled with deep peace, as when you are calm and serene.\n\nBreathing in, imagine you take in the world's suffering; breathing out, exhale joy and blessings."
+  },
+  "p127": {
+   "t": "Whirling meditation",
+   "x": "Do not eat for 3 hours before. Barefoot, loose clothes, spin like a top counterclockwise.\n\nRight arm raised, palm up; left arm down, palm down; unfocused gaze, in silence.\n\nStage 1: start slowly (15 min) and gradually speed up (30 min).\n\nStage 2: when the body falls, lie face down with your navel touching the earth, eyes closed, 15 minutes.\n\nAfterwards, remain still."
+  },
+  "p128": {
+   "t": "Meditation on light",
+   "x": "Lie down, eyes closed, best upon waking. Breathe slowly.\n\nBreathing in, visualize a great golden light entering through your head and flowing through the body, out through the toes.\n\nBreathing out, visualize a darkness entering through the toes and rising out through the head.\n\nDuring the day, remember yourself as a flame burning in your heart, the body an aura of light around it."
+  },
+  "p129": {
+   "t": "Meditation on darkness",
+   "x": "Away from the city, gaze steadily into the darkness for an hour.\n\nFeel something enter you, and yourself entering it.\n\nLet the darkness relax and soothe you, just as inner light would."
+  },
+  "p130": {
+   "t": "Meditation on sound",
+   "x": "Four 15-minute stages, eyes closed.\n\n1st: sit listening to soft music.\n\n2nd: make nonsense sounds until unknown sounds arise.\n\n3rd: stand, keep sounding and move the body softly and harmoniously.\n\n4th: lie down motionless and silent.\n\nNight variant: in bed, in the dark, repeat a monotonous sound (e.g. 'la, la, la') and wait for the mind to offer new sounds; then sleep."
+  },
+  "p131": {
+   "t": "Gourishankar meditation",
+   "x": "Four 15-minute stages.\n\n1st: sitting, eyes closed; inhale deeply through the nose, hold as long as you can, exhale softly through the mouth and keep the lungs empty as long as possible.\n\n2nd: normal breathing while gazing at a fixed point in front of you.\n\n3rd: standing, eyes closed, let movement happen by itself.\n\n4th: lie down motionless and silent."
+  },
+  "p132": {
+   "t": "Mandala meditation",
+   "x": "Four 15-minute stages.\n\n1st: eyes open, run on the spot lifting the knees high.\n\n2nd: sitting, eyes closed, mouth relaxed, let the body sway.\n\n3rd: lie on your back, eyes open, roll them clockwise as fast as you can, mouth open.\n\n4th: close the eyes and be still."
+  },
+  "p133": {
+   "t": "Mystic Rose meditation",
+   "x": "A three-phase meditation, short version for today:\n\n1) For a couple of minutes, laugh for no reason, eyes closed.\n\n2) Then allow crying or releasing whatever arises, without forcing it.\n\n3) End sitting in silence, or dancing softly and consciously to calm music."
+  },
+  "p134": {
+   "t": "No-Mind meditation",
+   "x": "Three phases (about 40 minutes each).\n\n1st: eyes closed, make nonsense sounds and let the body express itself; don't stay silent.\n\n2nd: be still and silent, witnessing, in the present, without judging thoughts.\n\n3rd: relax, let go, and remain aware."
+  },
+  "p135": {
+   "t": "Born Again meditation",
+   "x": "For 7 days, spend 2 hours a day behaving like a child.\n\nYou know nothing, ask nothing, argue nothing: dance, sing, jump, laugh or cry, in any posture.\n\nLet spontaneity take over."
+  },
+  "p136": {
+   "t": "Meditation in daily action",
+   "x": "Meditation is a quality you can bring to any activity; the secret is de-automating what you do.\n\nWhen walking, showering or eating, do it with full awareness, attentive to every gesture and sensation.\n\nRun in the morning breathing deep from the belly, feel the breeze, and finish sitting under a tree."
+  },
+  "p137": {
+   "t": "Open-focus meditation (Zen)",
+   "x": "Instead of concentrating attention on one point, de-focus it: give equal attention to every point of your visual field at once, fixing on nothing.\n\nNo candles, images or incense needed. You can practice anywhere, anytime.\n\nGuidelines to start (at least the first month): sit once a day for 10-20 minutes, back straight, body comfortable and relaxed; on a chair, feet flat on the floor; on the floor, lotus posture. Face East.\n\nLet the breath regulate itself. Give equal weight to the whole visual field. If you drift and focus on something (ideas, lights, sounds), don't blame yourself: return to de-focusing.\n\nThe first days are hard; persevere. In time you will reach periods of mental silence and can practice in any situation."
+  },
+  "p138": {
+   "t": "Chromatic energy-system meditation",
+   "x": "Sit comfortably with a straight back (lying or standing also works), close your eyes and let calm arrive. Easy breathing; let thoughts pass.\n\nBring attention to the base of the pelvis (first container) and let a spark of red light arise, growing into a radiant, luminous sphere. Give it one or two minutes.\n\nMove to the second container, a hand's width below the navel: a sphere of light orange.\n\nthird container, two fingers above the navel: a golden sphere.\n\nfourth container, the heart: a pink sphere with a light-green crown.\n\nfifth container, the throat: a radiant light-blue sphere.\n\nsixth container, the forehead: a sphere of deep indigo.\n\nseventh container, the crown: golden rays with violet light illuminating everything around you.\n\nStay a while in silence before opening your eyes. The full meditation takes about 20 minutes; you can do it twice a day."
+  },
+  "p139": {
+   "t": "Fantasy journey through the energy system",
+   "x": "A guided meditation: record it yourself and play it back slowly, with pauses. Undisturbed, warm room, lie comfortably without crossing the legs (except in lotus).\n\nYou need do nothing: close your eyes, watch your breath and let each breath relax you. Accept whatever arises, rejecting nothing.\n\nTravel through the seven energy containers one by one. For instance, at the root feel it begin to spin, filling with warm red light, joining you to the nourishing strength of the earth.\n\nAscend through each center, carried by the images and sensations, and at the end return slowly, calm and grateful."
+  },
+  "p140": {
+   "t": "Metta: loving-kindness",
+   "x": "Sit calmly and inwardly repeat phrases of goodwill toward yourself: 'May I be safe. May I be well. May I be happy. May I live with ease'.\n\nThen direct them to a loved one, a neutral person, someone difficult and, finally, all beings.\n\nLet each phrase resonate unhurried. 10 minutes are enough to open the heart."
+  },
+  "p141": {
+   "t": "Self-compassion break",
+   "x": "Bring a difficult situation to mind and feel the discomfort in the body. Then say:\n\n1. 'This is a moment of suffering' (mindfulness). Also valid: 'this hurts', 'this is stress'.\n\n2. 'Suffering is part of life' (common humanity): 'I am not alone, we all go through this'.\n\n3. Place your hands on your heart, feel their warmth, and say: 'May I be kind to myself'. Or the phrase you need: 'may I accept myself as I am', 'may I forgive myself', 'may I be strong', 'may I be patient'.\n\nYou can use it at any moment of day or night."
+  },
+  "p142": {
+   "t": "The drain exercise",
+   "x": "Purpose: to use part of your attention to keep the body relaxed, quieting mind and emotions.\n\nClose your eyes. Bring attention to the feet and release all their tension. Move up to the legs and release; then the hips.\n\nFeel gravity pressing the body down. Return to the feet to check whether tension has crept back; if so, relax them again.\n\nContinue through the abdomen, lower back and waist, chest and upper back, neck and shoulders, releasing at each area.\n\nThen, with every exhalation, sweep attention from the feet upward, instantly releasing any tension you find. Open your eyes when done."
+  },
+  "p143": {
+   "t": "Dropping the mask",
+   "x": "Purpose: to use the face (the 'facial mask') as gauge and regulator of the body's tension.\n\nRelax the body as in the drain exercise, but with eyes open. Bring attention to the face.\n\nWith the hands, sweep downward over the face (jaw, skull and ears) to remove tension.\n\nThen, sensing from within, release tension in the face whenever you notice it. The face stays alive and awake, not blank.\n\nNotice how tension reappears: relaxing once does not mean staying relaxed. Keep noticing and releasing."
+  },
+  "p144": {
+   "t": "Confrontation and repair",
+   "x": "Real forgiveness comes after confrontation, not before. Do it facing the person, or visualizing them clearly.\n\nExpress aloud, in five steps: 1) This is what you did to me as a child. 2) This is what I felt then. 3) This is what it caused in me. 4) This is what I still feel and suffer today. 5) And this is the repair I ask of you.\n\nName the harm precisely and dare to ask for a concrete repair.\n\nClose the act positively: a kind gesture toward yourself (a walk you love, some time of your own, something that brings you calm)."
+  },
+  "p145": {
+   "t": "Reuniting with the land you long for",
+   "x": "Losing one's native land is among the deepest pains. If you miss your place of origin:\n\nAsk someone to send you soil from the land you long for.\n\nEvery day, for half an hour, spread it out and make contact with it: walk on it barefoot, touch it, smell it.\n\nLet your body remember that this landscape still lives in you, and that you can also grow roots where you are."
+  },
+  "p146": {
+   "t": "The stranger's day",
+   "x": "To step out of your usual character and discover you can be more than you think.\n\nDevote a day (or an afternoon) to doing everything that 'isn't you': dress differently, walk streets you never take, order a dish you'd never order, take a route you'd never take.\n\nDo it in a spirit of play, watching how your 'usual self' reacts.\n\nAfterwards, reflect on what you discovered about yourself. End with a toast (even with water) to the person you may yet become."
+  },
+  "p147": {
+   "t": "Clean a corner, tidy the soul",
+   "x": "To renew yourself within, when you feel stuck, by acting without.\n\nChoose the most neglected corner of your home: that drawer, shelf or nook you've avoided for months.\n\nEmpty it completely and clean it thoroughly, as if cleaning a corner of your own memory. Part with seven objects that no longer serve you: donate or recycle them.\n\nLeave that space clear and look at it for a few moments. Each time you see it, you'll remember there is new space inside you too."
+  },
+  "p148": {
+   "t": "Box breathing",
+   "x": "Inhale for 4, hold 4, exhale 4 and hold with empty lungs another 4.\n\nRepeat the pattern for several minutes: four equal counts, like the sides of a square."
+  },
+  "p149": {
+   "t": "4-7-8 breathing",
+   "x": "Inhale through the nose counting 4.\n\nHold the breath counting 7.\n\nExhale slowly through the mouth counting 8.\n\nRepeat several cycles and notice the body settling. Many people choose it before sleep."
+  },
+  "p150": {
+   "t": "Alternate nostril breathing (Nadi Shodhana)",
+   "x": "Sit comfortably. With the right thumb close the right nostril and inhale deeply through the left.\n\nClose the left with the ring finger and exhale slowly through the right.\n\nInhale through the right, close it and exhale through the left.\n\nContinue alternating for several minutes: an unhurried breath for coming back to centre when the mind races."
+  },
+  "p151": {
+   "t": "Breath counting",
+   "x": "In a quiet place, breathe slowly and deeply, counting each breath mentally from 1 to 10.\n\nAt 10, start again from 1.\n\nIf the mind wanders, return gently to the breath and keep counting. A simple way to hold attention on one thing."
+  },
+  "p152": {
+   "t": "Energizing breath",
+   "x": "Standing, feet shoulder-width apart, inhale deeply through the nose.\n\nExhale forcefully through the mouth, short and sharp, as if blowing out a candle.\n\nRepeat the pattern quickly for several rounds and feel the energy and aliveness in the body. For moments when you want to wake up and get going."
+  },
+  "p153": {
+   "t": "Diaphragmatic breathing",
+   "x": "Lying or sitting, place one hand on the chest and one on the belly.\n\nInhale slowly through the nose letting the belly rise (not the chest).\n\nExhale slowly through the mouth feeling the belly fall.\n\nBreathe deep into the diaphragm and let the belly move freely."
+  },
+  "p154": {
+   "t": "Kapalabhati",
+   "x": "Seated with a straight back, inhale deeply.\n\nExhale forcefully through the nose, contracting the abdomen to expel the air fast; let the inhalation happen by itself, passively.\n\nRepeat the pattern of energetic exhalation and passive inhalation for several rounds.\n\nIt invigorates the body, clears the mind and cleanses the respiratory system."
+  },
+  "p155": {
+   "t": "Progressive relaxation with breath",
+   "x": "Lie comfortably and take a few deep breaths.\n\nInhale tensing the muscles of feet and toes; exhaling, release the tension completely.\n\nContinue up the body: calves, thighs, abdomen, chest, arms, neck and face, tensing on the inhale and releasing on the exhale.\n\nCombine breath and muscle release for deep rest."
+  },
+  "p156": {
+   "t": "Breathwalk (walking and breathing)",
+   "x": "Walk at a comfortable pace in a quiet place.\n\nCoordinate steps and breath: inhale for 4 steps and exhale for 4 steps.\n\nKeep the pattern for a few minutes: it brings movement, rhythm and attention together into one thing."
+  },
+  "p157": {
+   "t": "Resonant breathing",
+   "x": "Breathe through the nose, slow and deep, with inhalation and exhalation of equal length, down to 5-6 breaths per minute (about 5 seconds in, 5 out).\n\nA timer can help keep the rhythm.\n\nIt activates the relaxation response and brings stable calm."
+  },
+  "p158": {
+   "t": "Extended exhalation",
+   "x": "Sitting or lying down, inhale deeply through the nose.\n\nExhale through the mouth twice as slowly as you inhaled: in for 4, out for 8.\n\nRepeat for several minutes and notice how the long exhale invites the body to let go."
+  },
+  "p159": {
+   "t": "Energetic breathing (standing)",
+   "x": "Ideal for drowsiness or when you need to switch on. Standing, legs slightly apart, arms relaxed at your sides.\n\nInhale as deeply as you can: the exercise is done holding the breath.\n\nRaise the arms forward to horizontal, palms down, and clench the fists with pressure.\n\nBend the arms toward the chest keeping them horizontal, then push them forward with force, as if pushing furniture. Lower them with tension to the start position.\n\nRelax arms and hands, expel all the air forcefully, rest and breathe normally."
+  },
+  "p160": {
+   "t": "Breathing to calm the mind",
+   "x": "When your mind is restless, anxious or worried:\n\nExhale deeply to expel that mood.\n\nPause 3 seconds with empty lungs.\n\nInhale deeply and pause another 3 seconds.\n\nContinue rhythmically."
+  },
+  "p161": {
+   "t": "Complete breath",
+   "x": "Inhale deeply through the nose, filling first the belly, then the chest, finally the collarbone area.\n\nHold the air a couple of seconds.\n\nExhale slowly and completely, emptying in the same order."
+  },
+  "p162": {
+   "t": "Viloma pranayama",
+   "x": "Inhale deeply through the nose and hold a couple of seconds.\n\nExhale in small interrupted portions, without strain or noise.\n\nWhen little air remains, exhale it firmly. Repeat 4-5 times."
+  },
+  "p163": {
+   "t": "Nadi Shodhana (alternate nostril breathing)",
+   "x": "Balances the two energy channels. With the thumb and fingers of one hand, alternately close each nostril; the other hand rests relaxed on your thigh.\n\nAlways begin and end with the left nostril, alternating the breath from one side to the other."
+  },
+  "p164": {
+   "t": "Bhramari pranayama (the bee)",
+   "x": "Inhale through the nose.\n\nAs you exhale, make a soft, continuous humming like a bee.\n\nIt is calming and leads into meditation."
+  },
+  "p165": {
+   "t": "Breathing through the energy system",
+   "x": "Sit with a straight back or lie face up. After a few moments of silence, breathe slowly and regularly through the nose.\n\nImagine the air entering and leaving through each energy container.\n\nBegin with the first container (the base): focus on it and mentally breathe through it for 3-5 minutes.\n\nAscend container by container, 3-5 minutes each, up to the crown, keeping awareness in the container you breathe through."
+  },
+  "p166": {
+   "t": "Dynamic energy-system breathing",
+   "x": "A vigorous variant of energy container breathing.\n\nInhale and exhale energetically at a fast pace, imagining the breath passing through the energy containers.\n\nIt kindles an intense inner 'fire' and helps purify and activate the centers. Follow your inner sense to know when it is enough."
+  },
+  "p167": {
+   "t": "Extended exhalation",
+   "x": "Inhale deeply through the nose and exhale through the mouth twice as slowly: in for 4, out for 8.\n\nLengthening the exhale is an invitation for the body to loosen."
+  },
+  "p168": {
+   "t": "Cardiac coherence",
+   "x": "Inhale and exhale for the same length of time, typically 5 seconds each, syncing the breath with the heart.\n\nPractice 3-5 minutes and notice breath and heartbeat finding a common rhythm."
+  },
+  "p169": {
+   "t": "Breathing with progressive relaxation",
+   "x": "Lying down, take a few deep breaths to settle.\n\nInhale tensing feet and toes; exhaling, release the tension completely.\n\nMove up the whole body this way, muscle group by muscle group, to the head.\n\nJoining breath and muscular release brings deep physical and mental rest."
+  },
+  "p170": {
+   "t": "Guided visualization with breath",
+   "x": "Combine conscious breathing with a guided meditation recording that sets breathing patterns.\n\nLet the voice lead you through calming images while you breathe to its rhythm.\n\nA guided rest for when you need to stop completely."
+  },
+  "p171": {
+   "t": "Fetal breathing",
+   "x": "Focus attention on the lower belly and let the breath grow progressively slower, softer, almost imperceptible.\n\nDo not hold the breath by force: relaxation and meditation make it spontaneously minimal.\n\nVital energy circulates naturally, quieting the mind into deep calm, vitality and awareness."
+  },
+  "p172": {
+   "t": "Breath counting",
+   "x": "In a quiet place, breathe slowly and deeply, counting each breath mentally from 1 to 10, then begin again.\n\nIf the mind wanders, return gently and keep counting."
+  },
+  "p173": {
+   "t": "Ujjayi breathing",
+   "x": "Yoga's 'victorious breath': inhale and exhale deeply through the nose while slightly narrowing the throat, creating a soft, continuous ocean-like sound.\n\nThat sound anchors concentration during yoga or meditation."
+  },
+  "p174": {
+   "t": "Breathwalk (walking and breathing)",
+   "x": "Walk at a comfortable pace in a quiet place, coordinating steps and breath: inhale for 4 steps and exhale for another 4.\n\nIt unites physical exercise, rhythm and mindfulness: more focus, less stress."
+  },
+  "p175": {
+   "t": "Pranic breathing 1 (6-3-6-3)",
+   "x": "Inhale counting 6, hold 3, exhale in 6 and hold 3.\n\nAn ideal starting pattern: it gently refreshes and energizes."
+  },
+  "p176": {
+   "t": "Pranic breathing 2 (7-1-7-1)",
+   "x": "Inhale counting 7, hold 1, exhale in 7 and hold 1.\n\nSuited to stimulating the energy containers in experienced practitioners.\n\nCaution: not recommended for people with high blood pressure."
+  },
+  "p177": {
+   "t": "Breath of fire (Tantra)",
+   "x": "Seated with a straight spine and relaxed shoulders, take one deep preparatory inhalation.\n\nExhale forcefully through the nose, drawing the abdomen in and slightly up: exhalations short, firm and energetic. Don't force the inhalation: after each exhalation, relax the belly and let the air enter by itself.\n\nKeep a steady rhythm of one exhalation per second, increasing speed gradually without losing control.\n\nDo 30 exhalations, rest breathing normally and, if you feel well, repeat 1 or 2 more rounds."
+  },
+  "p178": {
+   "t": "Wim Hof breathing",
+   "x": "Always do it seated or lying down in a safe place, never in water or standing.\n\nInhale deeply and exhale partially; repeat this pattern quickly 30 times.\n\nExhale fully and hold the breath as long as possible; then inhale deeply once and exhale slowly. That is one cycle; you may do 3.\n\nIt is a demanding practice: what is sought is a sense of vitality and steadiness in the face of discomfort."
+  },
+  "p179": {
+   "t": "Rebirthing (connected breathing)",
+   "x": "Always breathe through the same channel, nose or mouth.\n\nEqual length of inhalation and exhalation, no pause between them, yet unhurried: slightly faster and deeper than an ordinary intentional breath.\n\nFill the whole lung to its limit on every breath: belly, middle and upper part."
+  },
+  "p180": {
+   "t": "20 connected breaths",
+   "x": "Cycles of 4+1 using the rebirthing technique: 4 breaths at 60% of your capacity and 1 at 100%. Repeat several cycles, preferably seated.\n\nAlways the same channel, equal in and out length, no pause but no rush, filling the whole lung (belly, middle and top).\n\nA continuous, unhurried rhythm, for inhabiting the full breath."
+  },
+  "p181": {
+   "t": "Breaths for asking",
+   "x": "For remembering, awakening and renewing yourself. Sequence:\n\n1) 10 breaths with the mouth open, inhaling twice as long as you exhale, sounding 'ah…' on the out-breath. 2) 15-second breath hold.\n\n3) 15 equal breaths. 4) 15-second hold. 5) 25 equal breaths. 6) 15-second hold.\n\nNow you are ready to look within and ask yourself questions, to see what arises. If nothing arises, that's fine."
+  },
+  "p182": {
+   "t": "10-20-30 breaths",
+   "x": "It clears CO2 and quiets the neocortex and the ego. Do it seated or lying down.\n\n10 connected mouth breaths and a 15-second hold.\n\n20 connected mouth breaths and a 30-second hold.\n\n30 connected mouth breaths and an open-ended hold, as long as comfortable, never forcing."
+  },
+  "p183": {
+   "t": "Circular breathing",
+   "x": "The technique of wind musicians (didgeridoo, brass): inhale through the nose while pushing out the air stored in the cheeks with a controlled contraction, keeping a continuous, unbroken airflow.\n\nThough very technical, it can serve as a meditative practice: it builds concentration and great breath control."
+  },
+  "p184": {
+   "t": "Piko-piko breathing",
+   "x": "A quick technique to center yourself and build vital energy.\n\nInhale while bringing all your attention to the crown of the head (upper piko).\n\nExhale while moving your attention to the navel (central piko).\n\nRepeat the cycle rhythmically for several minutes. Moving your attention between these two main energy points stimulates the flow of mana through the body."
+  },
+  "p185": {
+   "t": "Gratitude: the three jewels of the day",
+   "x": "Each night, before sleeping, recall three concrete things from the day you are grateful for: a gesture, a taste, a moment of gratitude or of service.\n\nRelive them briefly with closed eyes, feeling gratitude in the chest, one hand on the heart.\n\nFinish saying inwardly 'thank you' to life, to someone from the day, and to yourself.\n\nYou'll notice your gaze starts hunting jewels by itself."
+  },
+  "p186": {
+   "t": "Beauty: the wonder walk",
+   "x": "Watch, or walk slowly, with the diffuse vision you already know, and let something call you: a mossy crack, a shadow, a face, a cloud.\n\nStop before it for a full minute, contemplating it like a work of art. Understand its reason for being.\n\nThen close your eyes, relive what you found and feel it for a few moments. The outer beauty you perceive awakens inner harmony."
+  },
+  "p187": {
+   "t": "Truth: the day without masks",
+   "x": "A day to live in full coherence: let what you think, say and do point the same way.\n\nSpeak only what is true, and stay honestly silent when you do not wish to share (saying 'I'd rather not talk about this' is also truth).\n\nNotice when the urge appears to embellish, exaggerate or please, and breathe before answering.\n\nWith each action coherent with this value, close your eyes and feel how your body lived a day in truth."
+  },
+  "p188": {
+   "t": "Justice and Respect: rebalancing a scale",
+   "x": "Think of a nearby situation where something was unfair: someone did not receive the recognition, treatment or share they deserved (it may have been you).\n\nPicture yourself, or take one concrete step, to level the scale: acknowledge merit aloud, apologize, share better, or set a dignified limit if the overlooked one was you.\n\nDo it without drama, like straightening a crooked picture.\n\nClose by giving thanks for the chance to act with uprightness."
+  },
+  "p189": {
+   "t": "Abundance and Deservingness: the fullness inventory",
+   "x": "Go over in your mind, for a few minutes, everything you already have: abilities, people, experiences, things you once wished for that are now yours.\n\nSay it aloud, sentence by sentence, beginning with 'I have…' or 'I am…'.\n\nThen say aloud: '[your name], I deserve the good that comes into my life', and hold that affirmation a few seconds.\n\nFinish by feeling the fullness of everything you went over."
+  },
+  "p190": {
+   "t": "Joy: three minutes of celebration",
+   "x": "Play music, or sing — even in your head — something you love, and for three minutes celebrate for no reason: dance, smile, let sounds out, move your body freely.\n\nIf embarrassment or 'this is ridiculous' shows up, celebrate that too: it is one of the keys to joy.\n\nFinish still, eyes closed, feeling joy's vibration in the body.\n\nDo it especially on grey days: joy is a practice, not only a result."
+  },
+  "p191": {
+   "t": "Acceptance and Devotion: the yes to what is",
+   "x": "Sit calmly and bring to mind something in your life that is hard to accept (don't pick your biggest wounds to start).\n\nBreathing in, say inwardly 'this is what there is'; breathing out, 'and I say yes to it'.\n\nRepeat for several breaths, noticing resistance loosen even though the fact doesn't change.\n\nClose by surrendering what doesn't depend on you, palms open upward: 'I trust'."
+  },
+  "p192": {
+   "t": "Self-discipline and Temperance: the small renunciation",
+   "x": "Choose now one small voluntary renunciation: the sugar in your coffee, half an hour of screens, the usual complaint.\n\nWhenever the impulse appears, do a box breath (4-4-4-4) before deciding.\n\nDo not fight the desire: watch it like a wave rising and falling.\n\nAcknowledge your achievement without arrogance: will trains like a muscle, with small weights and constancy."
+  },
+  "p193": {
+   "t": "Compassion and Empathy: in the other's shoes",
+   "x": "Think of someone you have friction with. Sit, close your eyes and breathe deeply.\n\nImagine a full day of their life: their worries on waking, their burdens, their fears, what hurts them that they may never tell.\n\nRepeat inwardly: 'Just like me, this person wants to be happy. Just like me, they suffer. Just like me, they do what they can'.\n\nEnd by sending them a good wish. You needn't agree with someone to understand their humanity."
+  },
+  "p194": {
+   "t": "Communication: speaking from the heart",
+   "x": "Think of an important conversation ahead, or the one you keep postponing, and clarify four things in silence: what I observe (without judgment), what I feel, what I need and what I want to request. Picture yourself saying it.\n\nBegin your sentences with 'I feel' and 'I need' instead of 'you always' or 'you never'.\n\nPicture the worst possible reaction from the other person and how you respond to it, doing so responsibly and without letting it make you feel guilty.\n\nIf it happens, listen to their reply to the end, without preparing yours while they speak.\n\nAlways close with thanks."
+  },
+  "p195": {
+   "t": "Constructiveness and Creativity: from problem to seed",
+   "x": "Choose a problem on your mind and name it clearly in your head.\n\nNo complaining allowed: for 10 minutes imagine only possible solutions, wild ideas included, censoring none.\n\nPick the smallest and do it today, however tiny.\n\nFinish by making something with your hands, however simple: creative energy switches on by being used."
+  },
+  "p196": {
+   "t": "Detachment and Simplicity: the three releases",
+   "x": "Choose three objects you no longer use but keep 'just in case'. If they are not at hand, imagine giving them away and what it would be like not to have them.\n\nHold each one, thank it for what it gave you and decide its destiny: gift, donate or recycle.\n\nHand them over right now, or leave them ready by the door, without postponing.\n\nNotice the freed space and feel it inside too: everything you release gives you back a piece of yourself."
+  },
+  "p197": {
+   "t": "Discernment and Wisdom: the witness pause",
+   "x": "Facing a decision or news that stirs you, or that already did, bring it to mind and take three slow breaths.\n\nAsk yourself: what is fact here, and what is my interpretation? What is true and what is illusory?\n\nImagine advising a good friend in your same situation: what would you tell them from calm?\n\nDecide after the pause, not before. Wisdom is experience passed through the filter of silence."
+  },
+  "p198": {
+   "t": "Empowerment and Courage: the step that scares",
+   "x": "Think of something you wish to do and keep postponing out of fear (a call, a proposal, a change).\n\nSplit it into the smallest possible step, so small it would be almost ridiculous not to take it.\n\nBefore taking it, stand up, feet firm, and take three energizing breaths, feeling your inner strength.\n\nTake at least one small step right now. When done, celebrate it: courage is not the absence of fear, it is acting with fear as co-pilot."
+  },
+  "p199": {
+   "t": "Balance: the three-centres review",
+   "x": "Stop for two minutes and ask your three centers:\n\nBody: what do you need? (water, a stretch, rest…). Give it if you can.\n\nHeart: what do you feel? Name it without judging.\n\nMind: where are you? Bring it to the present with one breath.\n\nClose with the circles of the three centers you already know: hips, chest and neck, merging them into a single movement."
+  },
+  "p200": {
+   "t": "Listening and Silence: a date with silence",
+   "x": "A few minutes with no screens, no music, no task.\n\nSit and listen in layers: first the far sounds, then the near ones, then your breath, then the background silence on which everything sounds.\n\nWhen thoughts appear, let them pass like cars you will not board.\n\nAt the end ask inward: 'what do I need to hear today?', and stay silent, receptive, forcing no answer."
+  },
+  "p201": {
+   "t": "Happiness and Peace: the inner refuge",
+   "x": "Sit, close your eyes and recall in detail a moment when you were serene and full: where you were, the light, what your body felt.\n\nBreathe inside that memory until the feeling rekindles in your chest.\n\nGive it an anchor; for example, gently join thumb and index finger while you feel it.\n\nRepeat whenever you are stirred; later, in moments of agitation, the gesture will return you to the refuge. Peace is not in circumstances: it is in you."
+  },
+  "p202": {
+   "t": "Strength and Resilience: the museum of your victories",
+   "x": "Recall five difficulties you have already overcome in your life.\n\nIn each one, recognize which strength you used (patience, courage, creativity, help you knew to ask for) and what you learned.\n\nSay aloud: 'I have overcome before, I will overcome now'.\n\nReturn to this inner museum on hard days: your history is the proof of your strength."
+  },
+  "p203": {
+   "t": "Enlightenment and Unity: the meditation of we",
+   "x": "Sit calmly and bring attention to your breath.\n\nWiden awareness: the air you inhale was exhaled by trees; the water in your body was cloud, river and sea; the light warming you comes from the same sun that shines on everyone.\n\nRepeat inwardly: 'I am not separate. Everything that exists breathes with me'.\n\nRest a few minutes in that sense of a living web. Opening your eyes, look at what surrounds you as part of you."
+  },
+  "p204": {
+   "t": "Introspection and Responsibility: the day review",
+   "x": "Each night, replay the day backwards, from night to morning, like a film.\n\nWatch your actions without judging yourself: where did I act from my best self? Where did I react on autopilot?\n\nChoose one situation and ask: 'what part was my responsibility?', without guilt and without excuses.\n\nDecide one small adjustment for tomorrow. Whoever reviews their day steers their life."
+  },
+  "p205": {
+   "t": "Patience: turning waiting into practice",
+   "x": "Take a wait: stop whatever you are doing and pause.\n\nStraighten your back and do resonant breathing: 5 seconds in, 5 out.\n\nTell yourself: 'Life has its rhythm and I can walk with it'.\n\nDo it in the waits that follow. Patience is not enduring: it is inhabiting the natural rhythm of things."
+  },
+  "p206": {
+   "t": "Passion and Perseverance: feeding the fire",
+   "x": "Bring to mind what truly makes you vibrate: the thing that makes time disappear while you do it.\n\nNotice where its fire stands right now: burning, lukewarm or nearly out. Do not judge it, just look.\n\nAdd small wood now, or picture yourself doing it: give it the next few minutes, even two. A tiny step is worth more than a huge plan for tomorrow.\n\nDo it when you can.\n\nWhen you finish, look back and acknowledge the road walked. Fire is not kept with great logs, but with small, steady wood.\n\nWhen discouragement comes, do not negotiate with motivation: show up anyway and begin. Momentum arrives after starting, not before."
+  },
+  "p207": {
+   "t": "Forgiveness: releasing to free yourself",
+   "x": "Visualize before you the one who hurt you (they never need to know): say aloud or inwardly what they did, what you felt and what you still carry.\n\nThen recognize what carrying that resentment has cost you and what you'll gain by releasing it.\n\nClose with the sentence: 'I release you, and in doing so I free myself'. Blow like someone letting something go, and close with a hand on your chest and a deep breath.\n\nRemember: forgiving is not agreeing nor trusting again; it is ceasing to drink the poison yourself."
+  },
+  "p208": {
+   "t": "Simplicity and Lightness: an essential day",
+   "x": "Choose the simple in your next decisions: natural food, comfortable clothes, no shopping, screens to a minimum — whatever it is.\n\nReplace what you remove with what costs nothing: walking, talking, breathing deep, resting.\n\nNotice what you truly miss and what you do not miss at all.\n\nMost important: do it in the hours ahead.\n\nHold on to your discovery: almost always, more is superfluous than lacking."
+  },
+  "p209": {
+   "t": "Motivating yourself with kindness",
+   "x": "Think of a trait you criticize yourself for, believing that's how you'll change ('lazy', 'impulsive'…). First feel the pain that criticism causes and give it compassion.\n\nNow find a kinder way to motivate yourself: what would a wise, caring mentor say to point out what can improve while encouraging you?\n\nWhenever you catch yourself judging, notice the pain, give yourself compassion and reframe the message in a supportive tone.\n\nRemember: to truly motivate, love is more powerful than fear."
+  }
+ }
+}

@@ -1,0 +1,3597 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2B241C">
+<title>Moment</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="estilos.css">
+</head>
+<body class="loading">
+
+<!-- PANTALLA DE CARGA -->
+<div id="splash">
+  <img src="icon-192.png" alt="Moment">
+  <h1 data-lbl-html="app_title_br">Moment</h1>
+  <p class="sub" data-lbl="app_sub">Momento para ti</p>
+  <p data-lbl="app_slogan">Pequeñas prácticas para grandes cambios</p>
+</div>
+
+<div id="app" class="hidden">
+  <header class="top">
+    <img src="icon-192.png" alt="">
+    <div><span class="t" data-lbl="app_title">Moment</span><span class="s" data-lbl="app_slogan">Pequeñas prácticas para grandes cambios</span></div>
+  </header>
+  <main id="main"></main>
+  <nav id="nav" class="hidden">
+    <button data-tab="home"><span class="ic">☀</span><span class="lbl" data-lbl="tab_program">Agenda</span></button>
+    <button data-tab="lib"><span class="ic">✦</span><span class="lbl" data-lbl="tab_library">Biblioteca</span></button>
+    <button data-tab="fav"><span class="ic"><svg viewBox="4 4 192 192" width="27" height="27" style="display:block;margin:0 auto" aria-hidden="true"><circle cx="100" cy="100" r="88" fill="none" stroke="currentColor" stroke-width="14"/><path d="M100,12 L176.2,144 L23.8,144 Z M156.6,32.6 L130.1,182.7 L186.7,84.7 L43.4,32.6 L69.9,182.7 L13.3,84.7 Z" fill="none" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg></span><span class="lbl" data-lbl="tab_path">El Noveno Camino</span></button>
+    <button data-tab="set"><span class="ic">⚙</span><span class="lbl" data-lbl="tab_settings">Ajustes</span></button>
+  </nav>
+</div>
+
+<div id="modal" class="hidden"><div class="sheet" id="modalContent"></div></div>
+
+<script src="i18n.js"></script>
+<script src="contenido.js"></script>
+<script src="practices.js"></script>
+<script>
+/* ================== ESTADO ================== */
+const LS = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v===null? d : JSON.parse(v);}catch(e){return d} },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} },
+  remove(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+
+/* ================== IDIOMA (i18n) ================== */
+// Idioma: 'es' o 'en'. Se elige en el onboarding y se puede cambiar en Datos y privacidad.
+// Si no se ha elegido aún, se intenta detectar del sistema (en → inglés; resto → español).
+let LANG = LS.get('mpt_lang', null);
+function detectLang(){
+  // Se miran TODOS los idiomas preferidos del sistema, y las lenguas cooficiales
+  // (catalán, gallego, euskera) cuentan como español: un móvil en catalán debe
+  // arrancar en español, no en inglés.
+  try{
+    const ls=(navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language||'es']);
+    for(const l of ls){
+      const c=(l||'').toLowerCase().slice(0,2);
+      if(['es','ca','gl','eu'].includes(c)) return 'es';
+      if(c==='en') return 'en';
+    }
+    return 'es';
+  }catch(e){ return 'es'; }
+}
+function getLang(){ return LANG || detectLang(); }
+function setLang(l){ LANG=l; LS.set('mpt_lang', l); try{ applyNavLang(); }catch(e){} try{ refreshPracticesLang(); }catch(e){} try{ sincronizarCanal(); }catch(e){} }
+/* El diccionario I18N vive en i18n.js (se carga antes que este script) */
+/* ---- Registro de incidencias ----
+   Muchas operaciones (plugins nativos, avisos, almacenamiento) van envueltas en
+   try/catch para que un fallo no tumbe la app. El problema es que fallaban en
+   SILENCIO: el canal de alarma estuvo roto veinte versiones sin que se supiera.
+   Ahora esos fallos quedan anotados aquí, se ven en Ajustes y viajan en el correo
+   de diagnóstico. Solo se guardan los 40 últimos y nada sale del móvil. */
+const LOG_MAX = 40;
+let _log = [];
+try{ _log = JSON.parse(localStorage.getItem('mpt_log') || '[]'); }catch(e){ _log = []; }
+function anota(donde, err){
+  try{
+    const msg = (err && (err.message || err.name)) ? (err.message || err.name) : String(err||'');
+    const ult = _log[_log.length-1];
+    // no repetir la misma incidencia una y otra vez: se cuenta
+    if(ult && ult.d===donde && ult.m===msg){ ult.n=(ult.n||1)+1; ult.t=Date.now(); }
+    else _log.push({t:Date.now(), d:donde, m:msg.slice(0,140), n:1});
+    if(_log.length>LOG_MAX) _log = _log.slice(-LOG_MAX);
+    localStorage.setItem('mpt_log', JSON.stringify(_log));
+  }catch(e){}
+}
+// Envuelve una operación que puede fallar sin que importe: si falla, queda anotada.
+function intentar(donde, fn, porDefecto){
+  try{ return fn(); }catch(e){ anota(donde, e); return porDefecto; }
+}
+function logTexto(){
+  if(!_log.length) return t('lg_none');
+  return _log.slice().reverse().map(x=>{
+    const f=new Date(x.t);
+    return pad(f.getDate())+'/'+pad(f.getMonth()+1)+' '+pad(f.getHours())+':'+pad(f.getMinutes())+
+           '  '+x.d+': '+x.m+(x.n>1?'  (x'+x.n+')':'');
+  }).join('\n');
+}
+function borrarLog(){ _log=[]; try{ localStorage.removeItem('mpt_log'); }catch(e){} toast(t('lg_cleared')); renderSet(); }
+// cualquier error no capturado también queda anotado
+window.addEventListener('error', e=>anota('js', e.error||e.message));
+window.addEventListener('unhandledrejection', e=>anota('promesa', e.reason));
+function t(key){ const l=getLang(); return (I18N[l] && I18N[l][key]) || I18N.es[key] || key; }
+/* Idioma de respaldo de la biblioteca.
+   Cuando un idioma no tenga todas las prácticas traducidas —caso normal en las
+   traducciones aportadas por la comunidad— los textos que falten se muestran en
+   este idioma en vez de dejar huecos. Español o inglés: los dos van dentro de la app. */
+/* ============ Idiomas importados ============
+   La app lleva dentro español e inglés. Los demás se descargan de la web como
+   archivo JSON y se importan a mano desde Ajustes, igual que una copia de
+   seguridad. Se guardan en el móvil y a partir de ahí funcionan sin conexión.
+
+   El archivo es JSON, que se lee como DATOS y nunca se ejecuta: por eso una
+   traducción de la comunidad no puede meter código en la app. */
+const ESQUEMA_IDIOMA = 1;
+const IDIOMAS_BASE = ['es','en'];          // los que van dentro y no se pueden quitar
+let idiomasPropios = LS.get('mpt_idiomas', {});
+
+/* Revisión del archivo antes de aceptarlo. Es la misma idea que
+   tools/validar-idioma.js, resumida a lo que puede comprobarse aquí. */
+function revisarIdioma(d){
+  const fallos = [];
+  if (!d || typeof d !== 'object') return [t('iv_formato')];
+  if (!d.codigo || !/^[a-z]{2,3}(-[A-Za-z]{2,4})?$/.test(d.codigo)) fallos.push(t('iv_codigo'));
+  if (IDIOMAS_BASE.includes(d.codigo)) fallos.push(t('iv_base'));
+  if (d.esquema !== ESQUEMA_IDIOMA) fallos.push(t('iv_esquema'));
+  if (!d.interfaz || typeof d.interfaz !== 'object') fallos.push(t('iv_interfaz'));
+  if (!d.practicas || typeof d.practicas !== 'object') fallos.push(t('iv_practicas'));
+  // nada de HTML ni enlaces en los textos
+  const peligro = /<[a-z!/][^>]*>|javascript:/i;
+  const revisar = o => Object.values(o||{}).some(v =>
+    typeof v === 'string' ? peligro.test(v) : (v && peligro.test(String(v.t||'') + String(v.x||''))));
+  if (revisar(d.interfaz) || revisar(d.practicas)) fallos.push(t('iv_html'));
+  return fallos;
+}
+
+/* Incorpora un idioma guardado al diccionario y a la biblioteca. */
+function activarIdioma(d){
+  try{
+    const c = d.codigo;
+    // interfaz: lo que traiga, y lo que falte se resuelve solo con t() (cae a español)
+    I18N[c] = Object.assign({}, d.fijos || {}, d.interfaz || {});
+    if (d.practicas) TEXTOS[c] = d.practicas;
+    if (d.categorias) CATEGORIAS.forEach(cat => { if (d.categorias[cat.id]) cat[c] = d.categorias[cat.id]; });
+    if (typeof CREDITOS !== 'undefined' && d.autor) CREDITOS[c] = d.autor;
+    return true;
+  }catch(e){ anota('activar-idioma', e); return false; }
+}
+function cargarIdiomasPropios(){
+  Object.values(idiomasPropios || {}).forEach(activarIdioma);
+}
+cargarIdiomasPropios();
+
+/* Nombre visible de un idioma, para las listas. */
+function nombreIdioma(c){
+  if (c === 'es') return 'Español';
+  if (c === 'en') return 'English';
+  const d = idiomasPropios[c];
+  return (d && d.nombre) || c;
+}
+function idiomasDisponibles(){ return IDIOMAS_BASE.concat(Object.keys(idiomasPropios || {})); }
+
+/* Importar desde un archivo elegido por la persona. */
+/* ---- Reconocimiento automático del tipo de archivo ----
+   La app maneja varios formatos: copias de seguridad, idiomas, prácticas en texto
+   o Word. En vez de obligar a acertar con el botón, se mira el contenido y se
+   encamina solo: así un archivo de Moment se importa desde cualquier sitio. */
+function tipoDeArchivo(texto, nombre){
+  const n=(nombre||'').toLowerCase();
+  if(/\.docx$/.test(n)) return 'docx';
+  let d=null;
+  try{ d=JSON.parse(texto); }catch(e){ d=null; }
+  if(d && typeof d==='object'){
+    if(d.app==='momento-para-ti' || d.app==='moment' || d.data) return 'copia';
+    if(d.codigo && (d.interfaz || d.practicas)) return 'idioma';
+    if(Array.isArray(d) && d.length && d[0] && d[0].title) return 'practicas';
+    if(Array.isArray(d.practicas)) return 'practicas';
+    return 'json-desconocido';
+  }
+  if(/^\s*(t[ií]tulo|title)\s*:/im.test(texto)) return 'practicas';
+  return 'desconocido';
+}
+/* ---- Archivos de Moment encontrados en el móvil ----
+   Busca en la carpeta Descargas los archivos que la app sabe usar y los ofrece
+   para importar con un toque, sin tener que buscarlos a mano. Solo lee archivos
+   pequeños cuyo nombre encaja: no rastrea el teléfono. */
+let archivosDetectados = [];
+async function buscarArchivosMoment(){
+  archivosDetectados = [];
+  try{
+    if(!CapAjustes || !CapAjustes.listarArchivosMoment) return [];
+    const r = await CapAjustes.listarArchivosMoment();
+    (r && r.archivos || []).forEach(a=>{
+      let texto='';
+      try{ texto = decodeURIComponent(escape(atob(a.base64))); }catch(e){ return; }
+      const tipo = tipoDeArchivo(texto, a.nombre);
+      if(tipo==='copia' || tipo==='idioma' || tipo==='practicas')
+        archivosDetectados.push({nombre:a.nombre, fecha:a.fecha, tipo, texto});
+    });
+  }catch(e){ anota('buscar-archivos', e); }
+  return archivosDetectados;
+}
+function nombreTipo(t){
+  return t==='copia' ? t('im_t_copia') : t==='idioma' ? t('im_t_idioma') : t('im_t_practicas');
+}
+async function renderDetectados(){
+  const el=document.getElementById('detectados'); if(!el) return;
+  el.innerHTML = `<p class="muted" style="font-size:.85rem">${t('im_scanning')}</p>`;
+  const lista = await buscarArchivosMoment();
+  if(!lista.length){ el.innerHTML = `<p class="muted" style="font-size:.85rem">${t('im_none')}</p>`; return; }
+  el.innerHTML = lista.map((a,i)=>`<div class="row" style="align-items:center;margin:0 0 6px">
+    <div style="flex:1">
+      <b style="font-size:.9rem">${esc(a.nombre)}</b><br>
+      <span class="muted" style="font-size:.78rem">${esc(nombreTipo(a.tipo))}</span>
+    </div>
+    <button class="btn small ghost" onclick="importarDetectado(${i})">${t('im_use')}</button>
+  </div>`).join('');
+}
+function importarDetectado(i){
+  const a = archivosDetectados[i]; if(!a) return;
+  if(a.tipo==='idioma') aplicarIdiomaTexto(a.texto);
+  else importarDatosTexto(a.texto);
+}
+
+/* Punto único de importación: acepta cualquier archivo de Moment. */
+function importarArchivo(file){
+  if(!file) return;
+  const r=new FileReader();
+  r.onerror=()=>toast(t('bk_read_fail'));
+  r.onload=()=>{
+    const texto=String(r.result||'');
+    const tipo=tipoDeArchivo(texto, file.name);
+    if(tipo==='idioma'){ aplicarIdiomaTexto(texto); return; }
+    if(tipo==='copia' || tipo==='practicas'){ importarDatosTexto(texto); return; }
+    toast(t('im_unknown'));
+    anota('importar', new Error('tipo no reconocido: '+tipo));
+  };
+  r.readAsText(file);
+}
+function aplicarIdiomaTexto(texto){
+  {
+    let d = null;
+    try{ d = JSON.parse(texto); }
+    catch(e){ toast(t('id_bad')); anota('importar-idioma', e); return; }
+    const fallos = revisarIdioma(d);
+    if (fallos.length){ alert(t('id_rejected') + '\n\n· ' + fallos.join('\n· ')); return; }
+    const total = PRACTICAS.length;
+    const hechas = Object.keys(d.practicas || {}).length;
+    if (!confirm(t('id_confirm')
+        .replace('{n}', d.nombre || d.codigo)
+        .replace('{p}', hechas + '/' + total)
+        .replace('{a}', d.autor || '—'))) return;
+    idiomasPropios[d.codigo] = d;
+    LS.set('mpt_idiomas', idiomasPropios);
+    activarIdioma(d);
+    setLang(d.codigo);
+    toast(t('id_added').replace('{n}', d.nombre || d.codigo));
+    renderSet();
+  }
+}
+function quitarIdioma(c){
+  if (!confirm(t('id_remove_q').replace('{n}', nombreIdioma(c)))) return;
+  delete idiomasPropios[c];
+  LS.set('mpt_idiomas', idiomasPropios);
+  if (getLang() === c) setLang('es');
+  toast(t('id_removed'));
+  setTimeout(()=>{ try{ location.reload(); }catch(e){} }, 700);
+}
+
+/* Créditos de traducción del idioma activo, si los hay. */
+function creditoIdioma(l){
+  try{ return (typeof CREDITOS!=='undefined' && CREDITOS[l || getLang()]) || ''; }
+  catch(e){ return ''; }
+}
+function langRespaldo(){
+  const l = (cfg && cfg.langBiblio) || 'es';
+  return (l === 'en') ? 'en' : 'es';
+}
+function refreshPracticesLang(){
+  try{
+    const l = getLang();
+    // si el idioma activo tiene su propia lista lista, se usa tal cual;
+    // si no, se construye rellenando con el idioma de respaldo
+    if(l === 'es') PRACTICES = PRACTICES_ES;
+    else if(l === 'en') PRACTICES = PRACTICES_EN;
+    else PRACTICES = construirPracticas(l, langRespaldo());
+  }catch(e){ anota('idioma-biblioteca', e); }
+  try{ libCacheDirty(); }catch(e){}
+}
+/* ¿Está completa la traducción de la biblioteca en el idioma activo? */
+function traduccionCompleta(lang){
+  try{
+    const t = TEXTOS[lang || getLang()];
+    if(!t) return false;
+    return PRACTICAS.every(p => t[p.id] && t[p.id].t);
+  }catch(e){ return true; }
+}
+/* Si al idioma activo le faltan prácticas y aún no se ha elegido respaldo, se
+   pregunta UNA vez. Después se cambia en Ajustes. */
+function avisarRespaldo(){
+  try{
+    if(!cfg || cfg.langBiblioPreg) return;
+    const l = getLang();
+    if(l === 'es' || l === 'en') return;      // los idiomas de dentro están completos
+    if(traduccionCompleta(l)) return;
+    cfg.langBiblioPreg = true; LS.set('mpt_cfg', cfg);
+    document.getElementById('modalContent').innerHTML = `
+      <h3>${t('lb_ask_title')}</h3>
+      <p class="muted" style="line-height:1.55">${t('lb_ask_txt')}</p>
+      <button class="btn primary block" onclick="elegirRespaldo('es')">Español</button>
+      <button class="btn primary block" onclick="elegirRespaldo('en')">English</button>`;
+    openModal();
+  }catch(e){ anota('aviso-respaldo', e); }
+}
+function elegirRespaldo(l){
+  if(!cfg) return;
+  cfg.langBiblio = (l === 'en') ? 'en' : 'es';
+  LS.set('mpt_cfg', cfg);
+  refreshPracticesLang();
+  closeModal();
+  toast(t('lb_set').replace('{l}', l === 'en' ? 'English' : 'Español'));
+}
+function esCatConst(c){ return c==='constelaciones'||c==='Constellations'; }
+// La práctica de visualización diaria vive ahora en Introspección: se localiza por
+// su id fijo (VIS_ID, definido en practices.js), no por categoría.
+function practicaVis(){ try{ return byId(VIS_ID) || null; }catch(e){ return null; } }
+// El canal de alarma de Android se creó con el idioma del sistema; aquí se renombra
+// según el idioma elegido dentro de la app, para que Ajustes > Notificaciones coincida.
+/* ---- Datos técnicos del dispositivo (solo para diagnóstico) ----
+   Se piden al sistema por la vía nativa, que da modelo y versión exactos. Si no
+   está disponible (web, o APK antiguo), se deduce del navegador. Ninguno de estos
+   datos identifica a la persona ni sale del móvil: viajan solo si el usuario
+   decide enviar el correo, y los ve escritos antes de mandarlo. */
+async function datosDispositivo(){
+  const d={};
+  try{
+    if(typeof CapAjustes!=='undefined' && CapAjustes && CapAjustes.infoDispositivo){
+      const r=await CapAjustes.infoDispositivo();
+      if(r){
+        d.movil=[r.fabricante, r.modelo].filter(Boolean).join(' ');
+        if(r.dispositivo && r.dispositivo!==r.modelo) d.movil+=' ('+r.dispositivo+')';
+        d.android=r.android ? ('Android '+r.android+(r.sdk?' · API '+r.sdk:'')) : null;
+        d.pantalla=r.pantalla ? (r.pantalla+(r.densidad?' @'+r.densidad+'x':'')) : null;
+        d.canal=r.canalAlarma||null;
+        if(typeof r.bateriaExenta==='boolean') d.bateria=r.bateriaExenta?t('dv_batt_free'):t('dv_batt_saving');
+        if(typeof r.nomolestar==='number') d.nomolestar=(r.nomolestar===1?t('dv_dnd_off'):t('dv_dnd_on'));
+      }
+    }
+  }catch(e){}
+  // respaldo desde el navegador
+  try{
+    const ua=navigator.userAgent||'';
+    if(!d.movil){
+      const m=ua.match(/Android[^;]*;\s*([^)]+?)(?:\s+Build\/|\))/);
+      d.movil=(m&&m[1].trim())||null;
+    }
+    if(!d.android){ const a=ua.match(/Android\s+([\d.]+)/); if(a) d.android='Android '+a[1]; }
+    if(!d.pantalla && screen && screen.width) d.pantalla=screen.width+'x'+screen.height;
+  }catch(e){}
+  return d;
+}
+// Bloque legible que se añade al final del correo, a la vista del usuario
+async function bloqueDiagnostico(){
+  const d=await datosDispositivo();
+  const l=[];
+  l.push(t('dv_title'));
+  if(d.movil) l.push(t('dv_phone')+': '+d.movil);
+  if(d.android) l.push(t('dv_os')+': '+d.android);
+  if(d.pantalla) l.push(t('dv_screen')+': '+d.pantalla);
+  l.push(t('dv_app')+': v'+APP_VERSION+(IS_NATIVE?' (Android)':' (web)'));
+  l.push(t('dv_lang')+': '+(getLang()==='en'?'English':'Español')+
+         ' · '+t('dv_sys')+': '+((navigator.languages&&navigator.languages[0])||navigator.language||'?'));
+  try{ l.push(t('dv_notif')+': '+(notifOn?t('dv_on'):t('dv_off'))+
+              (IS_NATIVE?(' · '+t('dv_mode')+' '+(alarmMode?t('dv_alarm'):t('dv_normal'))):'')); }catch(e){}
+  if(d.canal) l.push(t('dv_chan')+': '+d.canal);
+  if(d.bateria) l.push(t('dv_batt')+': '+d.bateria);
+  if(d.nomolestar) l.push(t('dv_dnd')+': '+d.nomolestar);
+  try{ l.push(t('dv_pattern')+': '+t('dv_start')+' '+pad(cfg.startH)+':'+pad(cfg.startM)+
+              ' · '+t('dv_each')+' '+cfg.freq+' h · '+cfg.span+' '+t('dv_active')); }catch(e){}
+  if(_log.length){ l.push(''); l.push('— ' + t('lg_label') + ' —'); l.push(logTexto()); }
+  l.push('');
+  l.push(t('dv_note'));
+  return l.join('\n');
+}
+// Abre el correo de sugerencias con el bloque técnico ya escrito y visible
+async function enviarFeedback(){
+  let cuerpo='';
+  try{ cuerpo=t('dv_write')+'\n\n\n\n'+await bloqueDiagnostico(); }
+  catch(e){ cuerpo=t('dv_write')+'\n\n'; }
+  location.href='mailto:'+METRICS_EMAIL+'?subject='+encodeURIComponent(t('st_feedback_subj'))
+    +'&body='+encodeURIComponent(cuerpo);
+}
+function sincronizarCanal(intento){
+  try{
+    const plug = (typeof CapAjustes!=='undefined' && CapAjustes) ? CapAjustes : null;
+    if(plug && plug.renombrarCanal){
+      plug.renombrarCanal({nombre:t('canal_nombre'), descripcion:t('canal_desc')}).catch(e=>anota('renombrar-canal', e));
+      return;
+    }
+    // El plugin aún no está listo (o el canal no existe todavía): se reintenta
+    // un par de veces. Sin esto, el nombre se quedaba con el idioma del sistema.
+    const n=(intento||0);
+    if(n<3) setTimeout(()=>sincronizarCanal(n+1), 800*(n+1));
+  }catch(e){}
+}
+function totalCats(){ try{ return new Set(PRACTICES.map(p=>p.cat)).size; }catch(e){ return 19; } }
+// El idioma del documento afecta a la tipografía que elige el sistema y al sentido
+// de lectura. Se actualiza al cambiar de idioma, no solo al cargar.
+const IDIOMAS_RTL = ['ar','he','fa','ur'];
+function aplicarIdiomaDocumento(){
+  try{
+    const l=getLang();
+    document.documentElement.lang = l;
+    document.documentElement.dir = IDIOMAS_RTL.includes(l) ? 'rtl' : 'ltr';
+  }catch(e){ anota('idioma-documento', e); }
+}
+function applyNavLang(){
+  aplicarIdiomaDocumento();
+  document.querySelectorAll('[data-lbl]').forEach(el=>{ el.textContent=t(el.getAttribute('data-lbl')); });
+  document.querySelectorAll('[data-lbl-html]').forEach(el=>{ el.innerHTML=t(el.getAttribute('data-lbl-html')); });
+}
+
+const APP_VERSION = '3.71';   // visible en Ajustes: confirma qué versión está corriendo
+
+/* ---- Entorno nativo (Capacitor / APK) ---- */
+const IS_NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+const CapLN  = IS_NATIVE ? window.Capacitor.Plugins.LocalNotifications : null;
+const CapApp = IS_NATIVE ? window.Capacitor.Plugins.App : null;
+const CapShare = IS_NATIVE ? window.Capacitor.Plugins.Share : null;
+const CapAjustes = IS_NATIVE ? (window.Capacitor.Plugins.Ajustes||null) : null;
+const CapFS = IS_NATIVE ? window.Capacitor.Plugins.Filesystem : null;
+let apkAssetOk = false;
+// ¿Hay una copia del APK dentro de la app para poder compartirla?
+// Antes esto DESCARGABA el archivo entero (más de 10 MB) solo para mirar su tamaño,
+// y además lo hacía en cada arranque. Ahora se pregunta solo por la cabecera y la
+// comprobación se hace la primera vez que se necesita, no al abrir la app.
+async function checkApkAsset(){
+  try{
+    if(typeof fetch!=='function') return;
+    const base=(location.origin&&location.origin!=='null')?location.origin+location.pathname.replace(/[^/]*$/,''):'./';
+    let r=null;
+    try{ r=await fetch(base+APK_ASSET, {method:'HEAD', cache:'no-store'}); }catch(e){}
+    if(r && r.ok){
+      const n=parseInt(r.headers.get('content-length')||'0', 10);
+      // si el servidor no informa del tamaño, basta con que el archivo exista
+      apkAssetOk = n ? n>500000 : true;
+      return;
+    }
+    // algunos entornos no admiten HEAD: se pide solo el primer byte
+    const g=await fetch(base+APK_ASSET, {cache:'no-store', headers:{Range:'bytes=0-0'}});
+    apkAssetOk = !!(g && (g.ok || g.status===206));
+  }catch(e){ apkAssetOk=false; anota('apk-incrustado', e); }
+}
+let nativePerm='prompt', exactPerm='prompt', pendingOpen=null;
+
+/* ---- Registro y métricas ---- */
+// Pega aquí la URL del formulario incrustado de tu audiencia de Mailchimp
+// (Audience → Signup forms → Embedded forms → atributo action del <form>)
+// Página de suscripción ALOJADA en Mailchimp. La app NO envía datos: abre esta página
+// en el navegador y es Mailchimp quien recoge el email y el consentimiento RGPD.
+// Así la app sigue sin conectarse a internet por su cuenta.
+const MAILCHIMP_FORM_URL_ES = 'https://mailchi.mp/944b87656bc7/app-momento-para-ti';
+const MAILCHIMP_FORM_URL_EN = 'https://mailchi.mp/31e72cf0c6bb/app-momento-para-ti-ingls';
+function MAILCHIMP_FORM_URL(){ return getLang()==='en' ? MAILCHIMP_FORM_URL_EN : MAILCHIMP_FORM_URL_ES; }
+const METRICS_EMAIL = 'jordibeold@jordibeold.com';
+const APK_ASSET = 'moment.apk';   // copia del APK dentro de la app (opcional, ver Ajustes)
+const APK_DOWNLOAD_URL = '';               // enlace de descarga alternativo (opcional)
+const METRICS_CADA_DIAS = 3;
+const DAYS_AHEAD = 4;    // días de avisos programados por adelantado en el sistema.
+// Cuatro días bastan: la app reprograma al abrirse y, si no se abre, RECARGA_DIAS (4)
+// dispara una recarga silenciosa. Menos alarmas en cola = menos trabajo en cada
+// reprogramación y un perfil más discreto ante las políticas de alarmas exactas.
+const RECARGA_DIAS = 4;  // recarga silenciosa si han pasado 4 días desde la última programación
+
+const FIB_INC = [1,1,2,3,5,8,13,21,34,55]; // minutos adicionales por posposición
+let cfg      = LS.get('mpt_cfg', null);          // {startH, startM, freq, span}
+let favs     = LS.get('mpt_favs', []);
+let userLib  = LS.get('mpt_userlib', []);
+let userEvents = LS.get('mpt_events', []);   // "Momentos para ti" propios con repetición
+let paused = LS.get('mpt_paused', []);       // prácticas en pausa (no se proponen ni se muestran)
+let evPaused = LS.get('mpt_evpaused', []);   // momentos propios en pausa
+let alarmMode = LS.get('mpt_alarm', false);  // sonar como despertador aunque el móvil esté en silencio
+let alarmChannelOk = null;                   // ¿existe el canal nativo de alarma en esta compilación?
+async function checkAlarmChannel(){
+  if(!IS_NATIVE || !CapLN){ return; }
+  const antes=alarmChannelOk;
+  try{
+    const r=await CapLN.listChannels();
+    alarmChannelOk=(r.channels||[]).some(c=>c.id==='momento_despertador');
+    // el canal ya existe: es el momento seguro para ponerle el nombre del idioma de la app
+    if(alarmChannelOk) sincronizarCanal();
+  }catch(e){ alarmChannelOk=null; anota('canal-alarma', e); }
+  if(tab==='set') renderSet();
+}
+let dayState = LS.get('mpt_day', null);
+let notifTimer = null, tab='home';
+let expandedSlots=new Set(), expandedDay=null, lastAutoNext=-1, showPast=true, showDay=true;
+let showNextDay=true, expandedNext=new Set(), showPausedBox=true, expandedPaused=new Set();
+let showLibBox=true, expandedLib=new Set();
+let showHechas=true, expandedHechas=new Set();
+let showPropias=true, expandedPropias=new Set();
+let showFavBox=true, expandedFav=new Set();
+let setCollapsed={};  // {idCaja:true} cajas de Ajustes plegadas
+let ncCollapsed={};   // {idCaja:true} cajas de El Noveno Camino plegadas
+function ncToggle(id){ ncCollapsed[id]=!ncCollapsed[id]; renderFav(); verCaja('[data-nc=\''+id+'\']'); }
+// Tras plegar o desplegar una caja, se lleva su cabecera a la parte alta de la
+// pantalla: si no, al plegar una caja larga el contenido "salta" y se pierde el hilo.
+function verCaja(sel){
+  // Coloca el elemento indicado en la parte alta de la pantalla.
+  // Sin animación a propósito: con desplazamiento suave, el segundo cálculo se hacía
+  // mientras la página aún se movía y el resultado se pasaba de largo.
+  const objetivo=()=>{
+    try{
+      let el=typeof sel==='string' ? document.querySelector(sel) : sel;
+      if(!el) return null;
+      // se sube a la tarjeta contenedora, para ver su borde superior y su título
+      if(el.closest){ el=el.closest('.card, .ditem') || el; }
+      // La cabecera de la app es pegajosa (position:sticky) y se queda fija arriba:
+      // hay que descontar su altura o taparía justo el inicio de la caja.
+      let tapa=0;
+      const h=document.querySelector('header.top');
+      if(h){ const r=h.getBoundingClientRect(); if(r.top<=1) tapa=r.height; }
+      return Math.max(0, el.getBoundingClientRect().top + window.scrollY - tapa - 10);
+    }catch(e){ return null; }
+  };
+  const ir=()=>{ const y=objetivo(); if(y!==null) window.scrollTo(0, y); };
+  requestAnimationFrame(()=>requestAnimationFrame(ir));
+  setTimeout(ir, 120);   // por si el contenido cambió de alto al desplegarse
+  setTimeout(ir, 320);
+}
+let lastUpcoming=[], lastPast=[];
+function allOpen(list){ return list.length>0 && list.every(o=>expandedSlots.has(o.i)); }
+function expandGroup(g){
+  const list=g==='day'?lastUpcoming:lastPast;
+  if(allOpen(list)) list.forEach(o=>expandedSlots.delete(o.i));
+  else list.forEach(o=>expandedSlots.add(o.i));
+  renderHome();
+}
+let notifOn = LS.get('mpt_notifOn', true);   // interruptor propio de la app
+
+// Caché de la biblioteca completa: se reconstruye solo cuando cambian las prácticas propias.
+// Evita crear un array nuevo y buscar linealmente en cada llamada (ambas se usan en bucles).
+let _allCache=null, _byIdCache=null;
+function libCacheDirty(){ _allCache=null; _byIdCache=null; }
+const ALL = () => _allCache || (_allCache = PRACTICES.concat(userLib));
+const byId = id => {
+  if(!_byIdCache){ _byIdCache=new Map(); ALL().forEach(p=>_byIdCache.set(p.id,p)); }
+  return _byIdCache.get(id);
+};
+const pad = n => String(n).padStart(2,'0');
+const todayStr = () => { const d=new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); };
+const dateStrOf = d => d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const fmtT = mins => pad(Math.floor(mins/60)%24)+':'+pad(mins%60);
+const nowMins = () => { const d=new Date(); return d.getHours()*60+d.getMinutes(); };
+
+/* migración desde versión anterior (wakeH/wakeM) */
+if(cfg && cfg.wakeH!==undefined){ cfg={startH:cfg.wakeH, startM:cfg.wakeM, freq:cfg.freq, span:cfg.span}; LS.set('mpt_cfg',cfg); dayState=null; }
+/* ---- Migraciones de la configuración ----
+   Cada ajuste nuevo se añade aquí, con su número. La configuración guarda en qué
+   versión está (cfg.v) y solo se aplican las migraciones que le faltan, en orden.
+   Antes esto eran comprobaciones sueltas que se ejecutaban siempre y crecían sin
+   control; así queda claro qué se añadió, cuándo y en qué orden. */
+const CFG_VERSION = 7;
+const MIGRACIONES = [
+  { v:1, aplica(c){ if(c.favPerDay===undefined) c.favPerDay=1; } },
+  { v:2, aplica(c){ if(c.constIni===undefined){ c.constIni=false; c.constMed=false; c.constFin=false; } } },
+  { v:3, aplica(c){ if(c.constNo===undefined) c.constNo=false; } },
+  { v:4, aplica(c){ if(c.soloEventos===undefined) c.soloEventos=false; } },
+  { v:5, aplica(c){ if(c.visDia===undefined) c.visDia=false; } },
+  { v:6, aplica(c){ if(!c.catsPref) c.catsPref={}; } },
+  // v7: las categorías preferidas se guardaban con el nombre en español
+  // («Armonización»); ahora se guardan con el código («armonizacion»).
+  { v:8, aplica(c){ if(!c.langBiblio) c.langBiblio='es'; } },
+  { v:7, aplica(c){
+      if(!c.catsPref) { c.catsPref={}; return; }
+      const nuevo={};
+      Object.keys(c.catsPref).forEach(k=>{
+        if(!c.catsPref[k]) return;
+        const cat = (typeof CATEGORIAS!=='undefined') && CATEGORIAS.find(x=>x.es===k || x.en===k || x.id===k);
+        nuevo[cat ? cat.id : k] = true;   // las categorías propias se quedan igual
+      });
+      c.catsPref=nuevo;
+  } },
+];
+function migrarCfg(){
+  if(!cfg) return;
+  const desde = cfg.v || 0;
+  let cambia = false;
+  MIGRACIONES.forEach(m=>{ if(m.v>desde){ m.aplica(cfg); cambia=true; } });
+  // instalaciones anteriores al control de versiones: se repasan todas por si acaso
+  if(!cfg.v) MIGRACIONES.forEach(m=>m.aplica(cfg));
+  if(cambia || cfg.v!==CFG_VERSION){ cfg.v=CFG_VERSION; LS.set('mpt_cfg', cfg); }
+}
+migrarCfg();
+
+/* ================== ESTADÍSTICAS (locales, 30 días) ================== */
+let stats = LS.get('mpt_stats', {lastOpen:0, lastDone:0, lastSend:0, days:{}});
+function statsDay(){
+  const d=todayStr();
+  if(!stats.days[d]) stats.days[d]={h:0, ps:[], pv:0, hor:{}, camb:{}, extra:0};
+  if(stats.days[d].extra===undefined) stats.days[d].extra=0;
+  // poda: solo se conservan 30 días
+  const lim=new Date(); lim.setDate(lim.getDate()-30);
+  const limS=dateStrOf(lim);
+  Object.keys(stats.days).forEach(k=>{ if(k<limS) delete stats.days[k]; });
+  return stats.days[d];
+}
+function saveStats(){ LS.set('mpt_stats', stats); }
+function statOpen(){ stats.lastOpen=Date.now(); statsDay(); saveStats(); }
+function statDone(marcada, pid, extra){
+  const d=statsDay();
+  const log=LS.get('mpt_donelog', {});
+  if(marcada){
+    if(extra) d.extra++; else d.h++;
+    stats.lastDone=Date.now();
+    if(pid) log[pid]=(log[pid]||0)+1;
+  } else {
+    if(extra) d.extra=Math.max(0,d.extra-1); else d.h=Math.max(0,d.h-1);
+    if(pid && log[pid]) { log[pid]--; if(log[pid]<=0) delete log[pid]; }
+  }
+  LS.set('mpt_donelog', log);
+  saveStats();
+}
+// registrar una práctica hecha "ahora" (extra), fuera del plan del momento
+function statDoneExtra(pid){ statDone(true, pid, true); }
+function statSnooze(idx){
+  const d=statsDay();
+  if(!d.ps.includes(idx)) d.ps.push(idx);
+  d.pv++;
+  const h=new Date().getHours(); d.hor[h]=(d.hor[h]||0)+1;
+  saveStats();
+}
+function statDiscard(pid){
+  if(!pid) return;
+  const d=statsDay();
+  d.camb[pid]=(d.camb[pid]||0)+1;
+  saveStats();
+}
+function statsResumen(){
+  const dias=Object.keys(stats.days).sort();
+  let h=0, pPract=0, pVeces=0, extra=0; const hor={}, camb={};
+  dias.forEach(k=>{
+    const d=stats.days[k];
+    h+=d.h; pPract+=d.ps.length; pVeces+=d.pv; extra+=(d.extra||0);
+    Object.entries(d.hor).forEach(([hh,n])=>hor[hh]=(hor[hh]||0)+n);
+    Object.entries(d.camb).forEach(([pid,n])=>camb[pid]=(camb[pid]||0)+n);
+  });
+  const topHoras=Object.entries(hor).sort((a,b)=>b[1]-a[1]).slice(0,3)
+    .map(([hh,n])=>`${pad(hh)}:00–${pad((+hh+1)%24)}:00 (${n})`);
+  const topCamb=Object.entries(camb).sort((a,b)=>b[1]-a[1]).slice(0,5)
+    .map(([pid,n])=>({t:(byId(pid)||{}).title||pid, n}));
+  return {dias:dias.length, h, pPract, pVeces, extra, topHoras, topCamb};
+}
+function fmtFecha(ts){ if(!ts) return '—'; const d=new Date(ts); return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear()+' '+pad(d.getHours())+':'+pad(d.getMinutes()); }
+function cuerpoMetricas(){
+  const r=statsResumen();
+  const L=[];
+  L.push(t('mx_title'));
+  L.push(t('mx_date')+' '+fmtFecha(Date.now()));
+  L.push(t('mx_installed')+' '+fmtFecha(LS.get('mpt_install',0)));
+  L.push('');
+  L.push(t('mx_freq'));
+  L.push(t('mx_last_conn')+' '+fmtFecha(stats.lastOpen));
+  L.push(t('mx_last_done')+' '+fmtFecha(stats.lastDone));
+  L.push('');
+  L.push(t('mx_config'));
+  L.push(t('mx_moments')+' '+slotTimes().length);
+  L.push(t('mx_first')+' '+pad(cfg.startH)+':'+pad(cfg.startM));
+  L.push(t('mx_interval')+' '+cfg.freq+' '+t('mx_interval_h'));
+  L.push(t('mx_active')+' '+cfg.span+' '+t('mx_active_h'));
+  L.push(t('mx_fav_def')+' '+cfg.favPerDay);
+  L.push('');
+  L.push(t('mx_last_a')+' '+r.dias+' '+t('mx_last_b'));
+  L.push(t('mx_done')+' '+r.h);
+  L.push(t('mx_extra')+' '+r.extra);
+  L.push(t('mx_snoozed')+' '+r.pPract+' ('+r.pVeces+' '+t('mx_snoozes')+')');
+  L.push(t('mx_top_slots')+' '+(r.topHoras.length?r.topHoras.join(', '):'—'));
+  L.push(t('mx_fav_saved')+' '+favs.length);
+  L.push(t('mx_top_disc'));
+  if(r.topCamb.length) r.topCamb.forEach(c=>L.push('  · '+c.t+' ('+c.n+')'));
+  else L.push('  · '+t('mx_none'));
+  return L.join('\n');
+}
+function sendMetrics(){
+  const asunto=t('mx_subject')+' '+todayStr();
+  location.href='mailto:'+METRICS_EMAIL+'?subject='+encodeURIComponent(asunto)+'&body='+encodeURIComponent(cuerpoMetricas());
+  stats.lastSend=Date.now(); saveStats();
+}
+
+/* ================== SUSCRIPCIÓN Y TEXTOS LEGALES ================== */
+function verLegal(cual){
+  document.getElementById('modalContent').innerHTML=`
+    <h3>${cual==='cond'?t('pr_terms'):t('pr_privacy')}</h3>
+    <p class="muted" style="white-space:pre-wrap;line-height:1.55">${cual==='cond'?LEGAL_COND():LEGAL_PRIV()}</p>
+    <button class="btn primary block" onclick="closeModal()">${t('legal_close')}</button>`;
+  openModal();
+}
+// Abre el formulario de suscripción de Mailchimp en el navegador, con el email ya
+// escrito si es posible. La app no transmite nada: el alta y el consentimiento los
+// recoge Mailchimp en su propia página.
+function abrirFormularioSuscripcion(){
+  if(!MAILCHIMP_FORM_URL()) return false;
+  try{
+    const a=document.createElement('a');
+    a.href=MAILCHIMP_FORM_URL(); a.target='_blank'; a.rel='noopener';
+    document.body.appendChild(a); a.click(); a.remove();
+    return true;
+  }catch(e){ return false; }
+}
+const LEGAL_COND_ES=`Condiciones de uso:
+1. "Moment" es una aplicación de bienestar que propone prácticas breves de carácter espiritual y transpersonal. No sustituye atención médica ni psicológica profesional.
+2. El uso es voluntario y bajo la responsabilidad del usuario, que adaptará las prácticas (especialmente las respiraciones) a su condición física.
+3. El contenido de la biblioteca puede incluir enlaces a sitios de terceros, de cuyo contenido no nos hacemos responsables.
+4. La app se ofrece "tal cual", sin garantías de disponibilidad o exactitud.`;
+const LEGAL_COND_EN=`Terms of use:
+1. "Moment for you" is a wellness app that suggests brief practices of a spiritual and transpersonal nature. It is not a substitute for professional medical or psychological care.
+2. Use is voluntary and at the user's own responsibility; the user should adapt the practices (especially the breathing ones) to their physical condition.
+3. The library content may include links to third-party sites, for whose content we are not responsible.
+4. The app is provided "as is", with no guarantees of availability or accuracy.`;
+const LEGAL_PRIV_ES=`Política de privacidad:
+1. Responsable: Jordi Beold (contacto: ${METRICS_EMAIL}).
+2. Datos tratados: la dirección de email que facilitas al suscribirte, y métricas de uso de la app (prácticas hechas, pospuestas, descartadas y configuración horaria).
+3. Finalidad: enviarte comunicaciones sobre la app y estudiar los patrones de práctica para mejorar el servicio. La lista de correo se gestiona con Mailchimp: la app no envía tu email a ningún sitio; el alta la completas tú en el formulario de Mailchimp, que recoge allí tu consentimiento.
+4. Base legal: tu consentimiento, que puedes retirar en cualquier momento escribiendo al contacto indicado o mediante el enlace de baja de los correos.
+5. Conservación: mientras dure tu suscripción. Las métricas se guardan en tu dispositivo (30 días) y solo se envían asociadas a tu email con tu consentimiento.
+6. Derechos: acceso, rectificación, supresión, oposición y portabilidad, ante el contacto indicado.`;
+const LEGAL_PRIV_EN=`Privacy policy:
+1. Controller: Jordi Beold (contact: ${METRICS_EMAIL}).
+2. Data processed: the email address you provide when subscribing, and app usage metrics (practices done, snoozed, skipped, and time settings).
+3. Purpose: to send you communications about the app and to study practice patterns to improve the service. The mailing list is managed with Mailchimp: the app does not send your email anywhere; you complete the sign-up yourself in the Mailchimp form, which collects your consent there.
+4. Legal basis: your consent, which you may withdraw at any time by writing to the contact indicated or via the unsubscribe link in the emails.
+5. Retention: for as long as your subscription lasts. Metrics are stored on your device (30 days) and are only sent associated with your email with your consent.
+6. Rights: access, rectification, erasure, objection and portability, before the contact indicated.`;
+function LEGAL_COND(){ return getLang()==='en'?LEGAL_COND_EN:LEGAL_COND_ES; }
+function LEGAL_PRIV(){ return getLang()==='en'?LEGAL_PRIV_EN:LEGAL_PRIV_ES; }
+let editingEvent=null;
+// Abre el formulario de momento propio con una práctica ya elegida en «Ejercicio»
+function crearMomentoDe(pid){
+  try{ closeModal(); }catch(e){}
+  openEventForm(null, pid);
+}
+function openEventForm(editId, presetPid){
+  editingEvent=editId||null;
+  const ed=editId?getEvent(editId):null;
+  const cats={};
+  ALL().forEach(p=>{ (cats[p.cat]=cats[p.cat]||[]).push(p); });
+  document.getElementById('modalContent').innerHTML=`
+    <h2>${ed?t('ef_edit'):t('ef_create_h')} «Momento para ti»</h2>
+    <label class="fld">${t('ef_hour')}</label>
+    ${botonHora('ev_h', ed?ed.time:540)}
+    <label class="fld">${t('ef_exercise')}</label>
+    <select id="ev_p" onchange="document.getElementById('ev_nuevo').style.display=this.value==='__new__'?'block':'none'">
+      <option value="__new__">${t('ef_new_ex')}</option>
+      ${Object.keys(cats).sort((a,b)=>a.localeCompare(b)).map(c=>`<optgroup label="${esc(catLabel(c))}">${cats[c].map(p=>`<option value="${p.id}" ${ed&&ed.pid===p.id?'selected':''}>${esc(p.title)}</option>`).join('')}</optgroup>`).join('')}
+    </select>
+    <div id="ev_nuevo" ${ed?'style="display:none"':''}>
+      <label class="fld">${t('ef_new_title')}</label>
+      <input type="text" id="ev_xt" placeholder="${t('ef_new_title_ph')}">
+      <label class="fld">${t('na_cat')}</label>
+      ${catSelectHTML('ev_c','ev_c_new')}
+      <label class="fld">${t('ef_new_text')}</label>
+      <textarea id="ev_x" placeholder="${t('ef_new_text_ph')}"></textarea>
+      <label class="fld">${t('ef_link')}</label>
+      <input type="url" id="ev_l" placeholder="https://…">
+    </div>
+    <label class="fld">${t('ef_repeat')}</label>
+    <select id="ev_r" onchange="document.getElementById('ev_ndias').style.display=this.value==='days'?'block':'none'">
+      <option value="daily" ${ed&&ed.rep==='daily'?'selected':''}>${t('ef_r_daily')}</option>
+      <option value="days" ${ed&&ed.rep==='days'?'selected':''}>${t('ef_r_days')}</option>
+      <option value="weekly" ${ed&&ed.rep==='weekly'?'selected':''}>${t('ef_r_weekly')}</option>
+      <option value="monthly" ${ed&&ed.rep==='monthly'?'selected':''}>${t('ef_r_monthly')}</option>
+    </select>
+    <div id="ev_ndias" style="display:${ed&&ed.rep==='days'?'block':'none'}">
+      <label class="fld">${t('ef_ndays')}</label>
+      <select id="ev_n">${Array.from({length:29},(_,k)=>`<option value="${k+2}" ${ed&&ed.n===k+2?'selected':''}>${k+2} ${t('ef_ndays_opt')}</option>`).join('')}</select>
+    </div>
+    <label class="fld">${t('ef_dayrep')}</label>
+    <select id="ev_dm" onchange="evDayModeUI()">
+      <option value="once" ${!ed||!ed.dmode||ed.dmode==='once'?'selected':''}>${t('ef_dr_once')}</option>
+      <option value="int" ${ed&&ed.dmode==='int'?'selected':''}>${t('ef_dr_int')}</option>
+      <option value="list" ${ed&&ed.dmode==='list'?'selected':''}>${t('ef_dr_list')}</option>
+    </select>
+    <div id="ev_dint" style="display:none">
+      <div class="row">
+        <div style="flex:1">
+          <label class="fld">${t('ef_dr_count')}</label>
+          <select id="ev_dc">${Array.from({length:11},(_,k)=>`<option value="${k+2}" ${ed&&ed.dcount===k+2?'selected':''}>${k+2}</option>`).join('')}</select>
+        </div>
+        <div style="flex:1">
+          <label class="fld">${t('ef_dr_gap')}</label>
+          <select id="ev_dg">${Array.from({length:12},(_,k)=>`<option value="${k+1}" ${ed&&ed.dgap===k+1?'selected':''}>${k+1}</option>`).join('')}</select>
+        </div>
+      </div>
+      <p class="muted" style="margin:6px 2px 0;font-size:.8rem">${t('ef_dr_first')}</p>
+    </div>
+    <div id="ev_dlist" style="display:none">
+      <label class="fld">${t('ef_dr_times')}</label>
+      <div id="ev_dtimes"></div>
+      <button type="button" class="btn ghost small" style="margin-top:8px" onclick="addEvTime()">${t('ef_dr_add')}</button>
+      <p class="muted" style="margin:6px 2px 0;font-size:.8rem">${t('ef_dr_first')}</p>
+    </div>
+    <div class="row" style="margin-top:16px">
+      <button class="btn primary" style="flex:1" onclick="saveEvent()">${ed?t('ef_save'):t('ef_create')}</button>
+      <button class="btn ghost" style="flex:1" onclick="closeModal()">${t('ef_cancel')}</button>
+    </div>`;
+  // práctica premarcada (viene del botón de una tarjeta de la biblioteca)
+  if(presetPid && !ed){
+    const sel=document.getElementById('ev_p');
+    if(sel && [...sel.options].some(o=>o.value===presetPid)){
+      sel.value=presetPid;
+      const nu=document.getElementById('ev_nuevo'); if(nu) nu.style.display='none';
+    }
+  }
+  // horas adicionales ya guardadas (modo "horas concretas")
+  if(ed && ed.dmode==='list' && Array.isArray(ed.dtimes)) ed.dtimes.forEach(m=>addEvTime(m));
+  evDayModeUI();
+  openModal();
+}
+// Muestra los campos que correspondan al modo de repetición diaria elegido
+function evDayModeUI(){
+  const v=(document.getElementById('ev_dm')||{}).value;
+  const gi=document.getElementById('ev_dint'), gl=document.getElementById('ev_dlist');
+  if(gi) gi.style.display = v==='int' ? 'block':'none';
+  if(gl) gl.style.display = v==='list' ? 'block':'none';
+  if(v==='list' && gl && !gl.querySelector('.ev_dt')) addEvTime();
+}
+// Añade una fila de hora en el modo "horas concretas" (m = minutos desde medianoche)
+function addEvTime(m){
+  const cont=document.getElementById('ev_dtimes'); if(!cont) return;
+  if(cont.querySelectorAll('.ev_dt').length>=11){ toast(t('ev_times_max')); return; }
+  const val = (typeof m==='number') ? pad(Math.floor(m/60))+':'+pad(m%60) : '';
+  const fila=document.createElement('div');
+  fila.className='row'; fila.style.marginTop='8px';
+  const uid='evdt'+Date.now()+Math.floor(Math.random()*1000);
+  fila.innerHTML='<div style="flex:1">'+botonHora(uid, (typeof m==='number')?m:540, 'ev_dt')+'</div>'
+    +'<button type="button" class="btn ghost small" onclick="this.parentNode.remove()">'+t('ef_dr_del')+'</button>';
+  cont.appendChild(fila);
+}
+function saveEvent(){
+  const hh=document.getElementById('ev_h').value;
+  const sel=document.getElementById('ev_p').value;
+  const rep=document.getElementById('ev_r').value;
+  const n=parseInt(document.getElementById('ev_n').value)||2;
+  // pauta de repetición DENTRO del día
+  const dmode=document.getElementById('ev_dm').value;
+  const dcount=parseInt(document.getElementById('ev_dc').value)||1;
+  const dgap=parseInt(document.getElementById('ev_dg').value)||1;
+  const dtimes=[...document.querySelectorAll('.ev_dt')].map(i=>i.value)
+    .filter(v=>v).map(v=>{ const [a,b]=v.split(':').map(Number); return a*60+b; });
+  if(dmode==='list' && !dtimes.length){ toast(t('ev_need_times')); return; }
+  if(!hh){ toast(t('ev_pick_hour')); return; }
+  let pid=sel, t;
+  if(sel==='__new__'){
+    const xt=(document.getElementById('ev_xt').value||'').trim();
+    const x=(document.getElementById('ev_x').value||'').trim();
+    const l=(document.getElementById('ev_l').value||'').trim();
+    if(!xt){ toast(t('ev_title_req')); return; }
+    if(!x && !l){ toast(t('ev_text_req')); return; }
+    const p={id:'u'+Date.now(), cat:catSelectValue('ev_c','ev_c_new'), title:xt, text:x||t('default_link_text')};
+    if(l) p.link=l;
+    userLib.push(p); LS.set('mpt_userlib', userLib); libCacheDirty();
+    pid=p.id;
+    t=xt;
+  } else {
+    // práctica elegida de la lista: el título del momento es el de esa práctica
+    const pp=byId(sel);
+    if(!pp){ toast(t('ev_pick_ex')); return; }
+    t=pp.title;
+  }
+  const [H,M]=hh.split(':').map(Number);
+  let ev;
+  if(editingEvent){
+    ev=getEvent(editingEvent);
+    if(!ev){ closeModal(); return; }
+    Object.assign(ev, {title:t, time:H*60+M, pid, rep, n, dmode, dcount, dgap, dtimes});
+    // se retiran las ocurrencias pendientes de hoy y se recoloca si toca hoy
+    ensureDayPlan();
+    dayState.plan=dayState.plan.filter(sl=>!(sl.ev===ev.id && !sl.done));
+  } else {
+    const now=new Date();
+    ev={id:'e'+Date.now(), title:t, time:H*60+M, pid, rep, n, dmode, dcount, dgap, dtimes,
+      startY:now.getFullYear(), startM:now.getMonth()+1, startD:now.getDate()};
+    userEvents.push(ev);
+    ensureDayPlan();
+  }
+  LS.set('mpt_events', userEvents);
+  const horasHoy=eventOccurrences(todayStr()).filter(o=>o.ev.id===ev.id).map(o=>o.time);
+  if(horasHoy.length){
+    horasHoy.forEach(m=>dayState.plan.push({time:m, pid:ev.pid, ev:ev.id, done:false, snoozes:0, snoozeUntil:null}));
+    dayState.plan.sort((a,b)=>a.time-b.time);
+    if(!dayState.used.includes(ev.pid)) dayState.used.push(ev.pid);
+  }
+  const era=editingEvent;
+  const esNuevoEjercicio=(sel==='__new__');
+  // Se pregunta cuando el momento pisa alguna propuesta PREDEFINIDA del patrón: es la
+  // única elección real. Los momentos propios (este u otros) se conservan siempre.
+  const hayConflicto = evChocaPatron(ev).length>0 && !(cfg && cfg.soloEventos);
+  finalizarEvento(ev, era, esNuevoEjercicio, pid, hayConflicto?'preguntar':'ambas');
+}
+// ¿el choque afecta a más de una hora? (para elegir los textos en singular o plural)
+function _cfPlural(ev){ return evChocaPatron(ev).length>1; }
+// modo: 'preguntar' (modal sustituir/ambas), 'sustituir', 'ambas'
+function finalizarEvento(ev, era, esNuevoEjercicio, pid, modo){
+  if(modo==='preguntar'){
+    const eraArg = era ? ("'"+era+"'") : 'null';
+    document.getElementById('modalContent').innerHTML=
+      '<h3>'+t('cf_title')+'</h3>'+
+      (function(){
+        const choca=evChocaPatron(ev);
+        const uno=choca.length<=1;
+        return '<p class="muted">'+(uno?t('cf_at'):t('cf_at_pl'))+' <b>'+
+          (choca.length?choca.map(fmtT).join(', '):fmtT(ev.time%1440))+'</b> '+(uno?t('cf_body'):t('cf_body_pl'))+'</p>';
+      })()+
+      '<button class="btn primary block" style="margin-bottom:8px" onclick="finalizarEvento(getEvent(\''+ev.id+'\'), '+eraArg+', '+esNuevoEjercicio+', \''+pid+'\', \'sustituir\')">'+(_cfPlural(ev)?t('cf_replace_pl'):t('cf_replace'))+'</button>'+
+      '<button class="btn ghost block" onclick="finalizarEvento(getEvent(\''+ev.id+'\'), '+eraArg+', '+esNuevoEjercicio+', \''+pid+'\', \'ambas\')">'+(_cfPlural(ev)?t('cf_both_pl'):t('cf_both'))+'</button>';
+    openModal();
+    return;
+  }
+  // La decisión se guarda EN EL MOMENTO, no solo en el día de hoy: así se respeta
+  // también mañana y cada vez que el plan se reconstruya.
+  if(modo==='sustituir' || modo==='ambas'){
+    ev.excl = (modo==='sustituir');
+    const g=getEvent(ev.id); if(g) g.excl=ev.excl;
+    LS.set('mpt_events', userEvents);
+  }
+  if(modo==='sustituir' && dayState){
+    // se retiran SOLO las propuestas predefinidas (las que no son momento propio).
+    // Todos los momentos creados por el usuario se conservan.
+    const horas=new Set(eventOccurrences(todayStr()).filter(o=>o.ev.id===ev.id).map(o=>o.time));
+    dayState.plan=dayState.plan.filter(sl=>!(horas.has(sl.time) && !sl.ev && !sl.done));
+    dayState.plan.sort((a,b)=>a.time-b.time);
+  }
+  saveDay();
+  LS.set('mpt_plans', {});  // invalida el caché de días futuros → se reconstruyen con el momento nuevo
+  scheduleNext();
+  editingEvent=null;
+  closeModal(); renderSet();
+  toast(t('ev_saved')+' '+(era?t('ev_updated'):t('ev_created'))+' ✔ · '+evTimesText(ev)+' · '+repFullText(ev));
+  if(!era && esNuevoEjercicio){
+    const p=byId(pid);
+    if(p) ofrecerEnviarPractica(p);
+  }
+}
+function ofrecerEnviarPractica(p){
+  document.getElementById('modalContent').innerHTML=
+    '<h3>'+t('sh_title')+'</h3>'+
+    '<p class="muted">'+t('sh_body')+'</p>'+
+    '<button class="btn primary block" style="margin-bottom:8px" onclick="closeModal();enviarPracticasEmail([byId(\''+p.id+'\')])">'+t('sh_yes')+'</button>'+
+    '<button class="btn ghost block" onclick="closeModal()">'+t('sh_no')+'</button>';
+  openModal();
+}
+function toggleEventPause(id){
+  const k=evPaused.indexOf(id);
+  if(k>=0){ evPaused.splice(k,1); toast(t('ev_unpaused_t')); }
+  else{ evPaused.push(id); toast(t('ev_paused_t')); }
+  LS.set('mpt_evpaused', evPaused);
+  // reconstruir hoy: si el momento pausado coincidía con una franja del patrón estándar
+  // (y está activo), esa franja vuelve a proponer una práctica normal
+  rebuildToday();
+  scheduleNext(); renderSet();
+}
+function delEvent(id){
+  if(!confirm(t('cf_del_moment'))) return;
+  userEvents=userEvents.filter(e=>e.id!==id); LS.set('mpt_events', userEvents);
+  // La opción "solo mis momentos" se mantiene aunque no quede ninguno: los días sin
+  // momentos propios se llenan con el patrón estándar (nunca queda un día vacío).
+  rebuildToday();
+  scheduleNext(); renderSet();
+  toast(t('ev_deleted'));
+}
+/* ---- Compartir la app: mensaje de invitación + APK adjunto cuando está disponible ---- */
+async function copyText(t){
+  try{ await navigator.clipboard.writeText(t); return true; }catch(e){}
+  // respaldo para WebView: textarea temporal + execCommand
+  try{
+    const ta=document.createElement('textarea');
+    ta.value=t; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    const ok=document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  }catch(e){ return false; }
+}
+function shareMsg(){
+  if(getLang()==='en') return 'I invite you to try "Moment"! 🌿\n'
+    +'Small practices for big changes: brief suggestions (under 3 minutes) of breathing exercises, meditations and more, spread throughout your day and however you like.\n\n'
+    +'Since this app can be used offline and we don\u2019t store any data on any server, we suggest installing it this way:\n'
+    +'0. If you\u2019d like peace of mind before installing, you can check for yourself that the app is safe: upload the APK file to virustotal.com or ask an AI to analyze its contents. The app doesn\u2019t connect to the internet or contain trackers, and any analysis will confirm it.\n'
+    +'1. Open the moment.apk file you receive. If it arrives compressed, open it first and inside you\u2019ll find the .apk file: that\u2019s the one to open.\n'
+    +'2. If Android warns about "unknown sources", allow the installation.\n'
+    +'3. Open the app, set up your schedule and accept notifications.\n\n'
+    +'Enjoy it 🙏 I wish you prosperous, strong and abundant growth.\n\n'
+    +'Jordi Beold';
+  return '¡Te invito a probar «Moment»! 🌿\n'
+    +'Pequeñas prácticas para grandes cambios: propuestas breves (menos de 3 minutos) de respiraciones, meditaciones y más, repartidas a lo largo de tu día y como tú quieras.\n\n'
+    +'Ya que esta app permite ser usada sin conexión y no guardamos ningún dato en ningún servidor, te proponemos instalarla de esta manera:\n'
+    +'0. Si quieres quedarte tranquilo antes de instalar, puedes comprobar tú mismo que la app es segura: sube el archivo APK a virustotal.com o pídele a una inteligencia artificial que analice su contenido. La app no se conecta a internet ni contiene rastreadores, y cualquier análisis lo confirmará.\n'
+    +'1. Abre el archivo moment.apk que te llegue. Si te llega comprimido, ábrelo primero y dentro encontrarás el archivo .apk: ese es el que hay que abrir.\n'
+    +'2. Si Android avisa de «orígenes desconocidos», permite la instalación.\n'
+    +'3. Abre la app, configura tu horario y acepta las notificaciones.\n\n'
+    +'Que la disfrutes 🙏 Te deseo un próspero, fuerte y abundante crecimiento.\n\n'
+    +'Jordi Beold';
+}
+async function shareApp(target){
+  const msg=shareMsg();
+  if(IS_NATIVE && CapShare && CapFS){
+    // (re)comprobar el APK por si el primer intento aún no había terminado
+    if(!apkAssetOk) await checkApkAsset();
+    if(apkAssetOk){
+      try{
+        toast(t('share_preparing_a')+' '+target+' '+t('share_preparing_b'));
+        const base=(location.origin&&location.origin!=='null')?location.origin+location.pathname.replace(/[^/]*$/,''):'./';
+        const res=await fetch(base+APK_ASSET, {cache:'no-store'});
+        const blob=await res.blob();
+        const b64=await new Promise((ok,ko)=>{ const fr=new FileReader(); fr.onload=()=>ok(String(fr.result).split(',')[1]); fr.onerror=ko; fr.readAsDataURL(blob); });
+        // se escribe en la caché de la app y se comparte el archivo con "files" (API Share 6.x)
+        await CapFS.writeFile({path:'MomentoParaTi.apk', data:b64, directory:'CACHE', recursive:true});
+        const uri=await CapFS.getUri({path:'MomentoParaTi.apk', directory:'CACHE'});
+        // algunas apps (WhatsApp) ignoran el texto cuando se adjunta un archivo:
+        // se copia el mensaje al portapapeles para poder pegarlo junto al archivo
+        const copiado=await copyText(msg);
+        if(copiado) toast(t('ts_copied'));
+        await CapShare.share({title:t('app_title'), text:msg, files:[uri.uri], dialogTitle:t('share_dialog')+' '+target});
+        return;
+      }catch(e){ toast(t('ts_no_attach')); }
+    }
+  }
+  if(IS_NATIVE && CapShare){
+    try{ await CapShare.share({title:t('app_title'), text:msg, dialogTitle:t('share_dialog')+' '+target}); return; }catch(e){}
+  }
+  const enc=encodeURIComponent(msg);
+  if(target==='WhatsApp') location.href='https://wa.me/?text='+enc;
+  else if(target==='Telegram') location.href='https://t.me/share/url?url='+encodeURIComponent(APK_DOWNLOAD_URL||'Moment')+'&text='+enc;
+  else location.href='mailto:?subject='+encodeURIComponent('Te invito a probar «Moment»')+'&body='+enc;
+}
+/* ================== ARRANQUE ================== */
+const params = new URLSearchParams(location.search);
+const fromNotif = params.get('p');
+const snoozeParam = params.get('s');
+const doneParam = params.get('h');   // «hecha» desde la notificación web
+
+if (!IS_NATIVE && 'serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').then(reg=>{ try{ reg.update(); }catch(e){} });
+}
+if (!IS_NATIVE && navigator.serviceWorker) navigator.serviceWorker.addEventListener('message', e=>{
+  if(!e.data) return;
+  if(e.data.type==='open-practice') openFullPractice(e.data.id, true);
+  if(e.data.type==='snooze-practice') snoozeByPid(e.data.id);
+  if(e.data.type==='done-practice') doneByPid(e.data.id);
+});
+
+/* ---- Nativo: notificaciones del sistema, botón atrás y reanudación ---- */
+if(IS_NATIVE){
+  CapLN.checkPermissions().then(r=>{ nativePerm=r.display; }).catch(()=>{});
+  CapLN.registerActionTypes({types:[{id:'MPT', actions:[
+    {id:'done', title:t('notif_act_done')},{id:'snooze', title:t('notif_act_snooze')},{id:'open', title:t('notif_act_open')}
+  ]}]}).catch(()=>{});
+  CapLN.addListener('localNotificationActionPerformed', ev=>{
+    setTimeout(checkRecharge, 1500); // cualquier interacción con una notificación recarga si toca
+    const ex=(ev.notification && ev.notification.extra)||{};
+    if(ev.actionId==='done'){ if(cfg){ nativeDoneFromNotif(ex); } }
+    else if(ev.actionId==='snooze'){ if(cfg){ nativeSnoozeFromNotif(ex); } }
+    else if(ex.pid){
+      // app abierta: abrir la práctica directamente; si aún hay splash, se encola
+      if(cfg && !document.getElementById('splash')){
+        try{ gotoTab('home'); openFullPractice(ex.pid, true); }catch(e){ pendingOpen=ex.pid; tryOpenPending(); }
+      } else { pendingOpen=ex.pid; tryOpenPending(); }
+    }
+  });
+  CapApp.addListener('backButton', ()=>{
+    // 1) si hay un pop-up abierto, el atrás lo cierra
+    // 2) si no, navega hacia atrás dentro de la app; para salir, botón de inicio del teléfono
+    atrasApp();
+  });
+  CapApp.addListener('appStateChange', st=>{
+    if(!st.isActive){ stopWatch(); return; }
+    if(st.isActive && cfg){
+      ensureDayPlan(); startWatch();
+      // solo re-renderizar Inicio si la vista actual ES la pestaña de inicio
+      // (si se acaba de abrir una práctica desde una notificación, NO se pisa)
+      const topView=viewStack[viewStack.length-1];
+      if(tab==='home' && (!topView || topView.type==='tab') && !document.hidden) renderHome();
+      CapLN.checkPermissions().then(r=>{
+        const antes=nativePerm; nativePerm=r.display;
+        if(antes!=='granted' && nativePerm==='granted') pedirReprogramacion();
+      }).catch(()=>{});
+      (async ()=>{
+        const antes=exactPerm;
+        await refreshExactPerm();
+        if(antes!=='granted' && exactPerm==='granted') pedirReprogramacion();
+      })();
+      if(tab==='set'){
+        setTimeout(()=>refreshExactPerm(true), 800);
+        setTimeout(()=>refreshExactPerm(true), 2500);
+        refreshBgEstado(true);
+      }
+    }
+  });
+}
+/* Abre la práctica pendiente en cuanto la app está lista (arranque frío o templado) */
+function tryOpenPending(){
+  if(!pendingOpen || !cfg){ return; }
+  if(document.getElementById('splash')){ setTimeout(tryOpenPending, 400); return; }
+  const id=pendingOpen; pendingOpen=null;
+  gotoTab('home');
+  try{ openFullPractice(id, true); }catch(e){ toast(t('ts_no_open_notif')); }
+}
+// Marca como hecha la práctica del aviso, sin tener que buscarla dentro de la app.
+// Si el aviso corresponde a una franja de hoy, se marca esa franja (cuenta como
+// normal la primera vez); si no, se registra como práctica extra.
+function nativeDoneFromNotif(ex){
+  ensureDayPlan();
+  const s=(ex && ex.d===0 && dayState.plan[ex.idx])?dayState.plan[ex.idx]:null;
+  if(s && s.pid===ex.pid && !s.done){
+    toggleDone(ex.idx);
+  } else if(ex && ex.pid){
+    const i=dayState.plan.findIndex(sl=>sl.pid===ex.pid && !sl.done && eff(sl)<=nowMins());
+    if(i>=0) toggleDone(i);
+    else { statDoneExtra(ex.pid); toast(t('extra_done')); }
+  }
+  saveDay(); scheduleNext(); startWatch();
+  if(!document.hidden && tab==='home') renderHome();
+}
+async function nativeSnoozeFromNotif(ex){
+  ensureDayPlan();
+  const s=(ex.d===0 && dayState.plan[ex.idx])?dayState.plan[ex.idx]:null;
+  if(s && s.pid===ex.pid && !s.done){
+    s.notified=false;
+    snooze(ex.idx);            // aplica la secuencia Fibonacci y reprograma el sistema
+    return;
+  }
+  const n=(ex.snoozes||0);
+  if(n>=FIB_INC.length){ toast(t('ts_no_snooze')); return; }
+  const p=byId(ex.pid); if(!p) return;
+  const canal=await canalActual();
+  CapLN.schedule({notifications:[{
+    id: 90000+Math.floor(Math.random()*9000),
+    title:t('app_title'), body:p.title+' — '+p.text.slice(0,80)+'…',
+    channelId:canal, actionTypeId:'MPT',
+    schedule:{at:new Date(Date.now()+FIB_INC[n]*60000), allowWhileIdle:true},
+    extra:{...ex, snoozes:n+1}
+  }]}).catch(()=>{});
+  toast(t('ts_snoozed').replace('{m}', FIB_INC[n]));
+}
+// Marca hecha la franja pendiente de esa práctica; si no hay ninguna, cuenta como extra
+function doneByPid(id){
+  ensureDayPlan();
+  const i=dayState.plan.findIndex(s=>s.pid===id && !s.done && eff(s)<=nowMins());
+  if(i>=0){ toggleDone(i); }
+  else { statDoneExtra(id); toast(t('extra_done')); }
+  if(!document.hidden && tab==='home') renderHome();
+}
+function snoozeByPid(id){
+  ensureDayPlan();
+  const i=dayState.plan.findIndex(s=>s.pid===id && !s.done);
+  if(i<0){ toast(t('ts_not_pending')); return; }
+  snooze(i);
+  if(!document.hidden && tab==='home') renderHome();
+}
+
+let _shown=false;
+function _forceShow(){
+  if(_shown) return; _shown=true;
+  const splash=document.getElementById('splash');
+  const app=document.getElementById('app');
+  // si venimos de una notificación, la splash se retira al instante (sin fundido) para ir directos a la práctica
+  if(splash){
+    if(fromNotif || snoozeParam || doneParam){ try{splash.remove();}catch(e){} }
+    else { splash.classList.add('out'); setTimeout(()=>{ try{splash.remove();}catch(e){} },500); }
+  }
+  document.body.classList.remove('loading');
+  if(app) app.classList.remove('hidden');
+  try{ start(); }
+  catch(e){
+    // Si el arranque normal falla, se muestra un aviso en vez de quedar en blanco
+    const m=document.getElementById('main');
+    if(m) m.innerHTML='<div class="card"><h2>'+t('err_title')+'</h2><p class="muted">'+t('err_body')+'</p><button class="btn primary block" onclick="try{location.reload()}catch(e){}">'+t('err_retry')+'</button></div>';
+    try{ document.getElementById('nav').classList.remove('hidden'); }catch(e2){}
+  }
+}
+function boot(){
+  try{
+    try{ applyNavLang(); }catch(e){}
+    try{ refreshPracticesLang(); }catch(e){}
+    try{ sincronizarCanal(); }catch(e){}
+    setTimeout(()=>{ try{ avisarRespaldo(); }catch(e){} }, 2600);
+    if(!LS.get('mpt_install',0)) LS.set('mpt_install', Date.now());
+    if(LS.get('mpt_ver','')!==String(APP_VERSION)){ LS.set('mpt_ver', String(APP_VERSION)); LS.set('mpt_update', Date.now()); }
+    // La portada es la ÚNICA pantalla de inicio y se muestra siempre 2 segundos.
+    // Solo se salta al venir de un aviso, para ir directos a la práctica.
+    if(fromNotif){ _forceShow(); }
+    else setTimeout(_forceShow, 2000);
+  }catch(e){ _forceShow(); }
+  // RED DE SEGURIDAD: pase lo que pase, a los 3,5 s la splash se retira SIEMPRE
+  setTimeout(_forceShow, 3500);
+}
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden){
+    // app oculta: se apagan los temporizadores para no gastar batería en segundo plano
+    // (el sistema de Android ya tiene los avisos programados; no se pierde nada)
+    stopWatch();
+  } else if(cfg){ ensureDayPlan(); startWatch(); if(tab==='home') renderHome(); }
+});
+function start(){
+  if(!cfg){ ob._langDone=!!LS.get('mpt_lang',null); renderOnboarding(ob._langDone?0:'lang'); return; }
+  // Con la app ya configurada, sin aceptación activa TODO queda bloqueado
+  if(!aceptado()){ renderAceptacion('bloqueo'); return; }
+  document.getElementById('nav').classList.remove('hidden');
+  try{ ensureDayPlan(); }
+  catch(e){
+    // dato corrupto de una versión anterior: se regenera el plan del día
+    try{ LS.remove('mpt_day'); LS.set('mpt_plans', {}); dayState=null; ensureDayPlan(); }
+    catch(e2){ dayState={date:todayStr(), used:[], plan:[]}; }
+  }
+  try{ statOpen(); }catch(e){}
+  try{ startWatch(); }catch(e){}
+  if(IS_NATIVE){
+    setTimeout(async()=>{
+      try{
+        const r=await CapLN.checkPermissions(); nativePerm=r.display;
+        try{ const x=await CapLN.checkExactNotificationSetting(); exactPerm=x.exact_alarm; }catch(e){}
+        if(nativePerm==='granted'){
+          const pend=await CapLN.getPending();
+          if(!pend.notifications || pend.notifications.length===0) pedirReprogramacion();
+        }
+      }catch(e){}
+    }, 1200);
+  }
+  // propuesta de envío de métricas cada 3 días. El aplazamiento se guarda en su
+  // propia clave (mpt_statsRemind): así sobrevive aunque las estadísticas se
+  // reinicien o se restaure una copia, y cancelar da SIEMPRE 3 días de silencio.
+  setTimeout(()=>{
+    const base=Math.max(stats.lastSend||0, LS.get('mpt_statsRemind',0), LS.get('mpt_install',0));
+    if(Date.now()-base >= METRICS_CADA_DIAS*24*60*60*1000){
+      LS.set('mpt_statsRemind', Date.now());
+      if(confirm(t('st_remind_q').replace('{d}', METRICS_CADA_DIAS))) sendMetrics();
+    }
+  }, 2500);
+  history.replaceState({app:1},''); history.pushState({app:1},''); // colchón para el botón atrás
+  if(doneParam){ history.replaceState({app:1},'',location.pathname); doneByPid(doneParam); gotoTab('home'); return; }
+  if(snoozeParam){ history.replaceState({app:1},'',location.pathname); snoozeByPid(snoozeParam); gotoTab('home'); return; }
+  if(fromNotif){ history.replaceState({app:1},'',location.pathname); pushView({type:'tab', tab:'home'}); openFullPractice(fromNotif, true); return; }
+  try{ gotoTab('home'); }catch(e){ try{ document.getElementById('main').innerHTML='<div class=\"card\"><p class=\"muted\">'+t('boot_loaded')+'</p></div>'; }catch(e2){} }
+  tryOpenPending();
+  setTimeout(tryOpenPending, 900); // por si la notificación llega un instante después
+}
+document.getElementById('nav').addEventListener('click', e=>{
+  const b=e.target.closest('button'); if(b) gotoTab(b.dataset.tab);
+});
+
+/* ---- Pila de vistas: el botón atrás del teléfono navega dentro de la app, nunca sale ---- */
+let viewStack=[];
+function navActive(t){ document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active', b.dataset.tab===t)); }
+function renderView(v){
+  if(v.type==='tab'){ tab=v.tab; navActive(v.tab); ({home:renderHome, lib:renderLib, fav:renderFav, set:renderSet})[v.tab](); }
+  else { renderFullPractice(v.id, v.origin||'day'); }
+  window.scrollTo(0,0);
+}
+function pushView(v){
+  const top=viewStack[viewStack.length-1];
+  if(top && top.type===v.type && top.tab===v.tab && top.id===v.id) { renderView(v); return; }
+  viewStack.push(v); renderView(v);
+}
+// Botón atrás: primero cierra un pop-up abierto; si no, retrocede dentro de la app.
+// Definición única, compartida por la ruta nativa (Capacitor) y la web (popstate).
+function atrasApp(){
+  const modal=document.getElementById('modal');
+  if(modalOpen || (modal && !modal.classList.contains('hidden'))){ closeModal(); return true; }
+  if(viewStack.length>1){ viewStack.pop(); renderView(viewStack[viewStack.length-1]); return true; }
+  return false;   // no había nada que cerrar ni a donde volver
+}
+window.addEventListener('popstate', ()=>{
+  atrasApp();
+  history.pushState({app:1},''); // atrapa el atrás: para salir se usa el botón de inicio del teléfono
+});
+function gotoTab(t){ tab=t; pushView({type:'tab', tab:t}); }
+function toast(msg){
+  const el=document.createElement('div'); el.className='toast'; el.textContent=msg;
+  document.body.appendChild(el);
+  // cuanto más largo el mensaje, más tiempo en pantalla (entre 2,6 y 7 segundos)
+  const ms=Math.min(7000, Math.max(2600, 1200 + String(msg).length*55));
+  setTimeout(()=>el.remove(), ms);
+}
+
+/* ================== ONBOARDING ================== */
+let ob = { startH:7, startM:0, freq:3, span:12 };
+
+function clockSVG(h,m,size){
+  size = size || 230; const c=size/2, r=c-8;
+  let ticks='', nums='';
+  for(let i=0;i<60;i++){
+    const a=(i*6-90)*Math.PI/180, big=i%5===0;
+    const r1=r-(big?14:7), x1=c+r1*Math.cos(a), y1=c+r1*Math.sin(a);
+    const x2=c+r*Math.cos(a), y2=c+r*Math.sin(a);
+    ticks+=`<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#3A3127" stroke-width="${big?2.4:1}"/>`;
+  }
+  for(let n=1;n<=12;n++){
+    const a=(n*30-90)*Math.PI/180, rr=r-30;
+    nums+=`<text x="${(c+rr*Math.cos(a)).toFixed(1)}" y="${(c+rr*Math.sin(a)).toFixed(1)}" font-size="${size*0.082}" font-weight="600" fill="#2B241C" text-anchor="middle" dominant-baseline="central">${n}</text>`;
+  }
+  const ha=((h%12)+m/60)*30-90, ma=m*6-90;
+  const hx=c+(r*0.48)*Math.cos(ha*Math.PI/180), hy=c+(r*0.48)*Math.sin(ha*Math.PI/180);
+  const mx=c+(r*0.72)*Math.cos(ma*Math.PI/180), my=c+(r*0.72)*Math.sin(ma*Math.PI/180);
+  return `<svg class="clockface" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    <circle cx="${c}" cy="${c}" r="${r}" fill="#FFFDF7" stroke="#B08D3E" stroke-width="5"/>
+    ${ticks}${nums}
+    <line x1="${c}" y1="${c}" x2="${hx.toFixed(1)}" y2="${hy.toFixed(1)}" stroke="#2B241C" stroke-width="6" stroke-linecap="round"/>
+    <line x1="${c}" y1="${c}" x2="${mx.toFixed(1)}" y2="${my.toFixed(1)}" stroke="#B08D3E" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="${c}" cy="${c}" r="7" fill="#B08D3E" stroke="#2B241C" stroke-width="2"/>
+  </svg>`;
+}
+
+/* ---- Reloj táctil: una esfera para la hora y otra igual para los minutos ---- */
+// caraReloj('h'|'m', valorSel, tamaño, cbNombre): esfera con números pulsables.
+// Horas: anillo exterior 1-12, anillo interior 13-00. Minutos: 00 a 55, de 5 en 5.
+function caraReloj(fase, sel, size, cbNombre){
+  size=size||250; const c=size/2, r=c-8;
+  let el=`<circle cx="${c}" cy="${c}" r="${r}" fill="#FFFDF7" stroke="#B08D3E" stroke-width="5"/>`;
+  const num=(x,y,txt,val,act,fs)=>`<g onclick="${cbNombre}(${val})" style="cursor:pointer">
+    <circle cx="${x}" cy="${y}" r="${fs*1.15}" fill="${act?'#B08D3E':'transparent'}"/>
+    <text x="${x}" y="${y}" font-size="${fs}" font-weight="600" fill="${act?'#FFFDF7':'#2B241C'}" text-anchor="middle" dominant-baseline="central">${txt}</text></g>`;
+  if(fase==='h'){
+    for(let n=1;n<=12;n++){
+      const a=(n*30-90)*Math.PI/180;
+      el+=num(c+(r-24)*Math.cos(a), c+(r-24)*Math.sin(a), n, n, sel===n, size*0.072);
+    }
+    for(let k=1;k<=12;k++){
+      const v=(k+12)%24;  // 13..23 y 00
+      const a=(k*30-90)*Math.PI/180;
+      el+=num(c+(r-62)*Math.cos(a), c+(r-62)*Math.sin(a), pad(v), v, sel===v, size*0.058);
+    }
+  } else {
+    for(let k=0;k<12;k++){
+      const v=k*5, a=(k*30-90)*Math.PI/180;
+      el+=num(c+(r-26)*Math.cos(a), c+(r-26)*Math.sin(a), pad(v), v, sel===v, size*0.068);
+    }
+  }
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${el}</svg>`;
+}
+// Selector genérico en su propia capa (funciona también sobre un modal abierto)
+let _rp={cb:null, h:9, m:0, fase:'h'};
+function abrirReloj(mins, cb){
+  _rp={cb, h:Math.floor(mins/60)%24, m:(mins%60)-((mins%60)%5), fase:'h'};
+  let ov=document.getElementById('relojov');
+  if(!ov){ ov=document.createElement('div'); ov.id='relojov';
+    ov.style.cssText='position:fixed;inset:0;background:rgba(43,36,28,.55);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px';
+    ov.addEventListener('click', e=>{ if(e.target===ov) ov.remove(); });
+    document.body.appendChild(ov);
+  }
+  _pintarReloj();
+}
+function _pintarReloj(){
+  const ov=document.getElementById('relojov'); if(!ov) return;
+  ov.innerHTML=`<div style="background:var(--crema);border-radius:18px;padding:18px;text-align:center;max-width:320px;width:100%">
+    <div style="font-size:1.7rem;font-weight:700;margin-bottom:6px">
+      <span style="${_rp.fase==='h'?'color:var(--dorado)':''}">${pad(_rp.h)}</span>:<span style="${_rp.fase==='m'?'color:var(--dorado)':''}">${pad(_rp.m)}</span>
+    </div>
+    <p class="muted" style="margin:0 0 8px">${_rp.fase==='h'?t('clk_pick_h'):t('clk_pick_m')}</p>
+    ${caraReloj(_rp.fase, _rp.fase==='h'?_rp.h:_rp.m, 250, '_relojTap')}
+  </div>`;
+}
+function _relojTap(v){
+  if(_rp.fase==='h'){ _rp.h=v; _rp.fase='m'; _pintarReloj(); }
+  else{
+    _rp.m=v;
+    const ov=document.getElementById('relojov'); if(ov) ov.remove();
+    if(_rp.cb) _rp.cb(_rp.h*60+_rp.m);
+  }
+}
+// Botón estándar que muestra la hora y abre el reloj; escribe en un input oculto
+function botonHora(idInput, mins, clase){
+  const v=(typeof mins==='number')?pad(Math.floor(mins/60))+':'+pad(mins%60):'';
+  return `<input type="hidden" id="${idInput}" ${clase?`class="${clase}"`:''} value="${v}">`+
+    `<button type="button" class="btn ghost" style="width:100%;font-size:1.15rem;font-weight:700" `+
+    `onclick="(function(b){const i=document.getElementById('${idInput}');const [h,m]=(i.value||'09:00').split(':').map(Number);`+
+    `abrirReloj(h*60+m, mm=>{ i.value=pad(Math.floor(mm/60))+':'+pad(mm%60); b.textContent='🕐 '+i.value; });})(this)">🕐 ${v||'--:--'}</button>`;
+}
+
+/* ============ Aceptación de responsabilidad ============ */
+// Contenido completo del aviso. Solo con la aceptación activa puede usarse la app;
+// el interruptor vive en Ajustes y, desactivado, todo queda bloqueado salvo él mismo.
+/* Los textos (ACEPT, NC_TEXTO, NOVENO_QS, PLANTILLA_LINEAS) están en contenido.js */
+function ACEPT(){ return getLang()==='en' ? ACEPT_EN : ACEPT_ES; }
+function aceptado(){ return !!LS.get('mpt_accept', null); }
+function _aceptHTML(x){
+  return `
+    <h2 style="margin:0 0 12px">${x.titulo}</h2>
+    <h3 style="margin:0 0 6px">${x.s1t}</h3><p style="margin:0 0 14px;line-height:1.55">${x.s1}</p>
+    <h3 style="margin:0 0 6px">${x.s2t}</h3><p style="margin:0 0 14px;line-height:1.55">${x.s2}</p>
+    <h3 style="margin:0 0 6px">${x.s3t}</h3><p style="margin:0 0 6px;line-height:1.55">${x.s3}</p>
+    <ul style="margin:0 0 14px;padding-left:20px;line-height:1.5">${x.s3l.map(i=>`<li style="margin:0 0 4px">${i}</li>`).join('')}</ul>
+    <h3 style="margin:0 0 6px">${x.s4t}</h3>
+    <ul style="margin:0 0 14px;padding-left:20px;line-height:1.5">${x.s4l.map(i=>`<li style="margin:0 0 4px">${i}</li>`).join('')}</ul>
+    <h3 style="margin:0 0 6px">${x.s5t}</h3><p style="margin:0 0 14px;line-height:1.55">${x.s5}</p>
+    <h3 style="margin:0 0 6px">${x.s6t}</h3><p style="margin:0 0 14px;line-height:1.55">${x.s6}</p>`;
+}
+// modo 'ob': dentro de la bienvenida (al aceptar sigue el asistente).
+// modo 'bloqueo': la app entera está bloqueada (al aceptar se recarga).
+function renderAceptacion(modo){
+  document.getElementById('nav').classList.add('hidden');
+  const x=ACEPT();
+  document.getElementById('main').innerHTML=`<div class="ob-step"><div class="card">
+    ${modo==='ob'?`<button class="btn ghost small" style="margin:0 0 8px" onclick="renderOnboarding('lang')">${t('ob_back')}</button>`:''}
+    ${modo==='bloqueo'?`<div class="infobox" style="margin-bottom:14px"><b>${x.bloqueoT}</b><br>${x.bloqueo}</div>`:''}
+    ${_aceptHTML(x)}
+    <label class="chkrow" style="margin:6px 0 8px;font-weight:600">
+      <input type="checkbox" id="acepto_chk" onchange="document.getElementById('acepto_btn').disabled=!this.checked">
+      <span>${x.chk}</span>
+    </label>
+    <p class="muted" style="margin:0 0 12px;font-size:.85rem">${x.nota}</p>
+    <button id="acepto_btn" class="btn primary block" disabled onclick="confirmarAceptacion('${modo}')">${x.btn}</button>
+  </div></div>`;
+  window.scrollTo(0,0);
+}
+function confirmarAceptacion(modo){
+  if(!document.getElementById('acepto_chk').checked) return;
+  LS.set('mpt_accept', {v:1, ts:Date.now()});
+  if(modo==='bloqueo'){ location.reload(); return; }
+  renderOnboarding('import');
+}
+function desactivarAceptacion(){
+  LS.remove('mpt_accept');
+  location.reload();
+}
+function obRelojTap(v){
+  if(ob._fase==='m'){ ob.startM=v; ob._fase='h'; }
+  else{ ob.startH=v; ob._fase='m'; }
+  renderOnboarding(0);
+}
+function renderOnboarding(step){
+  document.getElementById('nav').classList.add('hidden');
+  const M = document.getElementById('main');
+  // paso 'lang': elegir idioma antes que nada
+  if(step===0 && ob._langDone && !aceptado()){ renderAceptacion('ob'); return; }
+  // tras aceptar: ofrecer cargar una copia antes de configurar nada
+  if(step==='import'){
+    document.getElementById('main').innerHTML=`<div class="ob-step">
+      <div class="card center">
+        <button class="btn ghost small" style="align-self:flex-start;margin:0 0 8px" onclick="renderAceptacion('ob')">${t('ob_back')}</button>
+        <h2>${t('ob_imp_title')}</h2>
+        <p class="muted" style="line-height:1.55">${t('ob_imp_sub')}</p>
+        <input type="file" id="ob_file" accept=".json,application/json" style="display:none" onchange="importarArchivo(this.files[0]);this.value=''">
+        <button class="btn primary block" style="margin-top:16px" onclick="document.getElementById('ob_file').click()">${t('ob_imp_yes')}</button>
+        <button class="btn ghost block" onclick="renderOnboarding(0)">${t('ob_imp_no')}</button>
+      </div>
+    </div>`;
+    window.scrollTo(0,0);
+    return;
+  }
+  if(step==='lang' || (step===0 && !LS.get('mpt_lang',null) && !ob._langDone)){
+    M.innerHTML = `<div class="ob-step">
+      <div class="card center">
+        <div style="border:2px solid ${getLang()==='es'?'var(--dorado)':'transparent'};border-radius:14px;padding:14px 12px;margin:0 0 14px">
+          <h2 style="margin:0 0 4px">${I18N.es.ob_lang_title}</h2>
+          <p class="muted" style="margin:0 0 12px">${I18N.es.ob_lang_sub}</p>
+          <button class="optbtn ${getLang()==='es'?'sel':''}" style="width:100%" onclick="setLang('es');ob._langDone=true;renderOnboarding(0)">🇪🇸 Continuar en español</button>
+        </div>
+        <div style="border:2px solid ${getLang()==='en'?'var(--dorado)':'transparent'};border-radius:14px;padding:14px 12px">
+          <h2 style="margin:0 0 4px">${I18N.en.ob_lang_title}</h2>
+          <p class="muted" style="margin:0 0 12px">${I18N.en.ob_lang_sub}</p>
+          <button class="optbtn ${getLang()==='en'?'sel':''}" style="width:100%" onclick="setLang('en');ob._langDone=true;renderOnboarding(0)">🇬🇧 Continue in English</button>
+        </div>
+      </div>
+    </div>`;
+    return;
+  }
+  const dots = [0,1,2,3].map(i=>`<span class="${i<=step?'on':''}"></span>`).join('');
+  if(step===0){
+    M.innerHTML = `<div class="ob-step">
+      <div class="progress">${dots}</div>
+      <div class="card center">
+        <button class="btn ghost small" style="align-self:flex-start;margin:0 0 8px" onclick="renderOnboarding('import')">${t('ob_back')}</button>
+        <h2>${t('ob_hour_title')}</h2>
+        <p class="muted">${t('ob_hour_sub')}</p>
+        <div style="font-size:1.9rem;font-weight:700;margin:4px 0 2px">
+          <span style="${ob._fase!=='m'?'color:var(--dorado)':''}">${pad(ob.startH)}</span>:<span style="${ob._fase==='m'?'color:var(--dorado)':''}">${pad(ob.startM)}</span>
+        </div>
+        <p class="muted" style="margin:0 0 8px">${ob._fase==='m'?t('clk_pick_m'):t('clk_pick_h')}</p>
+        <div style="display:flex;justify-content:center">${caraReloj(ob._fase==='m'?'m':'h', ob._fase==='m'?ob.startM:ob.startH, 250, 'obRelojTap')}</div>
+        <button class="btn primary block" style="margin-top:12px" onclick="renderOnboarding(1)">${t('ob_continue')}</button>
+      </div>
+    </div>`;
+  } else if(step===1){
+    M.innerHTML = `<div class="ob-step">
+      <div class="progress">${dots}</div>
+      <div class="card center">
+        <button class="btn ghost small" style="align-self:flex-start;margin:0 0 8px" onclick="renderOnboarding(0)">${t('ob_back')}</button>
+        <h2>${t('ob_freq_title')}</h2>
+        <div class="optgrid">
+          ${[1,2,3].map(h=>`<button class="optbtn ${ob.freq===h?'sel':''}" onclick="ob.freq=${h};renderOnboarding(1)">${t('ob_freq_each')} ${h} ${t('ob_freq_h')}</button>`).join('')}
+        </div>
+        <button class="btn primary block" onclick="renderOnboarding(2)">${t('ob_continue')}</button>
+      </div>
+    </div>`;
+  } else if(step===2){
+    M.innerHTML = `<div class="ob-step">
+      <div class="progress">${dots}</div>
+      <div class="card center">
+        <button class="btn ghost small" style="align-self:flex-start;margin:0 0 8px" onclick="renderOnboarding(1)">${t('ob_back')}</button>
+        <h2>${t('ob_span_title')}</h2>
+        <p class="muted">${t('ob_span_sub')} (${pad(ob.startH)}:${pad(ob.startM)}).</p>
+        <div class="optgrid g7">
+          ${[12,13,14,15,16,17,18].map(h=>`<button class="optbtn ${ob.span===h?'sel':''}" onclick="ob.span=${h};renderOnboarding(2)">${h} h</button>`).join('')}
+        </div>
+        <button class="btn primary block" onclick="renderOnboarding(3)">${t('ob_continue')}</button>
+      </div>
+    </div>`;
+  } else {
+    M.innerHTML = `<div class="ob-step">
+      <div class="progress">${dots}</div>
+      <div class="card">
+        <button class="btn ghost small" style="align-self:flex-start;margin:0 0 8px" onclick="renderOnboarding(2)">${t('ob_back')}</button>
+        <h2>${t('ob_rem_title')}</h2>
+        <div class="infobox">${t('ob_rem_box')}</div>
+        <p class="muted" style="margin-top:14px">${t('ob_rem_notif')}</p>
+        <button class="btn ${notifActive()?'gold':'ghost'} block" onclick="toggleNotif(()=>renderOnboarding(3))">${notifActive()?t('ob_notif_on'):t('ob_notif_ask')}</button>
+        <div class="infobox" style="margin-top:16px">💡 <b>${t('ob_hint_title')}:</b> ${t('ob_hint_custom')}</div>
+        <button class="btn primary block" onclick="finishOnboarding()">${t('ob_start')}</button>
+      </div>
+    </div>`;
+  }
+}
+function askNotif(){
+  if(IS_NATIVE){
+    return CapLN.requestPermissions().then(r=>{
+      nativePerm=r.display;
+      if(nativePerm==='granted'){ notifOn=true; LS.set('mpt_notifOn', true); toast(t('ts_notif_on')); scheduleNext(); }
+      else toast(t('ts_perm_no'));
+      return nativePerm;
+    }).catch(()=>Promise.resolve('denied'));
+  }
+  if(!('Notification' in window)){ toast(t('ts_no_notif_support')); return Promise.resolve('unsupported'); }
+  return Notification.requestPermission().then(p=>{
+    if(p==='granted'){ notifOn=true; LS.set('mpt_notifOn', true); toast(t('ts_notif_on')); }
+    else toast(t('ts_perm_no'));
+    return p;
+  });
+}
+function notifPerm(){
+  if(IS_NATIVE) return nativePerm;
+  return ('Notification' in window)?Notification.permission:'unsupported';
+}
+function toggleNotif(after){
+  const perm=notifPerm();
+  if(perm==='denied'){ toast(t('ts_notif_blocked')); return; }
+  if(perm!=='granted'){ askNotif().then(()=>{ if(after)after(); }); return; }
+  notifOn=!notifOn; LS.set('mpt_notifOn', notifOn);
+  toast(notifOn?t('ts_notif_on'):t('ts_notif_off_t'));
+  scheduleNext();   // en nativo, cancela o reprograma los avisos del sistema
+  if(after)after();
+}
+function notifActive(){ return notifPerm()==='granted' && notifOn; }
+function chime(){
+  try{
+    const ctx=new (window.AudioContext||window.webkitAudioContext)();
+    const o=ctx.createOscillator(), g=ctx.createGain();
+    o.type='sine'; o.frequency.value=880; o.connect(g); g.connect(ctx.destination);
+    g.gain.setValueAtTime(0.0001,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.25,ctx.currentTime+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.9);
+    o.frequency.exponentialRampToValueAtTime(1318,ctx.currentTime+0.15);
+    o.start(); o.stop(ctx.currentTime+1);
+  }catch(e){}
+}
+function finishOnboarding(){
+  cfg={startH:ob.startH, startM:ob.startM, freq:ob.freq, span:ob.span, favPerDay:1, visDia:false, catsPref:{}};
+  LS.set('mpt_cfg', cfg);
+  LS.set('mpt_plans', {});
+  dayState=null; LS.set('mpt_day', null);
+  document.getElementById('nav').classList.remove('hidden');
+  ensureDayPlan(); scheduleNext(); gotoTab('home');
+}
+
+/* ================== PLAN DEL DÍA ================== */
+function slotTimes(){
+  // los tiempos pueden superar las 24 h (p. ej. 25:30 = 01:30 de la madrugada);
+  // así los momentos de después de medianoche ordenan y clasifican correctamente
+  const t0=cfg.startH*60+cfg.startM, out=[];
+  for(let t=t0; t<=t0+cfg.span*60; t+=cfg.freq*60) out.push(t);
+  return out;
+}
+function pickPractices(n, exclude){
+  // favoritas al día: las que el usuario definió con la barra (0..máximo de momentos).
+  // Si pide más de las que tiene, los huecos se completan con propuestas aleatorias;
+  // si tiene más de las pedidas, se eligen al azar entre sus favoritas.
+  const excl=new Set(exclude||[]);
+  const favPool=favs.filter(id=>{
+    if(!byId(id) || excl.has(id) || paused.includes(id)) return false;
+    if((cfg.constNo || anyConstFlag()) && esCatConst((byId(id)||{}).cat)) return false;
+    return true;
+  });
+  const objetivo=Math.min(n, Math.max(0, (cfg && cfg.favPerDay!==undefined)?cfg.favPerDay:1));
+  const nFav=Math.min(objetivo, favPool.length);
+  const chosen=[];
+  shuffle(favPool);
+  for(let i=0;i<nFav;i++){ chosen.push(favPool[i]); excl.add(favPool[i]); }
+  const rest=ALL().map(p=>p.id).filter(id=>{
+    if(excl.has(id) || favs.includes(id) || paused.includes(id)) return false;
+    if((cfg.constNo || anyConstFlag()) && esCatConst((byId(id)||{}).cat)) return false;
+    return true;
+  });
+  shuffle(rest);
+  while(chosen.length<n && rest.length) { const id=rest.pop(); chosen.push(id); excl.add(id); }
+  shuffle(chosen);
+  return placeVisualization(placeCategoryPrefs(placeConstellations(chosen)));
+}
+// Pares de categorías (nombre canónico ES ↔ etiqueta EN), en orden de aparición
+// Duraciones ofrecidas en "Horas de propuestas al día": múltiplos del intervalo
+// elegido en "Propuesta cada", para que la última propuesta caiga siempre en hora.
+function spanOpciones(){
+  const f=(cfg && cfg.freq)||1, out=[];
+  for(let h=f; h<=24; h+=f) out.push(h);
+  return out;
+}
+// Ajusta el periodo activo al intervalo (se llama al cambiar "Propuesta cada")
+function ajustarSpan(){
+  const ops=spanOpciones(); if(!ops.length) return;
+  if(!ops.includes(cfg.span)){
+    // se elige la opción válida más cercana a la que tenía
+    cfg.span=ops.reduce((a,b)=>Math.abs(b-cfg.span)<Math.abs(a-cfg.span)?b:a, ops[0]);
+  }
+}
+// Etiqueta visible de una categoría. La práctica guarda un CÓDIGO
+// ('armonizacion'); aquí se traduce al idioma activo. Las categorías que crea la
+// persona usuaria no están en CATEGORIAS: se muestran tal cual las escribió.
+function catLabel(cod){
+  const c = (typeof CATEGORIAS!=='undefined') && CATEGORIAS.find(x=>x.id===cod);
+  if(!c) return cod || '';
+  return getLang()==='en' ? c.en : c.es;
+}
+// Lista de categorías para los ajustes: las oficiales y luego las propias.
+function catPairs(){
+  const out = (typeof CATEGORIAS!=='undefined' ? CATEGORIAS : []).map(c=>({id:c.id, es:c.es, en:c.en}));
+  const oficiales = new Set(out.map(o=>o.id));
+  userLib.forEach(p=>{
+    if(!p.cat || oficiales.has(p.cat)) return;
+    oficiales.add(p.cat);
+    out.push({id:p.cat, es:p.cat, en:p.cat, propia:true});
+  });
+  return out;
+}
+// Marca o desmarca una categoría preferida. Crea catsPref si faltara (instalaciones
+// que se configuraron antes de que existiera este ajuste).
+function setCatPref(cat, on){
+  if(!cfg) return;
+  if(!cfg.catsPref) cfg.catsPref={};
+  if(on) cfg.catsPref[cat]=true; else delete cfg.catsPref[cat];
+  applyCfg();
+}
+// Prácticas "especiales": pensadas para una hora fija del día. La lista vive en
+// practices.js (ESPECIALES) para que siga siendo válida si cambia la numeración.
+function especialesLista(){
+  try{
+    if(typeof ESPECIALES==='undefined') return [];
+    return ESPECIALES.map(id=>byId(id)).filter(Boolean);
+  }catch(e){ return []; }
+}
+function catCanonOf(pid){
+  const i=PRACTICES_ES.findIndex(p=>p.id===pid);
+  if(i>=0) return PRACTICES_ES[i].cat;
+  const u=userLib.find(p=>p.id===pid);       // práctica propia: su categoría tal cual
+  return u ? u.cat : null;
+}
+// Categorías preferidas: garantiza al menos una práctica de cada categoría marcada,
+// igual que la visualización diaria, ocupando huecos libres del patrón
+function placeCategoryPrefs(ids){
+  if(!cfg || !cfg.catsPref || !ids.length) return ids;
+  const prefs=catPairs().filter(cp=>cfg.catsPref[cp.id] && cp.id!=='constelaciones');
+  if(!prefs.length) return ids;
+  const franjas=franjasConstelacion(ids.length);
+  prefs.forEach(cp=>{
+    if(ids.some(id=>catCanonOf(id)===cp.id)) return;   // ya hay una de esa categoría
+    const cand=ids.map((_,k)=>k).filter(k=>!franjas.has(k) && !favs.includes(ids[k]) && ids[k]!==VIS_ID);
+    if(!cand.length) return;
+    const pool=ALL().filter(p=>p.cat===cp.id && !ids.includes(p.id) && !paused.includes(p.id)).map(p=>p.id);
+    if(!pool.length) return;
+    const k=cand[Math.floor(Math.random()*cand.length)];
+    ids[k]=pool[Math.floor(Math.random()*pool.length)];
+  });
+  return ids;
+}
+// Índices del día reservados a constelaciones, según los ajustes del usuario.
+// Única definición: la usan tanto la visualización diaria como las categorías preferidas.
+function franjasConstelacion(n){
+  const f=new Set();
+  if(!cfg) return f;
+  if(cfg.constIni) f.add(0);
+  if(cfg.constMed) f.add(Math.floor((n-1)/2));
+  if(cfg.constFin) f.add(n-1);
+  return f;
+}
+// Si el usuario lo activa, la visualización del día entra una vez, en un hueco libre
+function placeVisualization(ids){
+  if(!cfg || !cfg.visDia || !ids.length) return ids;
+  const vis=practicaVis();
+  if(!vis || paused.includes(vis.id) || ids.includes(vis.id)) return ids;
+  const franjas=franjasConstelacion(ids.length);
+  let cand=ids.map((id,k)=>k).filter(k=>!franjas.has(k) && !favs.includes(ids[k]));
+  if(!cand.length) cand=ids.map((id,k)=>k).filter(k=>!franjas.has(k));
+  if(!cand.length) return ids;
+  ids[cand[Math.floor(Math.random()*cand.length)]]=vis.id;
+  return ids;
+}
+function anyConstFlag(){ return cfg && (cfg.constIni || cfg.constMed || cfg.constFin); }
+
+/* ---- Momentos propios: ocurrencias por fecha y construcción del día completo ---- */
+function getEvent(id){ return userEvents.find(e=>e.id===id); }
+function eventsFor(dstr){
+  const [y,m,dd]=dstr.split('-').map(Number);
+  const date=new Date(y,m-1,dd);
+  return userEvents.filter(ev=>{
+    if(evPaused.includes(ev.id)) return false;
+    const sd=new Date(ev.startY, ev.startM-1, ev.startD);
+    const diff=Math.round((date-sd)/(24*60*60*1000));
+    if(diff<0) return false;
+    if(ev.rep==='daily')   return true;
+    if(ev.rep==='days')    return ev.n>0 && diff%ev.n===0;
+    if(ev.rep==='weekly')  return date.getDay()===sd.getDay();
+    if(ev.rep==='monthly') return date.getDate()===sd.getDate();
+    return diff===0;
+  });
+}
+// Horas a las que ocurre un momento propio dentro de un mismo día.
+// dmode: 'int' = n veces cada x horas · 'list' = horas concretas · ausente = una sola vez
+// Minutos "crudos" desde la medianoche del día en que arranca la tanda. Pueden
+// superar 1439: esas repeticiones NO se descartan, saltan al día siguiente.
+// Los duplicados tampoco se descartan: se resuelven preguntando al usuario.
+function eventTimes(ev){
+  if(!ev) return [];
+  let ts;
+  if(ev.dmode==='list' && Array.isArray(ev.dtimes) && ev.dtimes.length){
+    ts=[ev.time].concat(ev.dtimes);
+  } else if(ev.dmode==='int' && ev.dcount>1 && ev.dgap>0){
+    ts=[];
+    for(let k=0;k<ev.dcount;k++) ts.push(ev.time + k*ev.dgap*60);
+  } else ts=[ev.time];
+  return ts.filter(m=>typeof m==='number' && m>=0).sort((a,b)=>a-b);
+}
+// Cuántos días abarca la tanda más larga (para buscar arrastres de días anteriores)
+function maxSpillDays(){
+  let mx=0;
+  userEvents.forEach(ev=>{ const r=eventTimes(ev); const u=r[r.length-1]||0; if(u>mx) mx=u; });
+  return Math.min(7, Math.floor(mx/1440));
+}
+// Ocurrencias reales de los momentos propios en una fecha: las que empiezan ese día
+// más las arrastradas desde días anteriores por pasar de medianoche.
+function eventOccurrences(dstr){
+  const [y,m,dd]=dstr.split('-').map(Number);
+  const base=new Date(y,m-1,dd);
+  const out=[];
+  for(let k=0;k<=maxSpillDays();k++){
+    const ref=new Date(base.getFullYear(), base.getMonth(), base.getDate()-k);
+    eventsFor(dateStrOf(ref)).forEach(ev=>{
+      eventTimes(ev).forEach(raw=>{
+        if(Math.floor(raw/1440)===k) out.push({ev, time: raw%1440});
+      });
+    });
+  }
+  return out.sort((a,b)=>a.time-b.time);
+}
+// Horas del momento tal como se muestran, marcando las que caen en días siguientes
+// Horas del patrón estándar que quedan pisadas por un momento propio.
+// Se compara contra slotTimes(), que es igual todos los días: así la detección
+// vale para hoy y para cualquier día futuro.
+function evChocaPatron(ev){
+  const patron=slotTimes().map(m=>m%1440);
+  return [...new Set(eventTimes(ev).map(m=>m%1440).filter(m=>patron.includes(m)))].sort((a,b)=>a-b);
+}
+// Horas en las que algún momento propio pidió quedarse solo (ev.excl)
+function horasExclusivas(dstr){
+  return new Set(eventOccurrences(dstr).filter(o=>o.ev && o.ev.excl).map(o=>o.time));
+}
+function evTimesText(ev){
+  return eventTimes(ev).map(m=>{
+    const d=Math.floor(m/1440);
+    return fmtT(m%1440)+(d?' (+'+d+')':'');
+  }).join(' · ');
+}
+function repText(ev){
+  const dias=[t('wd_sun'),t('wd_mon'),t('wd_tue'),t('wd_wed'),t('wd_thu'),t('wd_fri'),t('wd_sat')];
+  if(ev.rep==='daily') return t('rep_daily');
+  if(ev.rep==='days') return t('rep_days_a')+' '+ev.n+' '+t('rep_days_b');
+  if(ev.rep==='weekly'){ const sd=new Date(ev.startY,ev.startM-1,ev.startD); return t('rep_weekly')+' '+dias[sd.getDay()]; }
+  if(ev.rep==='monthly') return t('rep_monthly_a')+' '+ev.startD+t('rep_monthly_b');
+  return '';
+}
+// Texto del patrón completo: repetición entre días + repetición dentro del día
+function repFullText(ev){
+  const base=repText(ev);
+  const n=eventTimes(ev).length;
+  if(n<=1) return base;
+  if(ev.dmode==='int') return base+' · '+n+' '+t('rep_ntimes')+' ('+t('rep_each')+' '+ev.dgap+' h)';
+  return base+' · '+n+' '+t('rep_ntimes');
+}
+// Día completo: momentos del patrón + momentos propios, ordenados por hora
+function buildDayEntries(dstr){
+  const occ=eventOccurrences(dstr);
+  // modo "solo mis momentos": el día lo forman únicamente los momentos propios.
+  // Si ese día no hay ninguno, el día queda vacío: es lo que el usuario ha pedido.
+  if(cfg && cfg.soloEventos){
+    return occ.map(o=>({time:o.time, pid:o.ev.pid, ev:o.ev.id}));
+  }
+  const times=slotTimes();
+  const ids=pickPractices(times.length, occ.map(o=>o.ev.pid));
+  // las horas donde un momento propio pidió quedarse solo pierden la propuesta del patrón
+  const excl=horasExclusivas(dstr);
+  const entries=times.map((t,i)=>({time:t, pid:ids[i]||null})).filter(e=>!excl.has(e.time%1440));
+  occ.forEach(o=>entries.push({time:o.time, pid:o.ev.pid, ev:o.ev.id}));
+  entries.sort((a,b)=>a.time-b.time);
+  return entries;
+}
+// Coloca una constelación al principio, al mediodía y/o al final del día según lo elegido
+function placeConstellations(ids){
+  if(cfg.constNo || !anyConstFlag() || !ids.length) return ids;
+  const n=ids.length, pos=new Set();
+  if(cfg.constIni) pos.add(0);
+  if(cfg.constMed) pos.add(Math.floor((n-1)/2));
+  if(cfg.constFin) pos.add(n-1);
+  const usados=new Set(ids);
+  const favConst=favs.filter(id=>esCatConst((byId(id)||{}).cat) && !usados.has(id) && !paused.includes(id));
+  const otras=PRACTICES.filter(p=>esCatConst(p.cat) && !usados.has(p.id) && !favConst.includes(p.id) && !paused.includes(p.id)).map(p=>p.id);
+  shuffle(favConst); shuffle(otras);
+  // pop() toma primero del final: favoritas al final = favoritas primero
+  const pool=[...otras, ...favConst];
+  [...pos].forEach(i=>{
+    const c=pool.pop();
+    if(!c) return;
+    // si en esta franja cayó una favorita normal, se recoloca en otro hueco antes
+    if(favs.includes(ids[i])){
+      const j=ids.findIndex((id,k)=>!pos.has(k) && !favs.includes(id));
+      if(j>=0){ const tmp=ids[j]; ids[j]=ids[i]; ids[i]=tmp; }
+    }
+    usados.delete(ids[i]); ids[i]=c; usados.add(c);
+  });
+  return ids;
+}
+// sustituciones puntuales ("nueva recomendación"): aleatoria pura entre todas
+function pickRandom(exclude){
+  const excl=new Set(exclude||[]);
+  const pool=ALL().map(p=>p.id).filter(id=>{
+    if(excl.has(id) || paused.includes(id)) return false;
+    if(cfg && cfg.constNo && esCatConst((byId(id)||{}).cat)) return false;
+    return true;
+  });
+  return pool.length? pool[Math.floor(Math.random()*pool.length)] : null;
+}
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } }
+
+function ensureDayPlan(){
+  if(dayState && dayState.date===todayStr()) return;
+  const plans=LS.get('mpt_plans', {});
+  const pre=plans[todayStr()];
+  // usa el plan pregenerado (coincide con lo ya programado en el sistema) o construye uno
+  const entries=(pre && pre.length && pre[0] && pre[0].pid!==undefined) ? pre : buildDayEntries(todayStr());
+  Object.keys(plans).forEach(k=>{ if(k<=todayStr()) delete plans[k]; });
+  LS.set('mpt_plans', plans);
+  dayState={date:todayStr(), used:[...new Set(entries.map(e=>e.pid))],
+    plan: entries.map(e=>({time:e.time, pid:e.pid, ev:e.ev, done:false, snoozes:0, snoozeUntil:null}))};
+  LS.set('mpt_day', dayState);
+}
+function saveDay(){ LS.set('mpt_day', dayState); }
+// Reconstruye el plan de hoy inmediatamente (tras crear/pausar/borrar momentos) para que
+// el patrón estándar rellene los huecos al instante, sin dejar la agenda vacía
+function rebuildToday(){
+  // limpia el caché de TODOS los días futuros: así los cambios en momentos propios
+  // (crear, pausar, borrar, activar "solo mis momentos") se propagan a toda la agenda
+  LS.set('mpt_plans', {});
+  dayState=null;
+  ensureDayPlan();
+}
+
+function currentSlotIndex(){
+  const nm=nowMins(); let idx=-1;
+  dayState.plan.forEach((s,i)=>{ if(s.time<=nm) idx=i; });
+  return idx===-1?0:idx;
+}
+/* ================== NOTIFICACIONES ================== */
+let tickTimer=null;
+let diaTimer=null;      // despierta una vez al día, en la medianoche
+let reschedTimer=null;  // agrupa varias reprogramaciones seguidas en una sola
+const eff = s => s.snoozeUntil!==null ? s.snoozeUntil : s.time;
+
+/* ---- Plan de días futuros (para programar el sistema por adelantado) ---- */
+function getPlanFor(dstr){
+  if(dstr===todayStr()){ ensureDayPlan(); return dayState.plan.map(s=>({time:s.time, pid:s.pid, ev:s.ev})); }
+  const plans=LS.get('mpt_plans', {});
+  if(plans[dstr]) return plans[dstr];
+  const plan=buildDayEntries(dstr);
+  Object.keys(plans).forEach(k=>{ if(k<todayStr()) delete plans[k]; }); // limpia días pasados
+  plans[dstr]=plan;
+  LS.set('mpt_plans', plans);
+  return plan;
+}
+/* Cancela todo y entrega al sistema de Android los próximos 7 días de avisos.
+   Estos suenan a su hora aunque la app esté completamente cerrada. */
+// Canal correcto para programar avisos. Si el modo alarma está activo pero el canal
+// aún no aparece (arranque en frío: el nativo lo crea en paralelo), se reintenta hasta
+// 2 segundos antes de rendirse. Esto evita que las primeras notificaciones tras abrir
+// la app salgan por el canal normal en vez del de alarma.
+async function canalActual(){
+  if(!alarmMode) return 'momento';
+  if(alarmChannelOk!==true){
+    try{ await checkAlarmChannel(); }catch(e){}
+    for(let i=0;i<4 && alarmChannelOk!==true;i++){
+      await new Promise(r=>setTimeout(r,500));
+      try{ await checkAlarmChannel(); }catch(e){}
+    }
+  }
+  return (alarmChannelOk===true)?'momento_despertador':'momento';
+}
+async function nativeReschedule(){
+  if(!IS_NATIVE) return;
+  try{ await CapLN.createChannel({id:'momento', name:t('canal_std_nombre'), description:t('canal_std_desc'), importance:5, visibility:1, vibration:true}); }catch(e){}
+  try{
+    const pend=await CapLN.getPending();
+    if(pend.notifications && pend.notifications.length){
+      await CapLN.cancel({notifications:pend.notifications.map(n=>({id:n.id}))});
+    }
+  }catch(e){}
+  if(!notifOn || nativePerm!=='granted') return;
+  const canal=await canalActual();   // faltaba: sin esto la reprogramación fallaba entera
+  const now=new Date(), list=[];
+  for(let d=0; d<DAYS_AHEAD; d++){
+    const day=new Date(now.getFullYear(), now.getMonth(), now.getDate()+d);
+    const plan=getPlanFor(dateStrOf(day));
+    plan.forEach((s,idx)=>{
+      let mins=s.time;
+      if(d===0){
+        const slot=dayState.plan[idx];
+        if(!slot || slot.done || slot.notified || slot.muted) return;
+        if(slot.snoozeUntil!==null) mins=slot.snoozeUntil;
+      } else if(s.muted) return;
+      const at=new Date(day.getFullYear(), day.getMonth(), day.getDate(), Math.floor(mins/60), mins%60, 0);
+      if(at<=now) return;
+      const p=byId(s.pid); if(!p) return;
+      const evd=s.ev?getEvent(s.ev):null;
+      list.push({
+        id:(d+1)*1000+idx,
+        title:t('app_title'),
+        body:(evd?evd.title+': ':'')+p.title+' — '+p.text.slice(0,70)+'…',
+        schedule:{at, allowWhileIdle:true},
+        channelId:canal, actionTypeId:'MPT',
+        extra:{pid:s.pid, d, idx, snoozes:(d===0 && dayState.plan[idx])?dayState.plan[idx].snoozes:0}
+      });
+    });
+  }
+  if(list.length){
+    try{ await CapLN.schedule({notifications:list}); }
+    catch(e){
+      // Android 12+ sin permiso de alarmas exactas puede rechazar la programación:
+      // se reintenta en modo compatible (puede retrasarse unos minutos, pero llega)
+      try{
+        const compat=list.map(n=>({...n, schedule:{at:n.schedule.at}}));
+        await CapLN.schedule({notifications:compat});
+      }catch(e2){}
+    }
+  }
+  LS.set('mpt_lastProg', Date.now());
+}
+/* Cambios puntuales: hecha o pospuesta solo tocan SU notificación en el sistema,
+   sin reprogramar la planificación general de los 7 días. */
+function nativeCancelSlot(idx){
+  if(!IS_NATIVE) return;
+  CapLN.cancel({notifications:[{id:1000+idx}]}).catch(()=>{});
+}
+async function nativeScheduleSlot(idx){
+  if(!IS_NATIVE) return;
+  CapLN.cancel({notifications:[{id:1000+idx}]}).catch(()=>{});
+  if(!notifOn || nativePerm!=='granted') return;
+  const s=dayState.plan[idx]; if(!s || s.done || s.muted) return;
+  const p=byId(s.pid); if(!p) return;
+  const mins=eff(s);
+  const now=new Date();
+  const at=new Date(now.getFullYear(), now.getMonth(), now.getDate(), Math.floor(mins/60), mins%60, 0);
+  if(at<=now) at.setTime(Date.now()+30000);
+  const canal=await canalActual();
+  const nn={id:1000+idx, title:t('app_title'), body:p.title+' — '+p.text.slice(0,80)+'…',
+    channelId:canal, actionTypeId:'MPT',
+    schedule:{at, allowWhileIdle:true},
+    extra:{pid:s.pid, d:0, idx, snoozes:s.snoozes}};
+  CapLN.schedule({notifications:[nn]}).catch(()=>{
+    CapLN.schedule({notifications:[{...nn, schedule:{at}}]}).catch(()=>{});
+  });
+}
+/* Recarga silenciosa: en cualquier despertar de la app (abrirla, volver del segundo
+   plano, o tocar un botón de una notificación), si han pasado RECARGA_DIAS desde la
+   última programación, se renuevan los 7 días de avisos sin intervención del usuario. */
+function checkRecharge(){
+  if(!IS_NATIVE || !cfg || !notifOn || nativePerm!=='granted') return;
+  const last=LS.get('mpt_lastProg', 0);
+  if(Date.now()-last >= RECARGA_DIAS*24*60*60*1000) pedirReprogramacion();
+}
+// Puerta única a la reprogramación nativa. Agrupa las peticiones que llegan
+// seguidas (marcar varias prácticas, cambiar ajustes, arrancar) en una sola
+// operación: cancelar y volver a programar decenas de avisos es lo más caro que
+// hace la app en el sistema.
+function pedirReprogramacion(){
+  if(!IS_NATIVE) return;
+  clearTimeout(reschedTimer);
+  reschedTimer=setTimeout(()=>{ reschedTimer=null; nativeReschedule(); }, 700);
+}
+
+/* startWatch: vigilancia ligera al abrir/volver a la app. NO reprograma el sistema.
+   scheduleNext: reprogramación completa. Se llama SOLO cuando algo cambia de verdad:
+   una práctica (hecha, pospuesta, sustituida) o el patrón (hora de inicio, intervalo,
+   periodo activo, interruptor de notificaciones). */
+function stopWatch(){
+  clearInterval(tickTimer); clearTimeout(notifTimer); clearTimeout(diaTimer);
+  tickTimer=null; notifTimer=null; diaTimer=null;
+}
+function startWatch(){
+  stopWatch();
+  if(!cfg || !dayState) return;
+  if(IS_NATIVE){
+    // El sistema ya tiene los avisos programados: aquí no hace falta vigilar nada
+    // segundo a segundo. Basta con despertar UNA vez, en la próxima medianoche,
+    // para rehacer el plan del día. Antes esto era un intervalo de 60 s: 1440
+    // despertares diarios para detectar un cambio que ocurre una vez al día.
+    if(dayState.date!==todayStr()) ensureDayPlan();
+    checkRecharge();
+    armMedianoche();
+    return;
+  }
+  // Pulso de seguridad. La precisión la da armPrecise(), que pone un temporizador
+  // exacto para el próximo momento; este solo recoge lo que se hubiera quedado atrás,
+  // así que un minuto sobra y son la mitad de despertares.
+  tickTimer=setInterval(tick, 60000);
+  armPrecise();                        // y un temporizador exacto para el próximo momento
+  tick();                              // dispara ya cualquier aviso que quedara atrasado
+}
+// Reprogramación agrupada: varias acciones seguidas (marcar hechas, posponer,
+// cambiar ajustes) producen UNA sola reprogramación del sistema en vez de una por
+// acción. Cancelar y volver a programar decenas de avisos es la operación nativa
+// más costosa de la app.
+function scheduleNext(){
+  startWatch();
+  pedirReprogramacion();
+}
+// Un único temporizador hasta la próxima medianoche (con 2 s de margen).
+// Al dispararse, rehace el plan, refresca la pantalla si procede y se rearma.
+function armMedianoche(){
+  clearTimeout(diaTimer);
+  const ahora=new Date();
+  const manana=new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate()+1, 0, 0, 2);
+  const ms=Math.max(1000, manana-ahora);
+  diaTimer=setTimeout(()=>{
+    if(dayState && dayState.date!==todayStr()){
+      ensureDayPlan();
+      if(tab==='home' && !document.hidden) renderHome();
+    }
+    checkRecharge();
+    armMedianoche();
+  }, ms);
+}
+function armPrecise(){
+  clearTimeout(notifTimer);
+  const nm=nowMins(); let best=null;
+  dayState.plan.forEach(s=>{
+    if(s.done || s.notified) return;
+    const t=eff(s);
+    if(t>nm && (best===null || t<best.t)) best={t, slot:s};
+  });
+  if(!best) return;
+  const ms=(best.t-nm)*60*1000 - (new Date().getSeconds()*1000);
+  notifTimer=setTimeout(()=>{ tick(); armPrecise(); }, Math.max(1000,ms));
+}
+function tick(){
+  if(!cfg || !dayState) return;
+  if(dayState.date!==todayStr()){ ensureDayPlan(); armPrecise(); if(tab==='home' && !document.hidden) renderHome(); return; }
+  const nm=nowMins();
+  // momentos cuyo tiempo ya pasó y aún no se han notificado (incluye los perdidos
+  // mientras Android tenía la app congelada: se recuperan al instante)
+  const perdidos=dayState.plan.filter(s=>!s.done && !s.notified && eff(s)<=nm);
+  if(perdidos.length){
+    perdidos.forEach(s=>s.notified=true);
+    saveDay();
+    fireNotification(perdidos[perdidos.length-1]); // se avisa de la más reciente, sin acumular
+    if(tab==='home' && !document.hidden) renderHome();
+  }
+}
+async function fireNotification(slot){
+  if(!notifOn) return;                    // interruptor de la app
+  const p=byId(slot.pid); if(!p) return;
+  const body=p.title+' — '+p.text.slice(0,80)+'…';
+  chime();                                // refuerzo sonoro cuando la app está viva
+  try{
+    const reg=await navigator.serviceWorker.getRegistration();
+    if(reg && Notification.permission==='granted'){
+      reg.showNotification(t('app_title'), {
+        body, icon:'icon-192.png', badge:'icon-192.png', tag:'mpt-'+p.id, renotify:true,
+        data:{id:p.id}, silent:false, vibrate:[120,60,120],
+        actions:[{action:'done', title:t('notif_act_done')},{action:'snooze', title:t('notif_act_snooze')},{action:'open', title:t('notif_act_open')}]
+      });
+      return;
+    }
+  }catch(e){}
+  if(Notification.permission==='granted'){
+    const n=new Notification(t('app_title'),{body, icon:'icon-192.png'});
+    n.onclick=()=>{ window.focus(); openFullPractice(p.id); };
+  }
+}
+
+/* ================== VISTAS ================== */
+function catClass(cat){
+  if(['respiracion','meditacion','energia'].includes(cat)) return '';
+  return cat==='constelaciones' ? 't2' : 't3';
+}
+// Escapa el contenido creado por el usuario antes de insertarlo en HTML.
+// Sin esto, un título con < o " rompe el diseño (o el atributo que lo contiene).
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+  .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+function renderHome(){
+  ensureDayPlan();
+  const M=document.getElementById('main');
+  const nm=nowMins();
+  const doneCount=statsDay().h;  // hechas reales del día (se mantienen aunque cambies la práctica)
+  // si la app se instaló hoy, los momentos "del día" cuentan desde la instalación
+  const instTs=LS.get('mpt_install',0);
+  const instHoy=instTs && dateStrOf(new Date(instTs))===todayStr();
+  const instMin=instHoy?(new Date(instTs).getHours()*60+new Date(instTs).getMinutes()):0;
+  const momentosHoy=instHoy?dayState.plan.filter(s=>eff(s)>=instMin).length:dayState.plan.length;
+  // estadísticas del día anterior (guardadas en mpt_stats.days)
+  const ayer=new Date(); ayer.setDate(ayer.getDate()-1);
+  const stAyer=(stats.days&&stats.days[dateStrOf(ayer)])||null;
+  const withIdx=dayState.plan.map((s,i)=>({s,i}));
+  // Clasificación v2:
+  //  - La práctica ACTUAL (la de la franja vigente ahora mismo, si está pendiente) es la
+  //    destacada y encabeza "Tu día". Las FUTURAS van después.
+  //  - TODAS las anteriores a la actual (hechas o no) pasan a "Día pasado".
+  const orden=withIdx.slice().sort((a,b)=>eff(a.s)-eff(b.s));
+  // hora de la franja vigente: la última cuyo horario ya ha llegado
+  let vigEff=null;
+  orden.forEach(o=>{ if(eff(o.s)<=nm) vigEff=eff(o.s); });
+  // "Tu día" = TODAS las pendientes de la franja vigente (pueden ser varias a la misma
+  // hora, p. ej. la programada + momentos propios) + todas las futuras (hora > ahora)
+  const vigentes=vigEff===null?[]:orden.filter(o=>eff(o.s)===vigEff && !o.s.done);
+  const futuras=orden.filter(o=>eff(o.s)>nm);
+  const upcoming=[...vigentes, ...futuras];
+  // "Día pasado" = todo lo demás (anteriores a la actual, y la actual si ya está hecha),
+  // más reciente primero
+  const enDia=new Set(upcoming.map(o=>o.i));
+  const past=orden.filter(o=>!enDia.has(o.i)).sort((a,b)=>eff(b.s)-eff(a.s));
+  const primera=upcoming.find(o=>!o.s.done);
+  const nextIdx=primera?primera.i:-1;
+  if(expandedDay!==dayState.date){ expandedSlots=new Set(); expandedDay=dayState.date; lastAutoNext=-1; }
+  if(nextIdx>=0 && nextIdx!==lastAutoNext){ expandedSlots.add(nextIdx); lastAutoNext=nextIdx; }
+  const next=primera?primera.s:null;
+  lastUpcoming=upcoming; lastPast=past;
+  M.innerHTML=`
+    <p class="muted" style="margin:4px 2px 4px">${t('hdr_today')}: ${momentosHoy} ${t('hdr_moments')} · ${doneCount} ${t('hdr_done')}${(statsDay().extra||0)>0?` · ${statsDay().extra} ${t('hdr_extra')}`:''}${next?` · ${t('hdr_next_at')} <b>${fmtT(eff(next))}</b>`:''}</p>
+    <p class="muted" style="margin:0 2px 12px;font-size:.8rem">${t('hdr_yest')}: ${stAyer?`${stAyer.h} ${t('hdr_yest_done')}${(stAyer.extra||0)>0?` · ${stAyer.extra} ${t('hdr_extra')}`:''} · ${stAyer.ps.length} ${t('hdr_yest_snoozed')}`:t('hdr_nodata')}</p>
+    ${botonPlegarTodo('toggleAllHome()', !showDay && !showPast && !showNextDay)}
+    <div class="card">
+      ${boxHead(t('h_today'), showDay, 'showDay', 'renderHome()', "expandGroup('day')", allOpen(upcoming), !!upcoming.length)}
+      ${showDay?(upcoming.map(o=>dayItem(o, o.i===nextIdx, 'day')).join('') || `<p class="muted center">${t('no_more')}</p>`):''}
+    </div>
+    ${past.length?`<div class="card anteriores">
+      ${boxHead(t('h_past'), showPast, 'showPast', 'renderHome()', "expandGroup('past')", allOpen(past))}
+      ${showPast?past.map(o=>dayItem(o,false,'past')).join(''):''}
+    </div>`:''}
+    ${(function(){
+      const man=new Date(); man.setDate(man.getDate()+1);
+      const nx=getPlanFor(dateStrOf(man));
+      lastNext=nx;
+      return `<div class="card">
+      ${boxHead(t('h_next'), showNextDay, 'showNextDay', 'renderHome()', 'expandNextGroup()', nx.length && nx.every((e,k)=>expandedNext.has(k)))}
+      ${showNextDay?nx.map((e,k)=>nextItem(e,k)).join(''):''}
+    </div>
+    <div class="card">
+      <h2 style="margin:0 0 12px">${t('nc_social')}</h2>
+      ${ncSocialBlock()}
+    </div>`; })()}`;
+}
+function homeBody(p, evd, botones, extra=''){
+  // Cuerpo desplegable común de las tarjetas del Programa: categoría, texto,
+  // enlace, fila de botones (variable), fila fav/pausa y extra opcional (posposiciones)
+  return `<div class="dbody">
+      <span class="cat-tag ${catClass(p.cat)}">${esc(catLabel(p.cat))}${evd?` · ${t('hm_own')}`:''}</span>
+      <div class="ptext">${esc(p.text)}</div>
+      ${p.link?`<a class="plink" href="${p.link}" target="_blank" rel="noopener">${t('open_ex')}</a>`:''}
+      <div class="row" style="margin-top:14px">
+        ${botones}
+      </div>
+      ${favPauseRow(p.id,'renderHome()')}
+      <button class="btn small ghost block" onclick="crearMomentoDe('${p.id}')">${t('mk_moment_btn')}</button>${extra}
+    </div>`;
+}
+function dayItem(o, isNext, section){
+  const s=o.s, i=o.i, p=byId(s.pid);
+  if(!p) return '';
+  const open=expandedSlots.has(i);
+  const isFav=favs.includes(p.id);
+  const evd=s.ev?getEvent(s.ev):null;
+  const esVigente = eff(s)<=nowMins();  // su hora ya ha llegado
+  const estado=s.done?t('st_done'):(isNext?t('st_next'):'');
+  return `<div class="ditem ${isNext?'next':''} ${open?'open':''} ${s.done?'done':''}">
+    <div class="dhead" id="dh${i}" role="button" tabindex="0" onclick="toggleExpand(${i})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleExpand(${i})}">
+      <div class="hora">${fmtT(eff(s))}</div>
+      <div class="grow"><h4>${esc(p.title)}</h4><span class="catpill">${esc(catLabel(p.cat))}${evd?` · ${t('hm_own')}`:''}${estado}${s.muted?t('st_muted'):''}</span></div>
+      ${iconColHome(p.id, i, 'renderHome()')}
+    </div>
+    ${open?homeBody(p, evd,
+      (section==='past'
+        ? (s.done
+           // ya estaba hecha: cualquier repetición cuenta como extra
+           ? `<button class="btn small gold" style="flex:1" onclick="hacerAhora('${p.id}');renderHome()">${t('done_now')}</button>`
+           // aún pendiente: al hacerla ahora cuenta como HECHA (su primera vez), no como extra
+           : `<button class="btn small ghost" style="flex:1" onclick="toggleDone(${i});renderHome()">${t('done_mark')}</button>`)
+        : (esVigente
+           ? `<button class="btn small ${s.done?'primary':'ghost'}" style="flex:1" onclick="toggleDone(${i});renderHome()">${t('done_mark')}</button>`
+           : `<button class="btn small gold" style="flex:1" onclick="hacerAhora('${p.id}');renderHome()">${t('done_now')}</button>`))
+      +'\n        '+(section==='past'?'':`<button class="btn small ghost" style="flex:1" onclick="newRecommendation(${i})">${t('change')}</button>`),
+      '\n      '+(s.snoozes && !s.done?`<div class="snoozeinfo">${t('snoozed_pre')} ${s.snoozes} ${s.snoozes===1?t('snoozed_1'):t('snoozed_n')} · ${t('snoozed_next')} ${fmtT(s.snoozeUntil)}</div>`:'')):''}
+  </div>`;
+}
+let lastNext=[];
+function nextItem(e,k){
+  const p=byId(e.pid); if(!p) return '';
+  const evd=e.ev?getEvent(e.ev):null;
+  const open=expandedNext.has(k);
+  const isFav=favs.includes(p.id);
+  return `<div class="ditem ${open?'open':''} ${e.done?'done':''}">
+    <div class="dhead" id="dhn${k}" role="button" tabindex="0" onclick="toggleNext(${k})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleNext(${k})}">
+      <div class="hora">${fmtT(e.time)}</div>
+      <div class="grow"><h4>${esc(p.title)}</h4><span class="catpill">${esc(catLabel(p.cat))}${evd?` · ${t('hm_own')}`:''}${e.muted?t('st_muted'):''}</span></div>
+      ${homeIcons(p.id, e.muted, `toggleMuteNext(${k}, renderHome)`)}
+    </div>
+    ${open?homeBody(p, evd,
+      `<button class="btn small gold" style="flex:1" onclick="hacerAhora('${p.id}');renderHome()">${t('done_now')}</button>`
+      +'\n        '+`<button class="btn small ghost" style="flex:1" onclick="newRecNext(${k})">${t('change')}</button>`):''}
+  </div>`;
+}
+// acciones sobre el plan de mañana (persistido en mpt_plans)
+function nextDateStr(){ const m=new Date(); m.setDate(m.getDate()+1); return dateStrOf(m); }
+function newRecNext(k){
+  const ds=nextDateStr(); const plans=LS.get('mpt_plans',{});
+  if(!plans[ds]) plans[ds]=lastNext;
+  const usados=plans[ds].map(e=>e.pid);
+  const fresh=pickRandom(usados);
+  if(!fresh){ toast(t('ts_no_more_avail')); return; }
+  plans[ds][k].pid=fresh;
+  LS.set('mpt_plans', plans); renderHome();
+}
+function expandNextGroup(){
+  const todos=lastNext.length && lastNext.every((e,k)=>expandedNext.has(k));
+  expandedNext=new Set(todos?[]:lastNext.map((e,k)=>k));
+  renderHome();
+}
+// Plegar/desplegar una tarjeta del plan de mañana o de la biblioteca.
+// Extraídas del atributo onclick para que la cabecera pueda responder también
+// al teclado sin duplicar la lógica en dos sitios.
+function toggleNext(k){
+  if(expandedNext.has(k)) expandedNext.delete(k); else expandedNext.add(k);
+  renderHome(); verCaja('#dhn'+k);
+}
+// Plegar o desplegar una tarjeta afecta SOLO a esa tarjeta. Antes se rehacía la
+// lista entera —doscientas y pico— por abrir una sola.
+const ITEM_RENDER = {
+  expandedLib:     p=>libItem(p),
+  expandedFav:     p=>favItem(p),
+  expandedPropias: p=>propiaItem(p),
+  expandedPaused:  p=>pausedItem(p),
+};
+function toggleFicha(conjunto, id, rerender, setName){
+  if(conjunto.has(id)) conjunto.delete(id); else conjunto.add(id);
+  const cab=document.getElementById('dh_'+id);
+  const tarjeta=cab && cab.closest('.ditem');
+  const pintar=ITEM_RENDER[setName];
+  const p=byId(id);
+  if(tarjeta && pintar && p){
+    tarjeta.outerHTML=pintar(p);          // se sustituye únicamente esta tarjeta
+  } else if(typeof rerender==='function'){
+    rerender();                            // respaldo: si algo no encaja, se rehace todo
+  }
+  verCaja('#dh_'+id);
+}
+function toggleExpand(i){
+  if(expandedSlots.has(i)) expandedSlots.delete(i); else expandedSlots.add(i);
+  renderHome(); verCaja('#dh'+i);
+}
+function toggleDone(i){
+  const s=dayState.plan[i];
+  if(s.done){
+    s.done=false;
+    const enFuturo = eff(s) > nowMins();
+    s.notified = !enFuturo;
+    saveDay(); statDone(false, s.pid, s.extraDone);
+    s.extraDone=false;
+    if(enFuturo) nativeScheduleSlot(i);
+    startWatch();
+    toast(t('ts_unmarked'));
+  } else {
+    // ¿es la práctica del momento actual o una ya vencida y pendiente? → cuenta normal.
+    // ¿es una práctica FUTURA (su hora aún no ha llegado)? → cuenta como EXTRA y se
+    // regenera esa franja para que, cuando llegue su hora, se proponga una nueva sin hacer.
+    const esFutura = eff(s) > nowMins();
+    const esExtra = esFutura || !!s.doneOnce;
+    if(esFutura){
+      // registrar la extra sobre esta práctica
+      statDone(true, s.pid, true);
+      const pidHecha=s.pid;
+      // regenerar la franja con otra práctica no usada hoy
+      const fresh=pickRandom(dayState.used);
+      if(fresh){
+        s.pid=fresh; s.done=false; s.snoozes=0; s.snoozeUntil=null; s.notified=false; s.doneOnce=false; s.extraDone=false;
+        dayState.used.push(fresh);
+      } else {
+        // si no queda ninguna nueva, se deja marcada como hecha normal
+        s.done=true; s.extraDone=true; s.doneOnce=true;
+      }
+      saveDay(); scheduleNext(); startWatch();
+      if(!document.hidden && tab==='home') renderHome();
+      toast(t('ts_extra_done'));
+      return;
+    }
+    s.done=true; s.snoozeUntil=null;
+    // si este momento ya tuvo una hecha antes (se cambió tras completarla), esta cuenta como EXTRA
+    s.extraDone = esExtra;
+    s.doneOnce = true;
+    saveDay(); statDone(true, s.pid, esExtra); nativeCancelSlot(i); startWatch();
+    toast(esExtra ? t('ts_done_extra') : t('ts_done_ok'));
+  }
+}
+function snooze(i){
+  const s=dayState.plan[i];
+  if(s.done){ toast(t('ts_already_done')); return; }
+  if(s.snoozes>=FIB_INC.length){ toast(t('ts_no_snooze')); return; }
+  const inc=FIB_INC[s.snoozes];
+  const base=s.snoozeUntil!==null? s.snoozeUntil : Math.max(s.time, nowMins());
+  let until=base+inc;
+  const nxt=dayState.plan[i+1];
+  if(nxt && until>=nxt.time){ s.done=true; s.snoozeUntil=null; saveDay(); nativeCancelSlot(i); startWatch(); toast(t('ts_next_sooner')); return; }
+  s.snoozes++; s.snoozeUntil=until; s.notified=false;
+  saveDay(); statSnooze(i); nativeScheduleSlot(i); startWatch();
+  toast(t('ts_snoozed_to').replace('{m}', inc).replace('{h}', fmtT(s.snoozeUntil)));
+}
+function newRecommendation(i){
+  const fresh=pickRandom(dayState.used);
+  if(!fresh){ toast(t('ts_seen_all')); return; }
+  if(i>=0){
+    const s=dayState.plan[i];
+    // Si la práctica actual estaba hecha, esa hecha SE MANTIENE en las estadísticas
+    // (no se descuenta) — solo se sustituye la propuesta por otra a hacer.
+    statDiscard(s.pid);
+    s.pid=fresh; s.done=false; s.snoozes=0; s.snoozeUntil=null; s.notified=false;
+  }
+  dayState.used.push(fresh);
+  saveDay(); scheduleNext();
+  if(i>=0) renderHome(); else openFullPractice(fresh);
+  toast(t('ts_new_sugg'));
+}
+function togglePause(id){
+  const k=paused.indexOf(id);
+  if(k>=0){ paused.splice(k,1); toast(t('ts_unpaused')); }
+  else{
+    paused.push(id);
+    // solo se sustituyen sus apariciones FUTURAS de hoy (no hechas, no momentos propios);
+    // las de hora ya pasada (Día pasado) se respetan: fueron lo que fueron
+    if(dayState){
+      dayState.plan.forEach(sl=>{
+        if(sl.pid===id && !sl.done && !sl.ev && eff(sl)>nowMins()){
+          const f=pickRandom(dayState.used);
+          if(f){ sl.pid=f; sl.snoozes=0; sl.snoozeUntil=null; sl.notified=false; dayState.used.push(f); }
+        }
+      });
+      saveDay();
+    }
+    toast(t('ts_paused'));
+  }
+  LS.set('mpt_paused', paused);
+  LS.set('mpt_plans', {});
+  scheduleNext();
+}
+function toggleFav(id){
+  const k=favs.indexOf(id);
+  if(k>=0) favs.splice(k,1); else favs.push(id);
+  LS.set('mpt_favs', favs);
+}
+
+/* --------- Vista de práctica a pantalla completa (con menú inferior) --------- */
+function openFullPractice(id, adopt, origin){
+  const p=byId(id);
+  if(!p){ toast(t('ts_notif_gone')); return; }
+  try{
+    ensureDayPlan();
+    let i=dayState.plan.findIndex(s=>s.pid===id);
+    // Si viene de una notificación de hoy y no está en el plan, se asigna al momento actual
+    if(i<0 && adopt){
+      i=currentSlotIndex();
+      Object.assign(dayState.plan[i], {pid:id, done:false, snoozes:0, snoozeUntil:null, notified:false});
+      if(!dayState.used.includes(id)) dayState.used.push(id);
+      saveDay(); scheduleNext();
+    }
+  }catch(e){ /* pase lo que pase con el plan, la práctica se muestra igualmente */ }
+  pushView({type:'p', id, origin:origin||'day'});
+}
+function goSibling(id, origin){
+  if(!id) return;
+  const top=viewStack[viewStack.length-1];
+  if(top && top.type==='p'){ top.id=id; top.origin=origin||top.origin; renderView(top); } else openFullPractice(id, false, origin);
+}
+function renderFullPractice(id, origin){
+  origin=origin||'day';
+  const p=byId(id); if(!p) return;
+  document.getElementById('nav').classList.remove('hidden');
+  let i=-1, slot=null;
+  try{ ensureDayPlan(); i=dayState.plan.findIndex(s=>s.pid===id); slot=i>=0?dayState.plan[i]:null; }catch(e){}
+  const isFav=favs.includes(p.id);
+  const isPaused=paused.includes(p.id);
+  // Anterior/Siguiente según el listado de ORIGEN
+  let seq;
+  if(origin==='fav') seq=favs.filter(x=>byId(x));
+  else if(origin==='lib') seq=ALL().filter(x=>!paused.includes(x.id)).map(x=>x.id);
+  else if(origin==='paused') seq=ALL().filter(x=>paused.includes(x.id)).map(x=>x.id);
+  else seq=(i>=0)?dayState.plan.map(s=>s.pid):ALL().filter(x=>!paused.includes(x.id)).map(x=>x.id);
+  const k=seq.indexOf(id);
+  const prevId=k>0?seq[k-1]:null;
+  const nextId=(k>=0 && k<seq.length-1)?seq[k+1]:null;
+  const soloLib=(origin==='fav'||origin==='lib'||origin==='paused'); // vistas de biblioteca/favoritas
+  const M=document.getElementById('main');
+  M.innerHTML=`
+    <div class="backbar" style="justify-content:space-between">
+      <button class="btn small ghost" ${prevId?`onclick="goSibling('${prevId}','${origin}')"`:'disabled style="opacity:.35"'}>${t('fp_prev')}</button>
+      <button class="btn small ghost" onclick="history.back()">${t('fp_back')}</button>
+      <button class="btn small ghost" ${nextId?`onclick="goSibling('${nextId}','${origin}')"`:'disabled style="opacity:.35"'}>${t('fp_next')}</button>
+    </div>
+    <span class="cat-tag ${catClass(p.cat)}">${esc(catLabel(p.cat))}</span>
+    <h2 style="margin:4px 0 14px;font-size:1.5rem">${esc(p.title)}</h2>
+    <div class="ptext" style="font-size:1.12rem">${esc(p.text)}</div>
+    ${p.link?`<a class="plink" href="${p.link}" target="_blank" rel="noopener">${t('open_ex')}</a>`:''}
+    <div class="row" style="margin-top:22px">
+      ${(!soloLib && slot)?`<button class="btn ${slot.done?'primary':'ghost'}" style="flex:1" onclick="toggleDone(${i});renderFullPractice('${p.id}','${origin}')">${t('done_mark')}</button>`:''}
+      <button class="btn ${isFav?'terra':'ghost'}" style="flex:1" onclick="toggleFav('${p.id}');renderFullPractice('${p.id}','${origin}')">♥ ${isFav?t('fav_saved'):t('fav_save')}</button>
+      ${origin==='fav'?`<button class="btn gold" style="flex:1" onclick="hacerAhora('${p.id}')">${t('done_now')}</button>`:''}
+    </div>
+    <button class="btn ${isPaused?'gold':'ghost'} block" onclick="togglePause('${p.id}');renderFullPractice('${p.id}','${origin}')">${isPaused?t('pause_remove'):t('pause_add')}</button>
+    ${(!soloLib && slot && !slot.done)?`<button class="btn ghost block" onclick="snooze(${i});renderFullPractice('${p.id}','${origin}')">${t('fp_snooze')}</button>
+    ${slot.snoozes?`<div class="snoozeinfo">${t('snoozed_pre')} ${slot.snoozes} ${slot.snoozes===1?t('snoozed_1'):t('snoozed_n')} · ${t('snoozed_next')} ${fmtT(slot.snoozeUntil)}</div>`:''}`:''}
+    <button class="btn ghost block" onclick="crearMomentoDe('${p.id}')">${t('mk_moment_btn')}</button>
+    ${!soloLib?`<button class="btn primary block" onclick="gotoTab('home')">${t('fp_go_app')}</button>`:''}
+  `;
+  window.scrollTo(0,0);
+}
+
+/* --------- Biblioteca --------- */
+let libFilter='', libCat='';
+let _libSearchT=null;
+function limpiarBusqueda(){
+  libFilter='';
+  const inp=document.getElementById('libSearchInp'); if(inp) inp.value='';
+  const x=document.getElementById('libClear'); if(x) x.style.display='none';
+  clearTimeout(_libSearchT);
+  renderLibList();
+}
+function libSearch(v){
+  libFilter=v;
+  clearTimeout(_libSearchT);
+  _libSearchT=setTimeout(renderLibList, 150);
+}
+function renderLib(){
+  const M=document.getElementById('main');
+  const cats=[...new Set(ALL().map(p=>p.cat))].sort((a,b)=>a.localeCompare(b));
+  M.innerHTML=`
+    <div class="searchrow">
+      <div style="position:relative;flex:1">
+        <input type="text" id="libSearchInp" placeholder="${t('lib_search')}" value="${libFilter}" style="padding-right:38px;width:100%;box-sizing:border-box" oninput="libSearch(this.value);document.getElementById('libClear').style.display=this.value?'block':'none'">
+        <button type="button" id="libClear" class="tbtn" aria-label="${t('lib_clear')}" title="${t('lib_clear')}" onclick="limpiarBusqueda()" style="display:${libFilter?'block':'none'};position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--gris);font-size:1.05rem;padding:4px;line-height:1">✕</button>
+      </div>
+    </div>
+    <select onchange="libCat=this.value;renderLibList()" style="margin-bottom:12px">
+      <option value="">${t('lib_all_cats')} (${ALL().length})</option>
+      ${cats.map(c=>`<option ${libCat===c?'selected':''} value="${esc(c)}">${esc(catLabel(c))}</option>`).join('')}
+    </select>
+    <button class="btn gold block" style="margin:0 0 14px" onclick="openAddForm()">${t('lib_new')}</button>
+    <p class="muted" style="margin:0 2px 8px">${t('lib_offline')}</p>
+    ${botonPlegarTodo('toggleAllLib()', !showLibBox && !showFavBox && !showPropias && !showPausedBox && !showHechas)}
+    <div id="liblist"></div>
+    <div id="pausedbox"></div>`;
+  renderLibList();
+}
+// Filtro compartido del buscador y la categoría: lo usan TODAS las cajas de la biblioteca
+function matchFiltro(p){
+  if(!p) return false;
+  if(libCat && p.cat!==libCat) return false;
+  if(libFilter){ const q=libFilter.toLowerCase(); return (p.title+' '+p.text).toLowerCase().includes(q); }
+  return true;
+}
+function libVisibles(){
+  return ALL().filter(matchFiltro).filter(p=>!paused.includes(p.id));
+}
+function renderLibList(){
+  const el=document.getElementById('liblist'); if(!el) return;
+  const visibles=libVisibles().filter(p=>!p.id.startsWith('u'));
+  const todos=visibles.length && visibles.every(p=>expandedLib.has(p.id));
+  // Se compone TODO el html antes de asignarlo. Antes se asignaba, se volvía a leer
+  // y se asignaba otra vez: eso obliga al navegador a analizar la página dos veces,
+  // y con 200 prácticas se nota.
+  const caja = `<div class="card">
+    ${boxHead(`${t('lib_box_practices')} (${visibles.length})`, showLibBox, 'showLibBox', 'renderLibList()', 'expandLibGroup()', todos, !!visibles.length)}
+    ${showLibBox?(visibles.map(p=>libItem(p)).join('') || `<p class="muted center">${t('lib_no_results')}</p>`):''}
+  </div>`;
+  el.innerHTML = renderPropiasBox() + caja + renderFavBox();
+  renderPausedBox();
+}
+// Resuelve un conjunto de expandidos por su nombre (los onclick usan el nombre; aquí el objeto)
+function getSet(n){
+  return {expandedLib,expandedPropias,expandedFav,expandedPaused,expandedHechas}[n];
+}
+/* Ítem de acordeón UNIVERSAL de la biblioteca. Un solo renderer para las 5 cajas.
+   o = { suf: sufijo del catpill (' · tuya', ' · en pausa'…), tag: mostrar etiqueta de
+   categoría en el cuerpo (true), after: callback tras «Hecha ahora» ('renderLib()'),
+   extra: html adicional al final del cuerpo ('') } */
+function ditem(p, setName, rerender, o={}){
+  const open=getSet(setName).has(p.id);
+  const tag=o.tag!==false, after=(o.after!==undefined)?o.after:'renderLib()';
+  return `<div class="ditem ${open?'open':''}">
+    <div class="dhead" id="dh_${p.id}" role="button" tabindex="0" onclick="toggleFicha(${setName},'${p.id}',()=>{${rerender}},'${setName}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleFicha(${setName},'${p.id}',()=>{${rerender}},'${setName}')}">
+      <div class="grow"><h4>${esc(p.title)}</h4><span class="catpill">${esc(catLabel(p.cat))}${o.suf||''}</span></div>
+      ${iconCol(p.id,rerender,'renderLib()')}
+    </div>
+    ${open?`<div class="dbody">
+      ${tag?`<span class="cat-tag ${catClass(p.cat)}">${esc(catLabel(p.cat))}</span>
+      `:''}<div class="ptext">${esc(p.text)}</div>
+      ${p.link?`<a class="plink" href="${p.link}" target="_blank" rel="noopener">${t('open_ex')}</a>`:''}
+      ${favPauseRow(p.id,rerender,'renderLib()')}
+      ${hechaAhoraBtn(p.id,after,true)}
+      <button class="btn small ghost block" onclick="crearMomentoDe('${p.id}')">${t('mk_moment_btn')}</button>
+      ${o.extra||''}
+    </div>`:''}
+  </div>`;
+}
+function libItem(p){ return ditem(p,'expandedLib','renderLibList()'); }
+function propiaItem(p){
+  return ditem(p,'expandedPropias','renderLibList()',{suf:t('lib_suf_own'),
+    extra:`<button class="btn small terra block" onclick="delUser('${p.id}')">${t('lib_del_own')}</button>`});
+}
+function expandLibGroup(){
+  expandedLib=toggleAllIn(libVisibles().filter(p=>!p.id.startsWith('u')), expandedLib);
+  renderLibList();
+}
+function renderFavBox(){
+  const list=favs.map(byId).filter(Boolean).filter(matchFiltro);
+  if(!list.length) return '';
+  const todos=list.every(p=>expandedFav.has(p.id));
+  return `<div class="card">
+    ${boxHead(`${t('lib_box_fav')} (${list.length})`, showFavBox, 'showFavBox', 'renderLibList()', 'expandFavGroup()', todos)}
+    ${showFavBox?list.map(p=>favItem(p)).join(''):''}
+  </div>`;
+}
+function favItem(p){ return ditem(p,'expandedFav','renderLibList()'); }
+function expandFavGroup(){
+  expandedFav=toggleAllIn(favs.map(byId).filter(Boolean).filter(matchFiltro), expandedFav);
+  renderLibList();
+}
+function renderPausedBox(){
+  const el=document.getElementById('pausedbox'); if(!el) return;
+  const list=ALL().filter(p=>paused.includes(p.id)).filter(matchFiltro);
+  let html='';
+  if(list.length){
+    const todos=list.every(p=>expandedPaused.has(p.id));
+    html+=`<div class="card anteriores">
+      ${boxHead(`${t('box_paused')} (${list.length})`, showPausedBox, 'showPausedBox', 'renderPausedBox()', 'expandPausedGroup()', todos)}
+      ${showPausedBox?list.map(p=>pausedItem(p)).join(''):''}
+    </div>`;
+  }
+  html=html+renderHechasBox();
+  // los canales cierran la pestaña, igual que en Agenda y en El Noveno Camino
+  html+=`<div class="card"><h2 style="margin:0 0 12px">${t('nc_social')}</h2>${ncSocialBlock()}</div>`;
+  el.innerHTML=html;
+}
+/* ---- Caja "Hechas" con gamificación ---- */
+function hechasStats(){
+  // recuento por práctica a partir de mpt_stats.days (guardamos ids al marcar hecha)
+  const done=LS.get('mpt_donelog', {}); // { pid: veces }
+  const total=Object.values(done).reduce((a,b)=>a+b,0);
+  const cats=new Set();
+  Object.keys(done).forEach(pid=>{ const p=byId(pid); if(p) cats.add(p.cat); });
+  // racha de días: días consecutivos con al menos una hecha (de mpt_stats.days)
+  const st=LS.get('mpt_stats',{days:{}});
+  const dias=Object.keys(st.days||{}).filter(d=>st.days[d].h>0).sort();
+  let racha=0, mejor=0, prev=null;
+  dias.forEach(d=>{
+    if(prev){ const diff=Math.round((new Date(d)-new Date(prev))/(864e5)); racha=diff===1?racha+1:1; }
+    else racha=1;
+    if(racha>mejor) mejor=racha;
+    prev=d;
+  });
+  // racha actual: solo vale si el último día es hoy o ayer
+  if(dias.length){ const ult=dias[dias.length-1]; const dh=Math.round((new Date(todayStr())-new Date(ult))/(864e5)); if(dh>1) racha=0; }
+  else racha=0;
+  return {total, cats:cats.size, racha, mejor, done};
+}
+function nivelSemilla(total){
+  const niveles=[[0,'🌰',t('lvl_seed')],[5,'🌱',t('lvl_sprout')],[15,'🌿',t('lvl_plant')],[30,'🪴',t('lvl_rooted')],[60,'🌷',t('lvl_bloom')],[120,'🌳',t('lvl_tree')]];
+  let cur=niveles[0];
+  for(const n of niveles){ if(total>=n[0]) cur=n; }
+  const idx=niveles.indexOf(cur);
+  const sig=niveles[idx+1];
+  return {emoji:cur[1], nombre:cur[2], sig:sig?sig[0]:null, sigNombre:sig?sig[2]:null};
+}
+function renderPropiasBox(){
+  const propias=userLib.filter(p=>!paused.includes(p.id)).filter(matchFiltro);
+  if(!propias.length) return '';
+  const todos=propias.every(p=>expandedPropias.has(p.id));
+  return `<div class="card" style="border-color:var(--verde)">
+    ${boxHead(`${t('lib_box_own')} (${propias.length})`, showPropias, 'showPropias', 'renderLibList()', 'expandPropiasGroup()', todos)}
+    ${showPropias?propias.map(p=>propiaItem(p)).join(''):''}
+  </div>`;
+}
+function expandPropiasGroup(){
+  expandedPropias=toggleAllIn(userLib.filter(p=>!paused.includes(p.id)).filter(matchFiltro), expandedPropias);
+  renderLibList();
+}
+function renderHechasBox(){
+  const g=hechasStats();
+  if(g.total===0) return '';
+  const niv=nivelSemilla(g.total);
+  const hechas=Object.entries(g.done).map(([pid,n])=>({p:byId(pid),n})).filter(x=>x.p && matchFiltro(x.p)).sort((a,b)=>b.n-a.n);
+  const todos=hechas.every(x=>expandedHechas.has(x.p.id));
+  const medallas=[];
+  if(g.cats>=totalCats()) medallas.push(t('medal_explorer').replace('{n}',totalCats()));
+  else medallas.push(t('medal_cats_a')+g.cats+t('medal_cats_b').replace('{n}',totalCats()));
+  if(g.racha>=7) medallas.push(t('medal_streak_fire')+g.racha+(g.racha===1?t('medal_streak_day'):t('medal_streak_days')));
+  else if(g.racha>=3) medallas.push(t('medal_streak_star')+g.racha+(g.racha===1?t('medal_streak_day'):t('medal_streak_days')));
+  return `<div class="card anteriores" style="background:linear-gradient(180deg,#F3EDE0,#EFE7D2)">
+    ${boxHead(`${t('lib_box_done')} (${g.total})`, showHechas, 'showHechas', 'renderPausedBox()', 'expandHechasGroup()', todos)}
+    ${showHechas?`
+      <div style="text-align:center;padding:6px 0 12px">
+        <div style="font-size:2.6rem;line-height:1">${niv.emoji} <button type="button" class="tbtn suave" onclick="infoHechas()">i</button></div>
+        <div style="font-weight:700;color:var(--verde2)">${niv.nombre}</div>
+        <div class="muted" style="font-size:.82rem">${niv.sig?`${niv.sig-g.total} ${t('lvl_to_next_a')}${niv.sigNombre}${t('lvl_to_next_b')}`:t('lvl_max')}</div>
+        <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center">
+          ${medallas.map(m=>`<span class="catpill" style="background:#E8DCC0">${m}</span>`).join('')}
+        </div>
+        <div class="muted" style="font-size:.8rem;margin-top:8px">${t('streak_now')} <b>${g.racha}</b> ${g.racha===1?t('day_s'):t('days_s')} · ${t('streak_best')} <b>${g.mejor}</b> ${g.mejor===1?t('day_s'):t('days_s')}</div>
+      </div>
+      ${hechas.map(x=>ditem(x.p,'expandedHechas','renderPausedBox()',{suf:` · ${t('lib_done_n')} ${x.n} ${x.n===1?t('lib_done_1v'):t('lib_done_nv')}`, tag:false, after:''})).join('')}
+    `:''}
+  </div>`;
+}
+/* ---- Helpers de interfaz compartidos (saneamiento v2.7) ---- */
+// Columna de iconos ♥/⏸ de las cabeceras de ítem
+// Silencia (o reactiva) la notificación de un slot concreto de hoy, sin quitar la práctica
+function toggleMute(idx, after){
+  const s=dayState.plan[idx]; if(!s) return;
+  s.muted=!s.muted; saveDay();
+  if(s.muted){ nativeCancelSlot(idx); toast(t('notif_muted_toast')); }
+  else { nativeScheduleSlot(idx); toast(t('notif_unmuted_toast')); }
+  pedirReprogramacion();
+  if(typeof after==='function') after();
+}
+// Silenciar en el plan de un día futuro (persistido en mpt_plans)
+function toggleMuteNext(k, after){
+  const man=new Date(); man.setDate(man.getDate()+1);
+  const dstr=dateStrOf(man);
+  const plans=LS.get('mpt_plans', {});
+  if(!plans[dstr] || !plans[dstr][k]) return;
+  plans[dstr][k].muted=!plans[dstr][k].muted;
+  LS.set('mpt_plans', plans);
+  toast(plans[dstr][k].muted?t('notif_muted_toast'):t('notif_unmuted_toast'));
+  pedirReprogramacion();
+  if(typeof after==='function') after();
+}
+// Columna de iconos para el PROGRAMA: favorita + campanilla de silencio (no pausa)
+function homeIcons(pid, muted, muteClick){
+  // Columna fav + campanilla de las tarjetas del Programa (Tu día, Día pasado y Siguiente día)
+  return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+    <button class="fav-btn ${favs.includes(pid)?'on':''}" style="font-size:1.35rem" onclick="event.stopPropagation();toggleFav('${pid}');renderHome()">♥</button>
+    <button class="bell ${muted?'on':''}" onclick="event.stopPropagation();${muteClick}" title="${muted?t('mute_on'):t('mute_off')}">${muted?'🔕':'🔔'}</button>
+  </div>`;
+}
+function iconColHome(pid, idx, after){
+  const s=dayState.plan[idx];
+  return homeIcons(pid, s && s.muted, `toggleMute(${idx}, ${after||'null'})`);
+}
+function iconCol(pid, afterFav, afterPause){
+  afterPause=afterPause||afterFav;
+  return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+    <button class="fav-btn ${favs.includes(pid)?'on':''}" style="font-size:1.35rem" onclick="event.stopPropagation();toggleFav('${pid}');${afterFav}">♥</button>
+    <button class="pau ${paused.includes(pid)?'on':''}" onclick="event.stopPropagation();togglePause('${pid}');${afterPause}" title="${paused.includes(pid)?t('pause_remove_t'):t('pause_add_t')}">⏸</button>
+  </div>`;
+}
+// Fila de botones Favorita + Poner/Quitar pausa de los cuerpos de ítem
+function favPauseRow(pid, afterFav, afterPause){
+  afterPause=afterPause||afterFav;
+  const isFav=favs.includes(pid);
+  const txtFav=isFav?t('fav_saved'):t('fav_save');
+  return `<div class="row" style="margin-top:10px">
+    <button class="btn small ${isFav?'terra':'ghost'}" style="flex:1" onclick="toggleFav('${pid}');${afterFav}">♥ ${txtFav}</button>
+    <button class="btn small ${paused.includes(pid)?'gold':'ghost'}" style="flex:1" onclick="togglePause('${pid}');${afterPause}">${paused.includes(pid)?t('pause_remove'):t('pause_add')}</button>
+  </div>`;
+}
+// Botón "Hecha ahora" (extra). block=true ocupa toda la línea
+function hechaAhoraBtn(pid, after, block){
+  return `<button class="btn small gold ${block?'block':''}" ${block?'style="margin-top:10px"':'style="flex:1"'} onclick="hacerAhora('${pid}');${after||''}">${t('done_now')}</button>`;
+}
+// Cabecera de caja plegable: título + flecha + botón Desplegar/Plegar todo.
+// showVar y las llamadas van como texto porque se insertan en atributos onclick.
+function boxHead(tit, isOpen, showVar, rerender, expandCall, todos, conBoton){
+  return `<div class="cardhead" data-box="${showVar}">
+    <h2 onclick="${showVar}=!${showVar};${rerender};verCaja('[data-box=\\'${showVar}\\']')" style="cursor:pointer;margin:0">${tit} <span class="muted">${isOpen?'▲':'▼'}</span></h2>
+    ${conBoton!==false?`<button class="btn small ghost" onclick="${showVar}=true;${expandCall};verCaja('[data-box=\\'${showVar}\\']')">${todos?t('fold_all'):t('unfold_all')}</button>`:''}
+  </div>`;
+}
+// Alternar plegado total de un conjunto de ítems
+function toggleAllIn(list, set){
+  const ids=list.map(p=>p.id);
+  const todos=ids.length && ids.every(id=>set.has(id));
+  return new Set(todos?[]:ids);
+}
+function infoHechas(){
+  document.getElementById('modalContent').innerHTML=`
+    <h3>${t('ih_title')}</h3>
+    <p class="muted" style="line-height:1.6">${t('ih_intro')}</p>
+    <p class="muted" style="line-height:1.6">${t('ih_level')}</p>
+    <p class="muted" style="line-height:1.6">${t('ih_streak')}</p>
+    <p class="muted" style="line-height:1.6">${t('ih_medals')}</p>
+    <button class="btn primary block" onclick="closeModal()">${t('gd_ok')}</button>`;
+  openModal();
+}
+function hacerAhora(pid){
+  statDoneExtra(pid);
+  toast(t('extra_done'));
+  renderPausedBox();
+}
+function expandHechasGroup(){
+  expandedHechas=toggleAllIn(Object.keys(hechasStats().done).filter(id=>byId(id) && matchFiltro(byId(id))).map(id=>({id})), expandedHechas);
+  renderPausedBox();
+}
+function pausedItem(p){ return ditem(p,'expandedPaused','renderPausedBox()',{suf:t('lib_paused_suf'), tag:false}); }
+function expandPausedGroup(){
+  expandedPaused=toggleAllIn(ALL().filter(p=>paused.includes(p.id)).filter(matchFiltro), expandedPaused);
+  renderPausedBox();
+}
+function catSelectHTML(selId, inpId, selCat){
+  // Selector de categoría compartido (Crear práctica y Crear momento): categorías
+  // de la biblioteca + «Otra», que despliega un campo para escribir una nueva.
+  const cats=[...new Set(ALL().map(p=>p.cat))].sort((a,b)=>a.localeCompare(b));
+  return `<select id="${selId}" onchange="document.getElementById('${inpId}').style.display=this.value==='__otra__'?'block':'none'">
+    ${cats.map(c=>`<option value="${esc(c)}" ${selCat===c?'selected':''}>${esc(catLabel(c))}</option>`).join('')}
+    <option value="__otra__">${t('na_cat_other')}</option>
+  </select>
+  <input type="text" id="${inpId}" placeholder="${t('cat_new_ph')}" style="display:none;margin-top:8px">`;
+}
+function catSelectValue(selId, inpId){
+  const v=document.getElementById(selId).value;
+  if(v!=='__otra__') return v;
+  return (document.getElementById(inpId).value||'').trim() || t('na_cat_other');
+}
+function openAddForm(){
+  document.getElementById('modalContent').innerHTML=`
+    <h2>${t('na_title')}</h2>
+    <p class="muted">${t('na_intro')}</p>
+    <label class="fld">${t('na_title_l')}</label><input type="text" id="np_t" placeholder="${t('na_title_ph')}">
+    <label class="fld">${t('na_cat')}</label>
+    ${catSelectHTML('np_c','np_c_new')}
+    <label class="fld">${t('na_text')}</label>
+    <textarea id="np_x" placeholder="${t('na_text_ph')}"></textarea>
+    <label class="fld">${t('na_link')}</label><input type="url" id="np_l" placeholder="https://…">
+    <div class="row" style="margin-top:16px">
+      <button class="btn primary" style="flex:1" onclick="saveUserPractice()">${t('na_save')}</button>
+      <button class="btn ghost" style="flex:1" onclick="closeModal()">${t('na_cancel')}</button>
+    </div>
+    <p class="muted" style="margin-top:6px">${t('na_email_note').replace('{e}',METRICS_EMAIL)}</p>
+    <input type="file" id="np_file" accept=".docx,.json,.txt,.js" style="display:none" onchange="importPracticesFile(this.files[0])">
+    <button class="btn ghost block" style="margin-top:16px" onclick="document.getElementById('np_file').click()">${t('na_upload')}</button>
+    <p class="center" style="margin-top:8px"><button type="button" class="tbtn" onclick="descargarPlantilla()">${t('na_download_tpl')}</button></p>
+    <p class="muted" style="margin-top:6px">${t('na_formats')}</p>`;
+  openModal(true);
+}
+/* ===== Importación de prácticas: Word (.docx), texto amigable y JSON ===== */
+// Formato amigable: cada práctica empieza con «Título:»; «Categoría:» y «Enlace:» son
+// opcionales; «Texto:» puede continuar en varias líneas hasta una línea en blanco.
+function parseFriendlyPracticas(txt){
+  const out=[]; let cur=null, modo=null;
+  txt.split(/\r?\n/).forEach(l=>{
+    // Se aceptan las etiquetas en los dos idiomas y sus abreviaturas. «category»
+    // faltaba: la plantilla en inglés la usa y sus categorías se perdían al importar.
+    const m=l.match(/^\s*(t[ií]tulo|title|categor[ií]a|category|cat|texto|text|enlace|link|url)\s*:\s*(.*)$/i);
+    if(m){
+      const k=m[1].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+      const v=m[2].trim(); modo=null;
+      if(k==='titulo'||k==='title'){ if(cur) out.push(cur); cur={title:v}; }
+      else if(!cur){ /* claves antes del primer Título: se ignoran (instrucciones) */ }
+      else if(k==='categoria'||k==='category'||k==='cat'){ cur.cat=v; }
+      else if(k==='enlace'||k==='link'||k==='url'){ cur.link=v; }
+      else { cur.text=v; modo='text'; }
+    }
+    else if(cur && modo==='text'){
+      if(l.trim()==='') modo=null;
+      else cur.text=(cur.text?cur.text+'\n':'')+l.trim();
+    }
+  });
+  if(cur) out.push(cur);
+  return out.filter(p=>p.title && (p.text||p.link));
+}
+// Lector mínimo de .docx: localiza word/document.xml dentro del ZIP y extrae el texto.
+async function docxToText(buf){
+  const u8=new Uint8Array(buf), dv=new DataView(buf);
+  let e=-1;
+  for(let i=u8.length-22;i>=0;i--){ if(dv.getUint32(i,true)===0x06054b50){ e=i; break; } }
+  if(e<0) throw new Error('zip');
+  const nEnt=dv.getUint16(e+10,true); let p=dv.getUint32(e+16,true), target=null;
+  for(let k=0;k<nEnt;k++){
+    if(dv.getUint32(p,true)!==0x02014b50) break;
+    const method=dv.getUint16(p+10,true), csize=dv.getUint32(p+20,true),
+          nlen=dv.getUint16(p+28,true), xlen=dv.getUint16(p+30,true), clen=dv.getUint16(p+32,true),
+          lho=dv.getUint32(p+42,true);
+    const name=new TextDecoder().decode(u8.slice(p+46,p+46+nlen));
+    if(name==='word/document.xml'){ target={method,csize,lho}; break; }
+    p+=46+nlen+xlen+clen;
+  }
+  if(!target) throw new Error('docx');
+  const q=target.lho, n2=dv.getUint16(q+26,true), x2=dv.getUint16(q+28,true);
+  const data=u8.slice(q+30+n2+x2, q+30+n2+x2+target.csize);
+  let xmlBytes=data;
+  if(target.method===8){
+    const ds=new DecompressionStream('deflate-raw');
+    xmlBytes=new Uint8Array(await new Response(new Blob([data]).stream().pipeThrough(ds)).arrayBuffer());
+  }
+  let xml=new TextDecoder().decode(xmlBytes);
+  xml=xml.replace(/<w:tab[^>]*\/>/g,' ').replace(/<\/w:p>/g,'\n').replace(/<[^>]+>/g,'');
+  return xml.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'");
+}
+/* ===== Plantilla en Word (.docx) generada por la propia app ===== */
+function crc32(u8){
+  let t=crc32.t;
+  if(!t){ t=crc32.t=new Uint32Array(256);
+    for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1); t[n]=c>>>0; } }
+  let c=0xFFFFFFFF;
+  for(let i=0;i<u8.length;i++) c=t[(c^u8[i])&0xFF]^(c>>>8);
+  return (c^0xFFFFFFFF)>>>0;
+}
+function zipStore(files){ // ZIP sin compresión: suficiente y sin dependencias
+  const te=new TextEncoder(), parts=[], cd=[]; let ofs=0;
+  const u16=v=>new Uint8Array([v&255,(v>>8)&255]);
+  const u32=v=>new Uint8Array([v&255,(v>>8)&255,(v>>16)&255,(v>>24)&255]);
+  files.forEach(f=>{
+    const name=te.encode(f.name), crc=crc32(f.data), sz=f.data.length;
+    const loc=[u32(0x04034b50),u16(20),u16(0),u16(0),u16(0),u16(0),u32(crc),u32(sz),u32(sz),u16(name.length),u16(0),name,f.data];
+    cd.push({name,crc,sz,ofs});
+    loc.forEach(x=>{ parts.push(x); ofs+=x.length; });
+  });
+  const cdStart=ofs; let cdLen=0;
+  cd.forEach(f=>{
+    const rec=[u32(0x02014b50),u16(20),u16(20),u16(0),u16(0),u16(0),u16(0),u32(f.crc),u32(f.sz),u32(f.sz),u16(f.name.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(f.ofs),f.name];
+    rec.forEach(x=>{ parts.push(x); cdLen+=x.length; });
+  });
+  [u32(0x06054b50),u16(0),u16(0),u16(cd.length),u16(cd.length),u32(cdLen),u32(cdStart),u16(0)].forEach(x=>parts.push(x));
+  const total=parts.reduce((a,x)=>a+x.length,0), out=new Uint8Array(total);
+  let o=0; parts.forEach(x=>{ out.set(x,o); o+=x.length; });
+  return out;
+}
+function PLANTILLA_LINEAS(){ return getLang()==='en'?PLANTILLA_LINEAS_EN:PLANTILLA_LINEAS_ES; }
+function plantillaDocxBytes(){
+  const esc=t=>t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const body=PLANTILLA_LINEAS().map(l=>`<w:p><w:r><w:t xml:space="preserve">${esc(l)}</w:t></w:r></w:p>`).join('');
+  const te=new TextEncoder();
+  return zipStore([
+    {name:'[Content_Types].xml', data:te.encode('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>')},
+    {name:'_rels/.rels', data:te.encode('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>')},
+    {name:'word/document.xml', data:te.encode('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>'+body+'</w:body></w:document>')},
+  ]);
+}
+const MIME_DOCX='application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+function bytesABase64(bytes){
+  let bin='';
+  for(let i=0;i<bytes.length;i+=8192) bin+=String.fromCharCode.apply(null, bytes.subarray(i,i+8192));
+  return btoa(bin);
+}
+/* ================== COPIA DE SEGURIDAD ================== */
+// Construye el objeto de copia con TODAS las claves mpt_* tal cual están
+// guardadas (cadenas en crudo), para restaurarlas byte a byte.
+function copiaDatosObj(){
+  const data={};
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(k && k.startsWith('mpt_')) data[k]=localStorage.getItem(k);
+  }
+  return {app:'momento-para-ti', ver:APP_VERSION, fecha:new Date().toISOString(), data};
+}
+async function exportarDatos(){
+  try{
+    const json=JSON.stringify(copiaDatosObj(), null, 1);
+    const nombre=t('bk_fileprefix')+todayStr()+'.json';
+    if(IS_NATIVE){
+      const b64=btoa(unescape(encodeURIComponent(json)));
+      // 1º: guardar directamente en la carpeta Descargas del móvil
+      if(CapAjustes && CapAjustes.guardarDescarga){
+        try{
+          await CapAjustes.guardarDescarga({nombre, base64:b64, mime:'application/json'});
+          avisoCopiaGuardada(nombre, b64);
+          return;
+        }catch(e){}
+      }
+      // 2º intento: menú de compartir (por si el guardado directo no está disponible)
+      if(CapAjustes && CapAjustes.compartirArchivo){
+        try{
+          await CapAjustes.compartirArchivo({nombre, base64:btoa(unescape(encodeURIComponent(json))), mime:'application/json', titulo:t('bk_file_title')});
+          return;
+        }catch(e){}
+      }
+      if(CapFS && CapShare){
+        try{
+          await CapFS.writeFile({path:nombre, data:btoa(unescape(encodeURIComponent(json))), directory:'CACHE', recursive:true});
+          const uri=await CapFS.getUri({path:nombre, directory:'CACHE'});
+          await CapShare.share({title:t('bk_file_title'), files:[uri.uri], dialogTitle:t('bk_file_title')});
+          return;
+        }catch(e){}
+      }
+      toast(t('bk_export_fail'));
+      return;
+    }
+    const blob=new Blob([json], {type:'application/json'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob); a.download=nombre;
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{ try{URL.revokeObjectURL(a.href); a.remove();}catch(e){} }, 1000);
+  }catch(e){ anota('exportar', e); toast(t('bk_export_fail')); }
+}
+// Tras guardar la copia: confirmación clara y opción de enviarla a otro sitio
+// (correo, mensajería, la nube), útil para pasarla a otro móvil.
+function avisoCopiaGuardada(nombre, b64){
+  const box=document.getElementById('modalContent');
+  box.innerHTML=`
+    <h3>${t('bk_ok_title')}</h3>
+    <p class="muted" style="line-height:1.5">${t('bk_ok_body')}</p>
+    <p style="word-break:break-all;margin:8px 0 14px"><b>${nombre}</b></p>
+    <p class="muted" style="line-height:1.5">${t('bk_ok_share')}</p>
+    <button class="btn primary block" onclick="compartirCopia('${nombre}','${b64}')">${t('bk_share_btn')}</button>
+    <button class="btn ghost block" onclick="closeModal()">${t('gd_ok')}</button>`;
+  openModal();
+}
+// Envía un archivo por el menú de compartir de Android. Devuelve true si se abrió.
+// Prueba primero el plugin propio y, si no está, el de Capacitor.
+async function compartirBytes(nombre, b64, mime, titulo){
+  try{
+    if(CapAjustes && CapAjustes.compartirArchivo){
+      await CapAjustes.compartirArchivo({nombre, base64:b64, mime, titulo});
+      return true;
+    }
+    if(CapFS && CapShare){
+      await CapFS.writeFile({path:nombre, data:b64, directory:'CACHE', recursive:true});
+      const uri=await CapFS.getUri({path:nombre, directory:'CACHE'});
+      await CapShare.share({title:titulo, files:[uri.uri], dialogTitle:titulo});
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+async function compartirCopia(nombre, b64){
+  if(await compartirBytes(nombre, b64, 'application/json', t('bk_file_title'))) closeModal();
+  else toast(t('bk_export_fail'));
+}
+// Valida y aplica una copia. Devuelve true si se aplicó.
+function aplicarCopia(obj){
+  if(!obj || obj.app!=='momento-para-ti' || typeof obj.data!=='object' || !obj.data) return false;
+  const claves=Object.keys(obj.data).filter(k=>k.startsWith('mpt_'));
+  if(!claves.length) return false;
+  // retirar las claves mpt_ actuales para no dejar restos de la instalación previa
+  const actuales=[];
+  for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k && k.startsWith('mpt_')) actuales.push(k); }
+  actuales.forEach(k=>{ try{localStorage.removeItem(k);}catch(e){} });
+  claves.forEach(k=>{ try{localStorage.setItem(k, String(obj.data[k]));}catch(e){} });
+  return true;
+}
+function importarDatosTexto(txt){
+  let obj=null;
+  try{ obj=JSON.parse(txt); }catch(e){ toast(t('bk_bad')); return false; }
+  if(!obj || obj.app!=='momento-para-ti'){ toast(t('bk_bad')); return false; }
+  if(!confirm(t('bk_confirm'))) return false;
+  if(!aplicarCopia(obj)){ toast(t('bk_bad')); return false; }
+  toast(t('bk_done'));
+  setTimeout(()=>{ try{location.reload();}catch(e){} }, 900);
+  return true;
+}
+
+async function descargarPlantilla(){
+  const bytes=plantillaDocxBytes();
+  if(IS_NATIVE){
+    // 1ª vía: menú de compartir declarando el tipo Word, para que se ofrezcan
+    // lectores de documentos además de guardar o enviar
+    if(CapAjustes && CapAjustes.compartirArchivo){
+      try{
+        await CapAjustes.compartirArchivo({nombre:t('tpl_filename'), base64:bytesABase64(bytes),
+          mime:MIME_DOCX, titulo:t('tpl_title')});
+        return;
+      }catch(e){}
+    }
+    // 2ª vía (APK antiguo): compartir con el plugin genérico
+    if(CapFS && CapShare){
+      try{
+        await CapFS.writeFile({path:t('tpl_filename'), data:bytesABase64(bytes), directory:'CACHE', recursive:true});
+        const uri=await CapFS.getUri({path:t('tpl_filename'), directory:'CACHE'});
+        await CapShare.share({title:t('tpl_title'), files:[uri.uri], dialogTitle:t('tpl_title')});
+        return;
+      }catch(e){}
+    }
+    toast(t('ts_tpl_fail'));
+    return;
+  }
+  // web: descarga directa
+  try{
+    const blob=new Blob([bytes], {type:MIME_DOCX});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob); a.download=t('tpl_filename');
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  }catch(e){ toast(t('ts_tpl_gen_fail')); }
+}
+// Firma de los ejemplos que trae la plantilla, calculada de la propia plantilla:
+// si el usuario la sube sin tocarlos, se descartan. Si edita uno, deja de coincidir
+// y sí se importa (ya es suyo). La lista se mantiene sola al cambiar la plantilla.
+let _firmasEjemplo=null;
+function firmaPractica(p){ return ((p.title||'')+'|'+(p.text||'')).replace(/\s+/g,' ').trim().toLowerCase(); }
+function esEjemploPlantilla(p){
+  // Los ejemplos de la plantilla se reconocen en AMBOS idiomas, independientemente
+  // del idioma activo: cubre el caso de descargar la plantilla en un idioma y
+  // subirla con la app en el otro.
+  if(!_firmasEjemplo) _firmasEjemplo=parseFriendlyPracticas(PLANTILLA_LINEAS_ES.join('\n'))
+    .concat(parseFriendlyPracticas(PLANTILLA_LINEAS_EN.join('\n'))).map(firmaPractica);
+  return _firmasEjemplo.includes(firmaPractica(p));
+}
+function addImportedPracticas(arr){
+  let n=0, ejemplos=0; const base=Date.now();
+  (arr||[]).forEach((it,k)=>{
+    if(!it || !it.title || (!it.text && !it.link)) return;
+    if(esEjemploPlantilla(it)){ ejemplos++; return; }
+    const p={id:'u'+(base+k), cat:(it.cat||'Importadas'), title:String(it.title),
+             text:String(it.text||t('default_link_text'))};
+    if(it.link) p.link=String(it.link);
+    userLib.push(p); n++;
+  });
+  if(!n){
+    toast(ejemplos ? t('im_only_examples') : t('im_none'));
+    return;
+  }
+  LS.set('mpt_userlib', userLib); libCacheDirty();
+  LS.set('mpt_plans', {});
+  scheduleNext();
+  closeModal(); renderLib();
+  toast(t('im_added').replace('{n}',n));
+  const nuevas=userLib.slice(-n);
+  if(confirm(t('cf_send_import').replace('{x}', n===1?t('cf_send_1'):t('cf_send_n').replace('{n}',n)))){
+    enviarPracticasEmail(nuevas);
+  }
+}
+function enviarPracticasEmail(lista){
+  const cuerpo=lista.map(p=>{
+    let t=window.t('fmt_title')+p.title+'\n'+window.t('fmt_cat')+p.cat+'\n'+window.t('fmt_text')+p.text;
+    if(p.link) t+='\nEnlace: '+p.link;
+    return t;
+  }).join('\n\n');
+  const asunto=lista.length===1 ? t('sh_mail_sub1')+lista[0].title
+                                 : t('sh_mail_subn').replace('{n}', lista.length);
+  const intro=lista.length===1 ? t('sh_mail_1') : t('sh_mail_n');
+  const cuerpoMail=t('sh_mail_hi')+'\n\n'+intro+'\n\n'+cuerpo+'\n\n'+t('sh_mail_bye');
+  location.href='mailto:'+METRICS_EMAIL+'?subject='+encodeURIComponent(asunto)+'&body='+encodeURIComponent(cuerpoMail);
+}
+function importPracticesFile(file){
+  if(!file) return;
+  if(/\.docx$/i.test(file.name||'')){
+    // documento Word: se extrae el texto y se interpreta el formato de la plantilla
+    file.arrayBuffer()
+      .then(docxToText)
+      .then(txt=>addImportedPracticas(parseFriendlyPracticas(txt)))
+      .catch(()=>toast(t('ts_docx_fail')));
+    return;
+  }
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      let txt=String(r.result).trim();
+      // 1º se intenta como JSON (admite también un practices.js exportado);
+      // 2º como texto con el formato de la plantilla (Título:/Categoría:/Texto:)
+      let arr=null;
+      const i=txt.indexOf('['), j=txt.lastIndexOf(']');
+      if(i>=0 && j>i){ try{ const a=JSON.parse(txt.slice(i, j+1)); if(Array.isArray(a)) arr=a; }catch(e){} }
+      if(!arr) arr=parseFriendlyPracticas(txt);
+      addImportedPracticas(arr);
+    }catch(e){ toast(t('ts_json_fail')); }
+  };
+  r.readAsText(file);
+}
+let modalOpen=false;
+function openModal(full){
+  document.getElementById('modalContent').classList.toggle('full', !!full);
+  document.getElementById('modal').classList.remove('hidden');
+  modalOpen=true;
+  history.pushState({app:1, modal:1},''); // estado extra: el botón atrás lo consumirá cerrando el modal
+}
+function closeModal(){ document.getElementById('modal').classList.add('hidden'); modalOpen=false; }
+document.getElementById('modal').addEventListener('click',e=>{ if(e.target.id==='modal') closeModal(); });
+function saveUserPractice(enviar){
+  const titulo=document.getElementById('np_t').value.trim();
+  const x=document.getElementById('np_x').value.trim();
+  const l=document.getElementById('np_l').value.trim();
+  const c=catSelectValue('np_c','np_c_new');
+  if(!titulo || (!x && !l)){ toast(t('ts_add_titletext')); return; }
+  const p={id:'u'+Date.now(), cat:c, title:titulo, text:x||t('default_link_text')};
+  if(l) p.link=l;
+  userLib.push(p); LS.set('mpt_userlib', userLib); libCacheDirty();
+  closeModal(); renderLib(); toast(t('ts_added_sent'));
+  const body=t('sh_prop_intro')+'\n\n'
+    +t('fmt_title')+titulo+'\n'+t('fmt_cat')+c+'\n\n'+t('fmt_text')+'\n'+(x||'—')+'\n\n'+t('fmt_link')+(l||'—');
+  location.href='mailto:'+METRICS_EMAIL+'?subject='+encodeURIComponent(t('sh_prop_subject')+titulo)+'&body='+encodeURIComponent(body);
+}
+function delUser(id){
+  userLib=userLib.filter(p=>p.id!==id); LS.set('mpt_userlib', userLib); libCacheDirty();
+  favs=favs.filter(f=>f!==id); LS.set('mpt_favs', favs);
+  renderLibList(); toast(t('ts_practice_del'));
+}
+
+/* --------- Favoritas --------- */
+function eneagramaSVG(size, color){
+  // puntos 1..9 sobre el círculo, con el 9 arriba (ángulo 90°), cada 40°
+  const cx=100, cy=100, r=88;
+  const pt=i=>{ const a=(90 - i*40) * Math.PI/180; return [cx + r*Math.cos(a), cy - r*Math.sin(a)]; };
+  const P={}; for(let i=1;i<=9;i++) P[i]=pt(i);
+  const line=(a,b)=>`M${P[a][0].toFixed(1)},${P[a][1].toFixed(1)} L${P[b][0].toFixed(1)},${P[b][1].toFixed(1)}`;
+  const tri=[[9,3],[3,6],[6,9]].map(x=>line(x[0],x[1])).join(' ');
+  const hex=[[1,4],[4,2],[2,8],[8,5],[5,7],[7,1]].map(x=>line(x[0],x[1])).join(' ');
+  return `<svg viewBox="0 0 200 200" width="${size}" height="${size}" style="display:block;margin:0 auto" aria-label="Eneagrama">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="3"/>
+    <path d="${tri}" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round"/>
+    <path d="${hex}" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round"/>
+  </svg>`;
+}
+
+
+function ncSocialBlock(){
+  // Canales digitales de El Noveno Camino, con logos vectoriales y CTA
+  const ic={
+    wa:'<svg viewBox="0 0 24 24" width="26" height="26" fill="#25D366"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1-.2.2-.6.8-.8 1-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.4 0-.5l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.9.9-1.2 2.2-.2 3.9a12 12 0 0 0 4.6 4.2c1.7.8 2.4.8 3.2.7.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2-.1-.1-.2-.1-.6-.2z"/></svg>',
+    yt:'<svg viewBox="0 0 24 24" width="26" height="26" fill="#FF0000"><path d="M23 7.2a3 3 0 0 0-2.1-2.2C19 4.5 12 4.5 12 4.5s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .6 12 31 31 0 0 0 1 16.8a3 3 0 0 0 2.1 2.2c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.2A31 31 0 0 0 23.4 12 31 31 0 0 0 23 7.2zM9.8 15.3V8.7l6 3.3-6 3.3z"/></svg>',
+    tg:'<svg viewBox="0 0 24 24" width="26" height="26" fill="#26A5E4"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm4.9 6.9-1.7 8.1c-.1.6-.5.7-1 .5l-2.6-1.9-1.3 1.2c-.1.1-.3.3-.5.3l.2-2.7 4.9-4.4c.2-.2 0-.3-.3-.1l-6.1 3.8-2.6-.8c-.6-.2-.6-.6.1-.9l10.2-3.9c.5-.2.9.1.7.8z"/></svg>',
+    tk:'<svg viewBox="0 0 24 24" width="26" height="26" fill="#010101"><path d="M16.6 5.8a4.3 4.3 0 0 1-1-2.8h-3.1v12.4a2.6 2.6 0 1 1-1.8-2.5V9.7a5.7 5.7 0 1 0 4.9 5.6V9a7.3 7.3 0 0 0 4.3 1.4V7.3a4.3 4.3 0 0 1-3.3-1.5z"/></svg>',
+    web:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#5B9E4D" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>'
+  };
+  const fila=(icono,nombre,url)=>`<a href="${url}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:12px;padding:10px 4px;text-decoration:none;color:inherit">${icono}<span style="font-weight:600">${nombre}</span></a>`;
+  return `
+    <p class="muted" style="margin-top:0">${t('nc_cta')}</p>
+    ${fila(ic.yt,'YouTube','https://www.youtube.com/@elnovenocamino')}
+    ${fila(ic.tk,'TikTok','https://www.tiktok.com/@elnovenocamino')}
+    ${fila(ic.wa,'WhatsApp','https://www.whatsapp.com/channel/0029VbD4PVV0G0Xj6EVtTC1R')}
+    ${fila(ic.tg,'Telegram','https://t.me/elnovenocamino')}
+    ${fila(ic.web,'jordibeold.com','https://jordibeold.com/')}`;
+}
+// Citas de El Noveno Camino (del documento del autor; ES revisado, EN nativo)
+function NOVENO_QS(){ return getLang()==='en' ? NOVENO_QS_EN : NOVENO_QS_ES; }
+// Texto de presentación de El Noveno Camino (los 9 caminos, la Ley de 3 y el caminante)
+function NC_TEXTO(){ return getLang()==='en' ? NC_TEXTO_EN : NC_TEXTO_ES; }
+// Caja explicativa: va entre la del eneagrama y la de las citas
+function ncTextoBlock(){
+  const x=NC_TEXTO();
+  const lista=arr=>arr.map(f=>`<li style="margin:0 0 9px"><b>${f[0]}</b>: ${f[1]}</li>`).join('');
+  return `
+    <p style="margin:0 0 10px;line-height:1.6">${x.intro1}</p>
+    <p style="margin:0 0 18px;line-height:1.6">${x.intro2}</p>
+    <h3 style="margin:0 0 8px">${x.h_caminos}</h3>
+    <ul style="margin:0 0 18px;padding-left:20px;line-height:1.55">${lista(x.caminos)}</ul>
+    <h3 style="margin:0 0 8px">${x.h_ley}</h3>
+    <p class="muted" style="margin:0 0 8px">${x.ley_intro}</p>
+    <ul style="margin:0 0 18px;padding-left:20px;line-height:1.55">${lista(x.ley)}</ul>
+    <h3 style="margin:0 0 8px">${x.h_cam}</h3>
+    <p style="margin:0 0 10px;line-height:1.6">${x.cam1}</p>
+    <p style="margin:0;line-height:1.6">${x.cam2}</p>`;
+}
+function renderFav(){
+  const M=document.getElementById('main');
+  const citas=NOVENO_QS();
+  M.innerHTML=`
+    <div class="card" style="text-align:center;padding:28px 18px 20px">
+      ${eneagramaSVG(150, 'var(--verde2)')}
+      <h2 style="margin:14px 0 6px;font-size:1.7rem">${t('path_title')}</h2>
+      <p class="muted" style="margin:0 0 14px;font-size:1.08rem">${t('path_sub')}</p>
+      <img src="${getLang()==='en'?'noveno-en.png':'noveno-es.png'}" alt="" style="width:100%;height:auto;display:block;margin:0 auto">
+      <p style="margin:14px 0 4px"><button type="button" class="tbtn" onclick="document.getElementById('nc_redes').scrollIntoView({behavior:'smooth'})">${t('path_soc_link')}</button></p>
+    </div>
+    ${botonPlegarTodo('toggleAllNC()', ncCollapsed['texto'] && ncCollapsed['citas'])}
+    <div class="card" data-nc="texto">
+      <h2 style="margin:0;cursor:pointer" onclick="ncToggle('texto')">«${t('path_title')}» <span class="muted">${ncCollapsed['texto']?'▼':'▲'}</span></h2>
+      <div style="${ncCollapsed['texto']?'display:none':'margin-top:12px'}">${ncTextoBlock()}</div>
+    </div>
+    ${citas.length?`<div class="card" data-nc="citas">
+      <h2 style="margin:0;cursor:pointer" onclick="ncToggle('citas')">${t('nc_quotes')} <span class="muted">${ncCollapsed['citas']?'▼':'▲'}</span></h2>
+      <div style="${ncCollapsed['citas']?'display:none':'margin-top:14px'}">${citas.map(b=>`
+      <div style="margin:0 0 20px">
+        ${b.qs.map(q=>`<p style="font-style:italic;line-height:1.6;margin:0 0 10px">«${q}»</p>`).join('')}
+        <p style="text-align:right;margin:0"><b>${b.a}</b>${b.c?`<br><span class="muted" style="font-size:.82rem">${b.c}</span>`:''}</p>
+      </div>`).join('')}</div>
+    </div>`:''}
+    <div class="card" id="nc_redes" data-nc="redes">
+      <h2 style="margin:0 0 12px">${t('nc_social')}</h2>
+      ${ncSocialBlock()}
+    </div>`;
+}
+
+/* --------- Ajustes --------- */
+function openResetStats(){
+  const box=document.getElementById('modalContent');
+  box.innerHTML=`
+    <h3>${t('rs_title')}</h3>
+    <p class="muted">${t('rs_body')}</p>
+    <p class="muted">${t('rs_send').replace('{e}',METRICS_EMAIL)}</p>
+    <button class="btn gold block" onclick="sendMetrics()">${t('rs_send_btn')}</button>
+    <button class="btn terra block" onclick="doResetStats()">${t('rs_delete_btn')}</button>
+    <button class="btn ghost block" onclick="closeModal()">${t('na_cancel')}</button>`;
+  openModal();
+}
+function doResetStats(){
+  stats={lastOpen:Date.now(), lastDone:0, lastSend:stats.lastSend, days:{}};
+  saveStats();
+  LS.set('mpt_donelog', {});
+  closeModal(); renderSet();
+  toast(t('ts_stats_reset'));
+}
+let bgExenta=null; // ¿la app está exenta de la optimización de batería? (null = desconocido)
+let _bgCheckT=0;
+async function refreshBgEstado(force){
+  if(!IS_NATIVE || !CapAjustes || !CapAjustes.estadoBateria) return;
+  // acompasado: renderSet se ejecuta con cada toque en Ajustes; no hace falta
+  // consultar al sistema más de una vez cada 4 segundos (salvo verificación forzada)
+  if(!force && Date.now()-_bgCheckT<4000){
+    const el0=document.getElementById('bgestado');
+    if(el0) el0.innerHTML=bgEstadoTxt();
+    return;
+  }
+  _bgCheckT=Date.now();
+  try{
+    const r=await CapAjustes.estadoBateria();
+    bgExenta=(r && r.exenta===true);
+  }catch(e){ bgExenta=null; }
+  const el=document.getElementById('bgestado');
+  if(el) el.innerHTML=bgEstadoTxt();
+}
+function bgEstadoTxt(){
+  const enlace=`<br><button type="button" class="tbtn" onclick="abrirAjustesBateria()">${t('bg_open_batt')}</button>`;
+  if(bgExenta===true) return t('bg_allowed_full')+enlace;
+  if(bgExenta===false) return t('bg_limited_full')+enlace;
+  return '';
+}
+function abrirPantalla(tipo){
+  if(IS_NATIVE && CapAjustes && CapAjustes.abrirPantalla) CapAjustes.abrirPantalla({tipo}).catch(()=>{});
+  else toast(t('ts_update_apk'));
+}
+function abrirGuiaBloqueado(){
+  const esRealme=/RMX|realme|OPPO|CPH2/i.test(navigator.userAgent||'');
+  document.getElementById('modalContent').innerHTML=`
+    <h3>${t('gd_title')}</h3>
+    <p class="muted">${esRealme?t('gd_realme'):t('gd_some')} ${t('gd_intro')}</p>
+    <div class="infobox" style="margin:0 0 10px;font-size:.88rem">${t('bg_optional')}</div>
+    <p class="muted" style="margin-bottom:6px">${t('gd_s1')} <button type="button" class="tbtn" onclick="abrirAjustesBateria()">${t('gd_open')}</button></p>
+    <p class="muted" style="margin-bottom:6px">${t('gd_s2')} <button type="button" class="tbtn" onclick="abrirPantalla('bateria_general')">${t('gd_open_bat')}</button></p>
+    <p class="muted" style="margin-bottom:6px">${t('gd_s3')}</p>
+    <p class="muted" style="margin-bottom:6px">${t('gd_s4')} <button type="button" class="tbtn" onclick="abrirPantalla('app')">${t('gd_open_app')}</button></p>
+    <p class="muted" style="margin-bottom:6px">${t('gd_s5')}</p>
+    <p class="muted" style="margin-bottom:6px">${t('gd_s6')} <button type="button" class="tbtn" onclick="abrirPantalla('sonido')">${t('gd_open_sound')}</button></p>
+    <p class="muted" style="font-size:.85rem;margin-top:10px">${t('gd_diag')} <button type="button" class="tbtn" onclick="abrirPantalla('canal')">${t('gd_open_channel')}</button></p>
+    <button class="btn primary block" onclick="closeModal()">${t('gd_ok')}</button>`;
+  openModal();
+}
+// Función compartida: abre los ajustes de batería y, al volver, verifica los cambios
+async function abrirAjustesBateria(){
+  if(!IS_NATIVE || !CapAjustes) return;
+  try{ await CapAjustes.abrirBateria(); }catch(e){ toast(t('ts_open_batt')); return; }
+  // el usuario tarda un tiempo variable en cambiar el ajuste: se verifica al volver
+  // (appStateChange también refresca al regresar a primer plano estando en Ajustes)
+  setTimeout(()=>refreshBgEstado(true), 1500);
+  setTimeout(()=>refreshBgEstado(true), 5000);
+}
+async function toggleAlarmMode(){
+  alarmMode=!alarmMode; LS.set('mpt_alarm', alarmMode);
+  // refrescar la interfaz de inmediato: el botón cambia de forma al instante
+  renderSet();
+  toast(alarmMode?'Modo alarma activado 🔔':'Modo alarma desactivado');
+  // al activarlo: consultar el estado REAL del segundo plano y pedirlo solo si falta.
+  // Va antes que cualquier operación nativa para que nada pueda bloquear el diálogo.
+  if(alarmMode && IS_NATIVE){
+    // la primera vez (o en marcas agresivas sin guía vista): abrir la guía completa
+    if(!LS.get('mpt_guiaVista', false)){
+      LS.set('mpt_guiaVista', true);
+      abrirGuiaBloqueado();
+    } else if(CapAjustes){
+      await refreshBgEstado(true);
+      if(bgExenta===true){
+        toast(t('ts_bg_ok'));
+      }
+      // No se propone activamente desactivar el ahorro de batería: es la medida que
+      // más consumo añade (deja la app fuera del modo de reposo de Android). Solo se
+      // sugiere si los avisos fallan de verdad, desde la guía o desde Ajustes.
+    } else {
+      toast(t('ts_bg_tip'));
+    }
+  }
+  // el trabajo nativo va al final y protegido paso a paso
+  if(IS_NATIVE && CapLN){
+    try{ await CapLN.deleteChannel({id:'momento_alarma'}); }catch(e){}
+    try{ await checkAlarmChannel(); }catch(e){}
+    try{ nativeReschedule(); }catch(e){}
+  }
+}
+async function restaurarTodo(){
+  if(!confirm(t('cf_reset'))) return;
+  // cancelar todos los avisos programados
+  try{ if(IS_NATIVE && CapLN){ const pend=await CapLN.getPending(); if(pend && pend.notifications && pend.notifications.length) await CapLN.cancel({notifications:pend.notifications}); } }catch(e){}
+  // borrar todos los datos de la app excepto las fechas de instalación/actualización
+  ['mpt_cfg','mpt_day','mpt_plans','mpt_favs','mpt_paused','mpt_evpaused','mpt_userlib','mpt_events','mpt_stats','mpt_donelog','mpt_alarm','mpt_log'].forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} });
+  location.reload();
+}
+// Botón «Plegar todo / Desplegar todo», igual que el de Ajustes, para las cajas
+// de cada pestaña. Devuelve el botón ya montado.
+function botonPlegarTodo(fn, todoPlegado){
+  return `<div style="display:flex;justify-content:flex-end;margin:0 2px 10px">
+    <button class="btn small ghost" onclick="${fn}">${todoPlegado?t('set_expand_all'):t('set_collapse_all')}</button>
+  </div>`;
+}
+function toggleAllHome(){
+  const todo = !showDay && !showPast && !showNextDay;
+  showDay=todo; showPast=todo; showNextDay=todo;
+  renderHome();
+}
+function toggleAllLib(){
+  const todo = !showLibBox && !showFavBox && !showPropias && !showPausedBox && !showHechas;
+  showLibBox=todo; showFavBox=todo; showPropias=todo; showPausedBox=todo; showHechas=todo;
+  renderLib();
+}
+function toggleAllNC(){
+  const secs=['texto','citas'];
+  const todoPlegado=secs.every(x=>ncCollapsed[x]);
+  secs.forEach(x=>ncCollapsed[x]=!todoPlegado);
+  renderFav();
+}
+function toggleAllSet(){
+  const secs=['patron','stats','notif','share','cuenta'];
+  const todoPlegado=secs.every(x=>setCollapsed[x]);
+  secs.forEach(x=>setCollapsed[x]=!todoPlegado);
+  renderSet();
+}
+let _exCheckT=0;
+async function refreshExactPerm(force){
+  if(!IS_NATIVE || !CapLN) return;
+  if(!force && Date.now()-_exCheckT<4000) return;
+  _exCheckT=Date.now();
+  let v=null;
+  try{
+    const r=await CapLN.checkExactNotificationSetting();
+    v=r && (r.exact_alarm || r.exactAlarm);
+  }catch(e){}
+  if(!v){
+    // segunda vía: algunas versiones del plugin lo exponen en checkPermissions
+    try{ const r2=await CapLN.checkPermissions(); v=r2 && (r2.exact_alarm || r2.exactAlarm); }catch(e){}
+  }
+  if(v) exactPerm=v;
+}
+// Armazón de una sección plegable de Ajustes: cabecera con el título, cuerpo y
+// enlace de plegar. Antes este mismo bloque estaba repetido en las cinco secciones,
+// con el identificador escrito seis veces en cada una.
+function secAjustes(id, titulo, cuerpo){
+  const abierta=!setCollapsed[id];
+  const alt=`setCollapsed['${id}']`, ver=`verCaja('[data-card=\\'${id}\\']')`;
+  return `<div class="card">
+    <div class="cardhead" data-card="${id}"><h2 onclick="${alt}=!${alt};renderSet();${ver}" style="cursor:pointer;margin:0">${titulo} <span class="muted">${abierta?'▲':'▼'}</span></h2></div>
+    <div class="setbody" data-sec="${id}" style="${abierta?'':'display:none'}">
+      ${cuerpo}
+      <p class="center" style="margin-top:10px"><button type="button" class="tbtn suave" onclick="${alt}=true;renderSet();${ver}">${t('set_collapse')}</button></p>
+    </div>
+  </div>`;
+}
+function renderSet(){
+  ensureDayPlan();
+  refreshExactPerm();
+  refreshBgEstado();
+  const M=document.getElementById('main');
+  const perm=notifPerm();
+  const nm=nowMins();
+  const prox=dayState.plan.map(s=>({s,t:eff(s)})).filter(o=>!o.s.done && !o.s.notified && o.t>nm).sort((a,b)=>a.t-b.t)[0];
+  const secs=['patron','stats','notif','share','cuenta'];
+  const todoPlegado=secs.every(x=>setCollapsed[x]);
+  M.innerHTML=`
+    <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+      <button class="btn small ghost" onclick="toggleAllSet()">${todoPlegado?t('set_expand_all'):t('set_collapse_all')}</button>
+    </div>
+    ${secAjustes('notif', t('set_notif'), `
+      <p class="muted"><b>${t('nt_next')}</b> ${prox?(t('nt_next_today')+' '+fmtT(prox.t)):t('nt_next_none')}.</p>
+      <p class="muted">${IS_NATIVE?t('nt_native').replace('{n}',DAYS_AHEAD):t('nt_web')}</p>
+      <button class="btn ${notifActive()?'gold':'ghost'} block" onclick="toggleNotif(renderSet)">${notifActive()?t('nt_on'):t('nt_off')}</button>
+      ${perm==='denied'?`<p class="muted" style="margin-top:8px">${t('nt_denied')}</p>`:''}
+      ${IS_NATIVE?`<label class="fld" style="margin-top:16px">${t('nt_punct')}</label>
+      <p class="muted">${t('nt_punct_txt')}</p>
+      <p style="margin:4px 0 0"><button type="button" class="tbtn" onclick="abrirAjusteExacto()">${t('nt_punct_open')}</button></p>
+      <label class="fld" style="margin-top:16px">${t('nt_sound')}</label>
+      <p class="muted">${t('nt_sound_txt')}</p>
+      <button class="btn ${alarmMode?'gold':'ghost'} block" onclick="toggleAlarmMode()">${alarmMode?t('nt_alarm_on'):t('nt_alarm_off')}</button>
+      <p class="muted" id="bgestado" style="font-size:.78rem;margin-top:4px;text-align:center">${bgEstadoTxt()}</p>
+      <p class="muted" style="font-size:.8rem;margin-top:10px">${t('nt_blocked_q')}</p>
+      <p class="center" style="margin-top:8px"><button type="button" class="tbtn" onclick="abrirGuiaBloqueado()">${t('nt_guide')}</button></p>
+      ${alarmChannelOk===false?`<p class="muted" style="font-size:.8rem;margin-top:6px;color:#B3402A">${t('nt_no_channel')}</p>`:''}`:''}
+      <p class="center" style="margin-top:14px"><button type="button" class="tbtn" onclick="testNotif()">${t('nt_test')}</button></p>
+    `)}
+    ${secAjustes('patron', t('set_pattern'), `
+      <label class="fld">${t('pt_first_hour')}</label>
+      <p class="muted" style="margin:0 0 8px">${t('pt_start_txt')}</p>
+      <div class="clockwrap">
+        <div id="clk">${clockSVG(cfg.startH,cfg.startM,190)}</div>
+        <div class="timeset">
+          <div style="flex:1">${''}<button type="button" class="btn ghost" style="width:100%;font-size:1.2rem;font-weight:700" onclick="abrirReloj(cfg.startH*60+cfg.startM, m=>{ cfg.startH=Math.floor(m/60); cfg.startM=m%60; applyCfg(); renderSet(); })">🕐 ${pad(cfg.startH)}:${pad(cfg.startM)}</button></div>
+
+        </div>
+      </div>
+      <label class="fld">${t('pt_each')}</label>
+      <p class="muted" style="margin:0 0 8px">${t('pt_each_txt')}</p>
+      <div class="optgrid">${[1,2,3].map(h=>`<button class="optbtn ${cfg.freq===h?'sel':''}" onclick="cfg.freq=${h};ajustarSpan();applyCfg()">${t('pt_each_btn')} ${h} h</button>`).join('')}</div>
+      <p class="muted">${t('pt_snooze_txt')}</p>
+      <label class="fld">${t('pt_span_label')}</label>
+      <p class="muted" style="margin:0 0 8px">${t('pt_span_txt')}</p>
+      <div class="optgrid g7">${spanOpciones().map(h=>`<button class="optbtn ${cfg.span===h?'sel':''}" onclick="cfg.span=${h};applyCfg()">${h} h</button>`).join('')}</div>
+      <label class="fld">${t('pt_fav_label_a')} <b id="favN">${cfg.favPerDay}</b> ${t('pt_fav_label_b')} ${slotTimes().length} ${t('pt_fav_label_c')}</label>
+      <p class="muted" style="margin:0 0 8px">${t('pt_fav_txt')}</p>
+      <input type="range" class="favrange" list="favticks" min="0" max="${slotTimes().length}" step="1" value="${cfg.favPerDay}"
+        oninput="document.getElementById('favN').textContent=this.value"
+        onchange="cfg.favPerDay=parseInt(this.value);applyCfg()">
+      <datalist id="favticks">${Array.from({length:slotTimes().length+1},(_,k)=>`<option value="${k}"></option>`).join('')}</datalist>
+      <label class="fld">${t('pt_const_label')}</label>
+      <p class="muted" style="margin:0 0 8px">${t('pt_const_txt')}</p>
+      <label class="chkrow">
+        <input type="checkbox" ${cfg.constNo?'checked':''} onchange="cfg.constNo=this.checked;if(this.checked){cfg.constIni=false;cfg.constMed=false;cfg.constFin=false;}applyCfg()"> ${t('pt_const_no')}
+      </label>
+      <label class="chkrow">
+        <input type="checkbox" ${cfg.constIni?'checked':''} onchange="cfg.constIni=this.checked;if(this.checked)cfg.constNo=false;applyCfg()"> ${t('pt_const_ini')}
+      </label>
+      <label class="chkrow">
+        <input type="checkbox" ${cfg.constMed?'checked':''} onchange="cfg.constMed=this.checked;if(this.checked)cfg.constNo=false;applyCfg()"> ${t('pt_const_med')}
+      </label>
+      <label class="chkrow">
+        <input type="checkbox" ${cfg.constFin?'checked':''} onchange="cfg.constFin=this.checked;if(this.checked)cfg.constNo=false;applyCfg()"> ${t('pt_const_fin')}
+      </label>
+      <label class="fld">${t('pt_vis_label')}</label>
+      <p class="muted" style="margin:0 0 8px">${t('pt_cats_txt')}</p>
+      <label class="chkrow" style="margin:0 0 6px">
+        <input type="checkbox" ${cfg.visDia?'checked':''} onchange="cfg.visDia=this.checked;applyCfg()"> ${t('pt_vis_chk')}
+      </label>
+      ${catPairs().filter(cp=>cp.id!=='constelaciones').map(cp=>`<label class="chkrow" style="margin:0 0 6px">
+        <input type="checkbox" ${cfg.catsPref && cfg.catsPref[cp.id]?'checked':''} onchange="setCatPref(${JSON.stringify(cp.id).replace(/"/g,'&quot;')}, this.checked)"> ${cp.propia?esc(cp.id):esc(catLabel(cp.id))}
+      </label>`).join('')}
+
+      ${creditoIdioma()?`<p class="muted" style="margin:0 0 12px;font-size:.85rem">${t('cr_txt').replace('{n}', esc(creditoIdioma()))}</p>`:''}
+
+      <label class="fld">${t('id_label')}</label>
+      <p class="muted" style="margin:0 0 8px;font-size:.85rem">${t('id_txt')}</p>
+      ${idiomasDisponibles().map(c=>`<div class="row" style="align-items:center;margin:0 0 6px">
+        <button class="btn small ${getLang()===c?'primary':'ghost'}" style="flex:1;text-align:left"
+          onclick="setLang('${c}');renderSet()">${esc(nombreIdioma(c))}${IDIOMAS_BASE.includes(c)?'':' ·'}</button>
+        ${IDIOMAS_BASE.includes(c)?'':`<button type="button" class="tbtn peligro" onclick="quitarIdioma('${c}')">${t('id_remove')}</button>`}
+      </div>`).join('')}
+      <input type="file" id="id_file" accept=".json,application/json" style="display:none"
+        onchange="importarArchivo(this.files[0]);this.value=''">
+      <button class="btn ghost block" onclick="document.getElementById('id_file').click()">${t('id_import')}</button>
+      ${IS_NATIVE?`<label class="fld">${t('im_found')}</label>
+      <p class="muted" style="margin:0 0 8px;font-size:.85rem">${t('im_found_txt')}</p>
+      <div id="detectados"></div>
+      <button class="btn ghost block" onclick="renderDetectados()">${t('im_scan')}</button>`:''}
+      <label class="fld">${t('lb_label')}</label>
+      <p class="muted" style="margin:0 0 8px">${t('lb_txt')}</p>
+      <div class="optgrid g2" style="margin:0 0 4px">
+        <button class="optbtn ${langRespaldo()==='es'?'sel':''}" onclick="elegirRespaldo('es')">Español</button>
+        <button class="optbtn ${langRespaldo()==='en'?'sel':''}" onclick="elegirRespaldo('en')">English</button>
+      </div>
+
+      <label class="fld">${t('pt_esp_label')}</label>
+      <p class="muted" style="margin:0 0 8px">${t('pt_esp_txt')}</p>
+      ${especialesLista().map(p=>`<button class="btn ghost block" style="text-align:left" onclick="crearMomentoDe('${p.id}')">⏰ ${esc(p.title)}</button>`).join('')}
+      <label class="fld">${t('pt_moments_label')}</label>
+      <p class="muted" style="margin:0 0 8px">${t('pt_moments_txt')}</p>
+      ${userEvents.length?userEvents.map(ev=>`
+        <div style="display:flex;align-items:center;gap:10px;font-size:.92rem;margin-bottom:8px">
+          <div style="flex:1"><b>${esc(ev.title)}</b> · ${evTimesText(ev)} · ${repFullText(ev)}</div>
+          <button class="pau ${evPaused.includes(ev.id)?'on':''}" onclick="toggleEventPause('${ev.id}')" title="${evPaused.includes(ev.id)?t('pause_remove_t'):t('pause_add_t')}">⏸</button>
+          <button class="pau" onclick="openEventForm('${ev.id}')" title="${t('mo_edit')}" style="opacity:1;filter:none;color:var(--verde2)">✏️</button>
+          <button class="pau" onclick="delEvent('${ev.id}')" title="${t('mo_delete')}" style="color:#B3402A;opacity:1;filter:none">🗑</button>
+        </div>`).join(''):`<p class="muted">${t('mo_none')}</p>`}
+      <label class="chkrow" style="margin:10px 0 6px">
+        <input type="checkbox" ${cfg.soloEventos?'checked':''} onchange="cfg.soloEventos=this.checked;applyCfg()"> ${t('pt_only_own')}
+      </label>
+
+      <button class="btn gold block" onclick="openEventForm()">${t('pt_create')}</button>
+      <div class="infobox" style="margin-top:12px">💡 <b>${t('ob_hint_title')}:</b> ${t('ob_hint_custom')}</div>
+    `)}
+    ${secAjustes('share', t('set_share'), `
+      <p class="muted">${t('sr_intro')}</p>
+      <button class="btn primary block" onclick="shareApp(getLang()==='en'?'the world':'el mundo')">${t('sr_world')}</button>
+      <button class="btn ghost block" onclick="copyText(shareMsg()).then(ok=>toast(ok?t('sr_copied'):t('sr_copy_fail')))">${t('sr_copy')}</button>
+      <p class="muted" style="margin-top:8px;font-size:.8rem">${t('sr_wa')}</p>
+            <p class="muted" style="font-size:.8rem;margin-top:10px">${t('sr_trust')}</p>
+    `)}
+    ${secAjustes('stats', t('set_stats'), `
+      ${(function(){ const r=statsResumen(); return `
+      <p class="muted"><b>${t('st_last_conn')}</b> ${fmtFecha(stats.lastOpen)}<br>
+      <b>${t('st_last_done')}</b> ${fmtFecha(stats.lastDone)}</p>
+      <p class="muted"><b>${t('st_pattern')}</b> ${slotTimes().length} ${t('st_pattern_a')} ${pad(cfg.startH)}:${pad(cfg.startM)} ${t('st_pattern_b')} ${cfg.freq} ${t('st_pattern_c')} ${cfg.span} ${t('st_pattern_d')}</p>
+      <p class="muted"><b>${t('st_last_days_a')} ${r.dias||0} ${t('st_last_days_b')}</b> ${r.h} ${t('st_done')} · ${r.extra} ${t('st_extra')} · ${r.pPract} ${t('st_snoozed_a')} (${r.pVeces} ${t('st_snoozed_b')})</p>
+      <p class="muted"><b>${t('st_top_slots')}</b> ${r.topHoras.length?r.topHoras.join(', '):'—'}</p>
+      <p class="muted"><b>${t('st_top_disc')}</b> ${r.topCamb.length?r.topCamb.map(c=>c.t+' ('+c.n+')').join(' · '):'—'}</p>
+      <p class="muted">${t('st_last_send')} ${fmtFecha(stats.lastSend)}</p>`; })()}
+      <p class="center"><button type="button" class="tbtn" onclick="sendMetrics()">${t('st_send_metrics')}</button></p>
+      <p class="muted" style="margin-top:14px">${t('st_feedback_txt')}</p>
+      <button class="btn ghost block" onclick="enviarFeedback()">${t('st_feedback_btn')}</button>
+      <p class="center" style="margin-top:14px"><button type="button" class="tbtn peligro" onclick="openResetStats()">${t('st_reset')}</button></p>
+    `)}
+    ${secAjustes('cuenta', t('set_privacy'), `
+      <label class="fld">${I18N.es.priv_language} · ${I18N.en.priv_language}</label>
+      <div class="optgrid g2" style="margin-bottom:16px">
+        <button class="optbtn ${getLang()==='es'?'sel':''}" onclick="setLang('es');renderSet()">🇪🇸 Español</button>
+        <button class="optbtn ${getLang()==='en'?'sel':''}" onclick="setLang('en');renderSet()">🇬🇧 English</button>
+      </div>
+      <label class="fld">${t('ab_title')}</label>
+      <p class="muted">${t('pr_intro')}</p>
+      <p class="muted">${t('pr_astro')}</p>
+      <button class="btn primary block" style="margin:12px 0" onclick="abrirFormularioSuscripcion()">${t('pr_subscribe')}</button>
+      <p class="muted" style="font-size:.82rem;text-align:center">${t('pr_sub_txt')}</p>
+      <p class="center" style="margin-top:12px"><button type="button" class="tbtn" onclick="verLegal('cond')">${t('pr_terms')}</button> · <button type="button" class="tbtn" onclick="verLegal('priv')">${t('pr_privacy')}</button></p>
+      <label class="fld" style="margin-top:16px">${t('bk_title')}</label>
+      <p class="muted">${t('bk_txt')}</p>
+      <button class="btn ghost block" onclick="exportarDatos()">${t('bk_export')}</button>
+      <input type="file" id="bk_file" accept=".json,application/json" style="display:none" onchange="importarArchivo(this.files[0]);this.value=''">
+      <button class="btn ghost block" onclick="document.getElementById('bk_file').click()">${t('bk_import')}</button>
+      <p class="muted" style="margin-top:16px">${t('pr_first_install')} <b>${fmtFecha(LS.get('mpt_install',0))}</b><br>
+      ${t('pr_last_update')} <b>${fmtFecha(LS.get('mpt_update',0)||LS.get('mpt_install',0))}</b></p>
+      <label class="chkrow" style="margin:0 0 10px">
+        <input type="checkbox" checked onchange="if(!this.checked) desactivarAceptacion(); else this.checked=true;"> ${t('pr_accept_chk')}
+      </label>
+      <p class="muted" style="font-size:.85rem">${t('pr_accept_txt')}</p>
+      <p class="muted" style="font-size:.85rem">${t('pr_titular')}</p>
+      <label class="fld">${t('lg_label')}</label>
+      <p class="muted" style="margin:0 0 8px;font-size:.85rem">${t('lg_txt')}</p>
+      <pre style="background:#FFFDF7;border:1px solid #E2D7BF;border-radius:10px;padding:10px;
+        font-size:.72rem;line-height:1.5;max-height:180px;overflow:auto;white-space:pre-wrap;margin:0 0 8px">${esc(logTexto())}</pre>
+      ${_log.length?`<button class="btn small ghost" onclick="borrarLog()">${t('lg_clear')}</button>`:''}
+      <p class="muted" style="margin-top:14px">${t('pr_version')} <b>v${APP_VERSION}</b></p>
+      <p class="muted">${t('pr_upgrade')}</p>
+      <p class="muted" style="margin-top:14px;font-size:.82rem">${t('pr_reset_warn')}</p>
+      <p class="center"><button type="button" class="tbtn peligro" onclick="restaurarTodo()">${t('pr_reset')}</button></p>
+    `)}
+    <div class="card"><h2 style="margin:0 0 12px">${t('nc_social')}</h2>${ncSocialBlock()}</div>`;
+}
+function setTime(dh,dm){
+  cfg.startH=(cfg.startH+dh+24)%24; cfg.startM=(cfg.startM+dm+60)%60;
+  document.getElementById('vh').textContent=pad(cfg.startH);
+  document.getElementById('vm').textContent=pad(cfg.startM);
+  document.getElementById('clk').innerHTML=clockSVG(cfg.startH,cfg.startM,190);
+  applyCfg(false);
+}
+function applyCfg(rerender=true){
+  cfg.favPerDay=Math.min(cfg.favPerDay===undefined?1:cfg.favPerDay, slotTimes().length);
+  LS.set('mpt_cfg',cfg);
+  LS.set('mpt_plans', {});   // los días futuros se regeneran con el nuevo patrón
+  dayState=null; ensureDayPlan(); scheduleNext();
+  if(rerender) renderSet();
+  toast(t('ts_pattern_upd'));
+}
+async function abrirAjusteExacto(){
+  if(!IS_NATIVE) return;
+  try{
+    await CapLN.changeExactNotificationSetting();
+    // al volver de los ajustes del sistema, re-verificar con reintentos
+    refreshExactPerm(true);
+    setTimeout(()=>refreshExactPerm(true), 800);
+    setTimeout(()=>refreshExactPerm(true), 2500);
+  }catch(e){ toast(t('ts_no_perm_needed')); }
+}
+async function testNotif(){
+  if(!notifActive()){ toast(t('ts_enable_notif_first')); return; }
+  const p=ALL()[Math.floor(Math.random()*ALL().length)];
+  if(IS_NATIVE){
+    const canal=await canalActual();
+    CapLN.schedule({notifications:[{id:99999, title:t('app_title'),
+      body:p.title+' — '+p.text.slice(0,80)+'…', channelId:canal, actionTypeId:'MPT',
+      schedule:{at:new Date(Date.now()+4000), allowWhileIdle:true},
+      extra:{pid:p.id, d:0, idx:-1, snoozes:0}}]}).catch(()=>{});
+    toast(t('ts_test_4s'));
+    return;
+  }
+  toast(t('ts_test_sent'));
+  chime();
+  const reg=await navigator.serviceWorker.getRegistration();
+  if(reg) reg.showNotification(t('app_title'),{body:p.title+' — '+p.text.slice(0,80)+'…', icon:'icon-192.png', data:{id:p.id}, renotify:true, tag:'mpt-test', silent:false, vibrate:[120,60,120], actions:[{action:'snooze',title:t('notif_act_snooze')},{action:'open',title:t('notif_act_open')}]});
+}
+
+boot();
+</script>
+</body>
+</html>

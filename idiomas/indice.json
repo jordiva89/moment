@@ -1,0 +1,25 @@
+{
+ "esquema": 1,
+ "actualizado": "2026-09-04",
+ "totalPracticas": 209,
+ "idiomas": [
+  {
+   "codigo": "es",
+   "nombre": "Español",
+   "incluido": true,
+   "revisado": true,
+   "completo": true,
+   "practicas": 209,
+   "rtl": false
+  },
+  {
+   "codigo": "en",
+   "nombre": "English",
+   "incluido": true,
+   "revisado": true,
+   "completo": true,
+   "practicas": 209,
+   "rtl": false
+  }
+ ]
+}
