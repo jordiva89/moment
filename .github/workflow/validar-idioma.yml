@@ -1,0 +1,97 @@
+name: Validar traduccion
+
+# Se ejecuta solo cuando alguien propone una traduccion (carpeta idiomas/).
+# Si el archivo no pasa la validacion, la propuesta queda marcada en rojo y no
+# deberia aceptarse. Esta es la PRIMERA de las tres capas: despues vienen la
+# retrotraduccion asistida y la revision humana.
+
+on:
+  pull_request:
+    paths:
+      - 'idiomas/**'
+  workflow_dispatch:
+    inputs:
+      archivo:
+        description: 'Ruta del archivo a validar (por ejemplo idiomas/ar.json)'
+        required: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el codigo
+        uses: actions/checkout@v5
+
+      - name: Preparar Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Validar los archivos de idioma
+        id: validar
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MANUAL: ${{ github.event.inputs.archivo }}
+        run: |
+          set -u
+          if [ -n "${MANUAL:-}" ]; then
+            lista="$MANUAL"
+          else
+            # solo los archivos de idioma que cambian en esta propuesta
+            lista=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- 'idiomas/*.json' || true)
+          fi
+
+          if [ -z "$lista" ]; then
+            echo "Sin archivos de idioma que validar." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          fallos=0
+          {
+            echo "## Validacion de traducciones"
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          for f in $lista; do
+            codigo=$(basename "$f" .json)
+            echo "--- $f ($codigo)"
+            {
+              echo "### \`$f\`"
+              echo ""
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            if node tools/validar-idioma.js "$f" "$codigo" >> "$GITHUB_STEP_SUMMARY" 2>&1; then
+              echo '```' >> "$GITHUB_STEP_SUMMARY"
+              echo "" >> "$GITHUB_STEP_SUMMARY"
+            else
+              fallos=$((fallos+1))
+              {
+                echo '```'
+                echo ""
+                echo "**No aceptable todavia.** Hay que corregir los errores de arriba."
+                echo ""
+              } >> "$GITHUB_STEP_SUMMARY"
+            fi
+          done
+
+          {
+            echo "---"
+            echo ""
+            echo "Esta es la validacion automatica. Antes de aceptar la traduccion faltan:"
+            echo ""
+            echo "1. Retrotraduccion al espanol para poder revisar el contenido."
+            echo "2. Revision humana de Jordi Beold."
+            echo "3. Revision manual en el movil de como quedan los botones y las cajas."
+            echo ""
+            echo "Recordatorio: los bloques legales y la pantalla de eleccion de idioma"
+            echo "no los traduce la comunidad."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$fallos" -gt 0 ]; then
+            echo "::error::$fallos archivo(s) de idioma no pasan la validacion"
+            exit 1
+          fi
