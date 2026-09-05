@@ -1,0 +1,14 @@
+# Generado por la compilación: no debe subirse
+node_modules/
+android/
+package-lock.json
+
+# Clave de firma: va en el secreto ANDROID_KEYSTORE_B64 de GitHub,
+# nunca en el repositorio si este es público
+keystore.b64
+*.keystore
+*.jks
+
+# Sistema
+.DS_Store
+Thumbs.db
