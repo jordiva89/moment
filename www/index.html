@@ -257,6 +257,7 @@ function aplicarIdiomaTexto(texto){
     idiomasPropios[d.codigo] = d;
     LS.set('mpt_idiomas', idiomasPropios);
     activarIdioma(d);
+    olvidarPrefijos();
     setLang(d.codigo);
     toast(t('id_added').replace('{n}', d.nombre || d.codigo));
     renderSet();
@@ -424,7 +425,7 @@ function applyNavLang(){
   document.querySelectorAll('[data-lbl-html]').forEach(el=>{ el.innerHTML=t(el.getAttribute('data-lbl-html')); });
 }
 
-const APP_VERSION = '3.72';   // visible en Ajustes: confirma qué versión está corriendo
+const APP_VERSION = '3.73';   // visible en Ajustes: confirma qué versión está corriendo
 
 /* ---- Entorno nativo (Capacitor / APK) ---- */
 const IS_NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
@@ -2776,19 +2777,65 @@ function openAddForm(){
 /* ===== Importación de prácticas: Word (.docx), texto amigable y JSON ===== */
 // Formato amigable: cada práctica empieza con «Título:»; «Categoría:» y «Enlace:» son
 // opcionales; «Texto:» puede continuar en varias líneas hasta una línea en blanco.
+/* ---- Prefijos que reconoce el lector de plantillas ----
+   Antes estaban fijos en español e inglés: una plantilla rellenada en otro idioma
+   no se leía y la app decía «no se encontraron prácticas». Ahora los prefijos se
+   sacan de TODOS los idiomas cargados —incluidos los importados—, usando las
+   mismas claves con las que se genera la plantilla (fmt_title, fmt_cat…). */
+let _prefijos = null;
+function prefijosCampos(){
+  if(_prefijos) return _prefijos;
+  const base = {
+    titulo: ['t[ií]tulo','title'],
+    cat:    ['categor[ií]a','category','cat'],
+    texto:  ['texto','text'],
+    enlace: ['enlace','link','url'],
+  };
+  try{
+    const claves = {titulo:'fmt_title', cat:'fmt_cat', texto:'fmt_text', enlace:'fmt_link'};
+    Object.keys(I18N).forEach(lang=>{
+      Object.entries(claves).forEach(([campo, clave])=>{
+        const v = I18N[lang] && I18N[lang][clave];
+        if(!v) return;
+        const p = String(v).replace(/\s*:\s*$/,'').trim();
+        if(p && !base[campo].includes(p)) base[campo].push(p.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'));
+      });
+    });
+  }catch(e){ anota('prefijos-plantilla', e); }
+  _prefijos = base;
+  return base;
+}
+/* ¿El prefijo leído corresponde a este campo, en cualquier idioma? */
+function esCampo(campo, leido){
+  const norm = x => String(x).toLowerCase().replace(/\\/g,'').replace(/[\[\]]/g,'')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+  const k = norm(leido);
+  return prefijosCampos()[campo].some(p => {
+    const s = norm(p);
+    // los de la lista base son expresiones (t[ií]tulo): se prueban como tal
+    try{ return new RegExp('^(?:'+p+')$','i').test(leido) || s===k; }catch(e){ return s===k; }
+  });
+}
+function rePrefijos(){
+  const p = prefijosCampos();
+  const todos = [].concat(p.titulo, p.cat, p.texto, p.enlace).join('|');
+  return new RegExp('^\\s*(' + todos + ')\\s*:\\s*(.*)$', 'i');
+}
+/* Al añadir un idioma, los prefijos se recalculan. */
+function olvidarPrefijos(){ _prefijos = null; }
 function parseFriendlyPracticas(txt){
   const out=[]; let cur=null, modo=null;
   txt.split(/\r?\n/).forEach(l=>{
     // Se aceptan las etiquetas en los dos idiomas y sus abreviaturas. «category»
     // faltaba: la plantilla en inglés la usa y sus categorías se perdían al importar.
-    const m=l.match(/^\s*(t[ií]tulo|title|categor[ií]a|category|cat|texto|text|enlace|link|url)\s*:\s*(.*)$/i);
+    const m=l.match(rePrefijos());
     if(m){
       const k=m[1].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
       const v=m[2].trim(); modo=null;
-      if(k==='titulo'||k==='title'){ if(cur) out.push(cur); cur={title:v}; }
+      if(esCampo('titulo', k)){ if(cur) out.push(cur); cur={title:v}; }
       else if(!cur){ /* claves antes del primer Título: se ignoran (instrucciones) */ }
-      else if(k==='categoria'||k==='category'||k==='cat'){ cur.cat=v; }
-      else if(k==='enlace'||k==='link'||k==='url'){ cur.link=v; }
+      else if(esCampo('cat', k)){ cur.cat=v; }
+      else if(esCampo('enlace', k)){ cur.link=v; }
       else { cur.text=v; modo='text'; }
     }
     else if(cur && modo==='text'){
