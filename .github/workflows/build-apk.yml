@@ -40,16 +40,11 @@ jobs:
           node tools/prepare-android.js
           node tools/setup-signing.js
           npx cap sync android
-      - name: Primera compilación (release, firmada)
+      - name: Primera compilación
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleRelease
-      # Copia limpia, sin el APK incrustado: pesa la mitad y sirve para descartar
-      # que el instalador del movil rechace un APK que contiene otro dentro.
-      - name: Guardar la copia sin incrustar
-        run: cp android/app/build/outputs/apk/release/app-release.apk /tmp/moment-basico.apk
-
       - name: Incluir el APK dentro de la app y recompilar
         run: |
           cp android/app/build/outputs/apk/release/app-release.apk www/moment.apk
@@ -71,11 +66,10 @@ jobs:
           VER=$(node -e "const s=require('fs').readFileSync('www/index.html','utf8');console.log((s.match(/APP_VERSION = '([^']+)'/)||[,'?'])[1])")
           TAG=apk-ultimo
           cp "$APK" "moment-v$VER.apk"
-          cp /tmp/moment-basico.apk "moment-v$VER-basico.apk" 2>/dev/null || true
           gh release delete "$TAG" --yes --cleanup-tag 2>/dev/null || true
-          gh release create "$TAG" "moment-v$VER.apk" "moment-v$VER-basico.apk" \
+          gh release create "$TAG" "moment-v$VER.apk" \
             --title "APK de pruebas v$VER" \
-            --notes "Compilado el $(date -u '+%Y-%m-%d %H:%M UTC'). Si el APK normal da error al instalar, prueba el que acaba en -basico." \
+            --notes "Compilado el $(date -u '+%Y-%m-%d %H:%M UTC')." \
             --latest=false
           echo "## APK listo" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
