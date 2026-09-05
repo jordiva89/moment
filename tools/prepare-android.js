@@ -1,6 +1,24 @@
 // Ajusta el proyecto Android generado: permisos, iconos y APK autocontenido
 const fs = require('fs'), path = require('path');
 
+// 0. Version minima de Android.
+//    Capacitor 6 genera minSdkVersion 22 (Android 5.1). Android 14 y posteriores
+//    RECHAZAN instalar aplicaciones con minSdk menor que 23 y muestran "el paquete
+//    parece no valido", aunque el APK este bien firmado y completo. Se sube a 23,
+//    que solo deja fuera Android 5.x (menos del 1% de los moviles en uso).
+try {
+  const vg = 'android/variables.gradle';
+  if (fs.existsSync(vg)) {
+    let v = fs.readFileSync(vg, 'utf8');
+    const antes = v;
+    v = v.replace(/minSdkVersion\s*=\s*\d+/, 'minSdkVersion = 23');
+    if (v === antes && !/minSdkVersion/.test(v))
+      v = v.replace(/ext\s*\{/, 'ext {\n    minSdkVersion = 23');
+    fs.writeFileSync(vg, v);
+    console.log('minSdkVersion fijado en 23 (Android 14 rechaza menos de 23)');
+  }
+} catch (e) { console.log('no se pudo ajustar minSdkVersion:', e.message); }
+
 // 1. Permisos: notificaciones y alarmas exactas
 const man = 'android/app/src/main/AndroidManifest.xml';
 let m = fs.readFileSync(man, 'utf8');
