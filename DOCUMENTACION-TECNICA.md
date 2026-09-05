@@ -4,7 +4,7 @@
 > desarrollo. Describe qué hace la app, cómo está construida, por qué se tomaron
 > las decisiones que se tomaron y qué hay que respetar al tocarla.
 >
-> Versión documentada: **3.71** · 131 pruebas · 52 archivos · Última revisión: septiembre de 2026
+> Versión documentada: **3.73** · 135 pruebas · 52 archivos · Última revisión: septiembre de 2026
 >
 > La app se llama **Moment**. «Momento para ti» sigue siendo el nombre de la
 > **función** con la que cada persona crea sus propios momentos: son cosas distintas.
@@ -321,11 +321,23 @@ patrón; la decisión se guarda en `ev.excl`.
 
 **Prácticas propias e importación.** La persona puede crear prácticas
 (`mpt_userlib`) y también importarlas desde un documento Word o un archivo de
-texto. `parseFriendlyPracticas()` acepta las etiquetas **en los dos idiomas**
-(`Título:`/`Title:`, `Categoría:`/`Category:`, `Texto:`/`Text:`, `Enlace:`/`Link:`
-y `URL:`). `importarDatosTexto()` también reconoce el formato JSON de las copias
-de seguridad. `esEjemploPlantilla()` descarta los ejemplos de la plantilla en
-ambos idiomas.
+texto. `importarDatosTexto()` reconoce además el formato JSON de las copias de
+seguridad, y `esEjemploPlantilla()` descarta los ejemplos de la plantilla.
+
+**Los prefijos del lector se derivan de los idiomas cargados.** `prefijosCampos()`
+los construye a partir de las claves `fmt_title`, `fmt_cat`, `fmt_text` y
+`fmt_link` de **todos** los idiomas presentes, incluidos los importados; `esCampo()`
+compara sin acentos ni mayúsculas. Así, una plantilla rellenada en francés
+(`Titre:`, `Catégorie:`) se lee sin tocar el código.
+
+> **Invariante:** la plantilla se **genera** con esas mismas claves y el lector las
+> **consume**. Mientras sea así no pueden desincronizarse. Si algún día se cambia
+> el texto de un prefijo, hay que cambiarlo en la clave de idioma, nunca en el
+> lector. `olvidarPrefijos()` recalcula la lista al importar un idioma nuevo.
+>
+> Antes los prefijos estaban escritos a mano y solo cubrían español e inglés: una
+> plantilla en otro idioma daba «no se encontraron prácticas».
+
 
 **Copias de seguridad.** `exportarDatos()` guarda el archivo directamente en la
 carpeta Descargas (`guardarDescarga`), y luego ofrece enviarlo a otro sitio con
