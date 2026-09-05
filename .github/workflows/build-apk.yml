@@ -40,22 +40,22 @@ jobs:
           node tools/prepare-android.js
           node tools/setup-signing.js
           npx cap sync android
-      - name: Primera compilación
+      - name: Primera compilación (release, firmada)
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleRelease
       # Copia limpia, sin el APK incrustado: pesa la mitad y sirve para descartar
       # que el instalador del movil rechace un APK que contiene otro dentro.
       - name: Guardar la copia sin incrustar
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk /tmp/moment-basico.apk
+        run: cp android/app/build/outputs/apk/release/app-release.apk /tmp/moment-basico.apk
 
       - name: Incluir el APK dentro de la app y recompilar
         run: |
-          cp android/app/build/outputs/apk/debug/app-debug.apk www/moment.apk
+          cp android/app/build/outputs/apk/release/app-release.apk www/moment.apk
           npx cap sync android
           cd android
-          ./gradlew assembleDebug
+          ./gradlew assembleRelease
       # Antes de subir el APK nuevo se borran los antiguos: si no, el almacén de
       # GitHub (500 MB en repos privados) se llena tras unas decenas de compilaciones
       # y la subida falla aunque el APK se haya construido bien.
@@ -67,7 +67,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -e
-          APK=android/app/build/outputs/apk/debug/app-debug.apk
+          APK=android/app/build/outputs/apk/release/app-release.apk
           VER=$(node -e "const s=require('fs').readFileSync('www/index.html','utf8');console.log((s.match(/APP_VERSION = '([^']+)'/)||[,'?'])[1])")
           TAG=apk-ultimo
           cp "$APK" "moment-v$VER.apk"
@@ -109,4 +109,4 @@ jobs:
         with:
           retention-days: 5
           name: moment-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: android/app/build/outputs/apk/release/app-release.apk
