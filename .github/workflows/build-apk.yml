@@ -75,7 +75,7 @@ jobs:
           gh release delete "$TAG" --yes --cleanup-tag 2>/dev/null || true
           gh release create "$TAG" "moment-v$VER.apk" "moment-v$VER-basico.apk" \
             --title "APK de pruebas v$VER" \
-            --notes "Compilado el $(date -u '+%Y-%m-%d %H:%M UTC'). Si el APK normal da error al instalar, prueba el que acaba en -basico." \\
+            --notes "Compilado el $(date -u '+%Y-%m-%d %H:%M UTC'). Si el APK normal da error al instalar, prueba el que acaba en -basico." \
             --latest=false
           echo "## APK listo" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
