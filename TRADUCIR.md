@@ -52,7 +52,9 @@ sus propios momentos, no el de la app).
 
 1. Copia `idiomas/en.json` (o `es.json`) y renómbralo con el código de tu idioma:
    `ar.json`, `zh.json`, `de.json`…
-2. Cambia `codigo`, `nombre`, `autor` y pon `revisado: false`.
+2. Cambia `codigo`, `nombre`, `autor` y pon `revisado: false`. Puedes añadir
+   `bandera` con el emoji de tu bandera; si no, la app usa la que corresponde al
+   código de idioma.
 3. Traduce los bloques `interfaz`, `categorias` y `practicas`. **No borres claves
    ni cambies los identificadores.**
 4. Deja `fijos` sin tocar.

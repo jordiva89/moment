@@ -4,7 +4,7 @@
 > desarrollo. Describe qué hace la app, cómo está construida, por qué se tomaron
 > las decisiones que se tomaron y qué hay que respetar al tocarla.
 >
-> Versión documentada: **3.73** · 135 pruebas · 52 archivos · Última revisión: septiembre de 2026
+> Versión documentada: **3.77** · 139 pruebas · 52 archivos
 >
 > La app se llama **Moment**. «Momento para ti» sigue siendo el nombre de la
 > **función** con la que cada persona crea sus propios momentos: son cosas distintas.
@@ -294,6 +294,31 @@ Piezas transversales:
 - `esc(texto)` — **obligatorio** para cualquier contenido creado por la persona
   antes de insertarlo en HTML (títulos, categorías, nombres de momentos).
 
+### Dónde vive cada ajuste
+
+- **Tu patrón de práctica**: hora de inicio, frecuencia, horas al día, favoritas,
+  constelaciones, visualización diaria, categorías preferidas, momentos propios y
+  Especiales. Es decir: cómo se organiza el día.
+- **Datos y privacidad**: idioma principal (con banderas, `banderaIdioma()`),
+  idioma de respaldo, importar un idioma, copia de seguridad, archivos
+  encontrados en el móvil, incidencias técnicas, versión y restablecer.
+
+Hasta la v3.74 los ajustes de idioma estaban repartidos entre las dos secciones y
+el selector de idioma aparecía duplicado. Si se añade un ajuste nuevo, decidir a
+cuál de las dos pertenece: **el patrón trata del día; datos y privacidad, de la
+información y el dispositivo.**
+
+### Texto justificado y botones centrados
+
+Desde la v3.77, los textos de la app y de la biblioteca van **justificados** con
+partición de palabras (`hyphens:auto`); sin ella, el justificado deja huecos
+enormes en pantallas estrechas. Títulos y etiquetas no se justifican.
+
+Los botones van **centrados**. El contenedor se marca con la clase **`.cbtn`**, que
+lleva `text-align:center !important` porque la regla de justificado tiene más
+peso. **Al añadir un botón dentro de un párrafo o una fila, poner `.cbtn` en el
+contenedor.** No se usa `:has()`: no todos los motores lo soportan.
+
 ### Internacionalización
 
 Diccionario `I18N = {es, en}` con **264 claves**. Regla estricta:
@@ -318,6 +343,14 @@ Repetición dentro del día en dos modos: `int` (n veces cada x horas) y `list`
 (horas concretas). `eventTimes()` devuelve minutos crudos que pueden pasar de 1439
 —esas repeticiones caen al día siguiente— y `evChocaPatron()` detecta si pisa el
 patrón; la decisión se guarda en `ev.excl`.
+
+**Límite de repeticiones (`ev.veces`).** Un momento puede apagarse solo tras un
+número de repeticiones: probar una práctica 7, 13, 21 o 30 veces, o las que se
+quiera. `eventsFor()` calcula en qué vuelta va según la frecuencia y descarta el
+momento cuando `vuelta >= ev.veces`. **La unidad la marca la frecuencia**: en un
+momento diario son días; en uno semanal, semanas; en uno mensual, meses. Con
+`ev.veces` a 0 o ausente se repite indefinidamente, que es el comportamiento por
+defecto y el de todos los momentos creados antes de la v3.75.
 
 **Prácticas propias e importación.** La persona puede crear prácticas
 (`mpt_userlib`) y también importarlas desde un documento Word o un archivo de
@@ -444,9 +477,12 @@ legal y las traducciones. Ejecutarla antes y después de cualquier cambio.
 Todo ocurre en GitHub Actions; no hace falta entorno local.
 
 **`build-apk.yml`** — se dispara al cambiar `www/` o a mano. Genera el proyecto
-Android, compila dos veces (la segunda incluye el propio APK dentro de la app para
-poder compartirla) y **publica el resultado como Release** con la etiqueta fija
-`apk-ultimo`.
+Android, compila **en modo release y firmado** (`assembleRelease`) dos veces —la
+segunda incluye el propio APK dentro de la app para poder compartirla— y
+**publica el resultado como Release** con la etiqueta fija `apk-ultimo`.
+
+> Se compila en release, no en depuración: un APK con `debuggable="true"` puede
+> ser rechazado por algunos móviles y no es lo que debe distribuirse.
 
 > El APK se publica como Release, no como artefacto, porque los artefactos
 > consumen una cuota de 500 MB que se agota tras unas decenas de compilaciones.
