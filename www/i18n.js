@@ -12,6 +12,11 @@ const CREDITOS = {
 
 const I18N = {
   es:{
+    ef_r_wdays:'Días concretos de la semana',
+    ef_wdays:'¿Qué días?', ef_wdays_txt:'Toca los días en que quieres esta práctica. Puedes elegir uno o todos.',
+    ef_wdays_none:'Elige al menos un día de la semana.',
+    rep_wdays:'los', clk_back:'← Cambiar la hora',
+    wd_s0:'Dom', wd_s1:'Lun', wd_s2:'Mar', wd_s3:'Mié', wd_s4:'Jue', wd_s5:'Vie', wd_s6:'Sáb',
     tab_program:'Agenda', tab_library:'Biblioteca', tab_path:'El Noveno Camino', tab_settings:'Ajustes', path_title:'El Noveno Camino', path_soon:'Muy pronto encontrarás aquí algo especial.',
     path_sub:'Espiritualidad holística para un estilo de vida coherente, libre y con propósito.',
     path_soc_link:'Ver las redes sociales del noveno camino.',
@@ -309,6 +314,11 @@ const I18N = {
     notif_muted_toast:'Notificación silenciada 🔕', notif_unmuted_toast:'Notificación reactivada 🔔'
   },
   en:{
+    ef_r_wdays:'Specific days of the week',
+    ef_wdays:'Which days?', ef_wdays_txt:'Tap the days you want this practice. Pick one or all of them.',
+    ef_wdays_none:'Choose at least one day of the week.',
+    rep_wdays:'on', clk_back:'← Change the hour',
+    wd_s0:'Sun', wd_s1:'Mon', wd_s2:'Tue', wd_s3:'Wed', wd_s4:'Thu', wd_s5:'Fri', wd_s6:'Sat',
     ef_times:'How many times does it repeat?',
     ef_times_txt:'For trying something out for a while: it switches itself off when done, with nothing to remember to delete.',
     ef_times_inf:'No limit', ef_times_n:'{n} times', ef_times_other:'Another number…',
