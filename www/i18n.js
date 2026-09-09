@@ -12,6 +12,7 @@ const CREDITOS = {
 
 const I18N = {
   es:{
+    ef_edit_own:'Editar esta práctica tuya',
     ef_r_wdays:'Días concretos de la semana',
     ef_wdays:'¿Qué días?', ef_wdays_txt:'Toca los días en que quieres esta práctica. Puedes elegir uno o todos.',
     ef_wdays_none:'Elige al menos un día de la semana.',
@@ -314,6 +315,7 @@ const I18N = {
     notif_muted_toast:'Notificación silenciada 🔕', notif_unmuted_toast:'Notificación reactivada 🔔'
   },
   en:{
+    ef_edit_own:'Edit this practice of yours',
     ef_r_wdays:'Specific days of the week',
     ef_wdays:'Which days?', ef_wdays_txt:'Tap the days you want this practice. Pick one or all of them.',
     ef_wdays_none:'Choose at least one day of the week.',

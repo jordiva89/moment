@@ -433,7 +433,7 @@ function applyNavLang(){
   document.querySelectorAll('[data-lbl-html]').forEach(el=>{ el.innerHTML=t(el.getAttribute('data-lbl-html')); });
 }
 
-const APP_VERSION = '3.79';   // visible en Ajustes: confirma qué versión está corriendo
+const APP_VERSION = '3.80';   // visible en Ajustes: confirma qué versión está corriendo
 
 /* ---- Entorno nativo (Capacitor / APK) ---- */
 const IS_NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
@@ -767,7 +767,7 @@ function openEventForm(editId, presetPid){
       ${Object.keys(cats).sort((a,b)=>a.localeCompare(b)).map(c=>`<optgroup label="${esc(catLabel(c))}">${cats[c].map(p=>`<option value="${p.id}" ${ed&&ed.pid===p.id?'selected':''}>${esc(p.title)}</option>`).join('')}</optgroup>`).join('')}
     </select>
     <div id="ev_nuevo" ${ed?'style="display:none"':''}>
-      <label class="fld">${t('ef_new_title')}</label>
+      <label class="fld" id="ev_nuevo_lbl">${t('ef_new_title')}</label>
       <input type="text" id="ev_xt" placeholder="${t('ef_new_title_ph')}">
       <label class="fld">${t('na_cat')}</label>
       ${catSelectHTML('ev_c','ev_c_new')}
@@ -847,6 +847,20 @@ function openEventForm(editId, presetPid){
   }
   // horas adicionales ya guardadas (modo "horas concretas")
   if(ed && ed.dmode==='list' && Array.isArray(ed.dtimes)) ed.dtimes.forEach(m=>addEvTime(m));
+  /* Si el momento usa una práctica PROPIA, sus campos se muestran rellenos para
+     poder corregir título, descripción o enlace desde aquí. Las de la biblioteca
+     siguen protegidas: no se editan desde un momento. */
+  if(ed && ed.pid && esUserPractice(ed.pid)){
+    const pp = byId(ed.pid);
+    const nu = document.getElementById('ev_nuevo');
+    if(pp && nu){
+      nu.style.display='block';
+      const g=(id,v)=>{ const el=document.getElementById(id); if(el) el.value=v||''; };
+      g('ev_xt', pp.title); g('ev_x', pp.text); g('ev_l', pp.link);
+      const lb=document.getElementById('ev_nuevo_lbl');
+      if(lb) lb.textContent = t('ef_edit_own');
+    }
+  }
   evWdaysCargar(ed);
   evDayModeUI();
   evWdaysUI();
@@ -903,7 +917,7 @@ function saveEvent(){
   const rep=document.getElementById('ev_r').value;
   const n=parseInt(document.getElementById('ev_n').value)||2;
   // días de la semana elegidos
-  if(repv==='wdays' && !_wdSel.length){ alert(t('ef_wdays_none')); return; }
+  if(rep==='wdays' && !_wdSel.length){ alert(t('ef_wdays_none')); return; }
   const wd=_wdSel.slice().sort((a,b)=>a-b);
   // límite de repeticiones
   let veces=0;
@@ -937,7 +951,20 @@ function saveEvent(){
     // práctica elegida de la lista: el título del momento es el de esa práctica
     const pp=byId(sel);
     if(!pp){ toast(t('ev_pick_ex')); return; }
-    t=pp.title;
+    // si es una práctica propia y se han editado sus campos, se actualiza
+    if(esUserPractice(sel)){
+      const xt=(document.getElementById('ev_xt').value||'').trim();
+      const x=(document.getElementById('ev_x').value||'').trim();
+      const l=(document.getElementById('ev_l').value||'').trim();
+      const k=userLib.findIndex(u=>u.id===sel);
+      if(k>=0 && xt){
+        userLib[k].title=xt;
+        if(x) userLib[k].text=x;
+        if(l) userLib[k].link=l; else delete userLib[k].link;
+        LS.set('mpt_userlib', userLib); libCacheDirty();
+      }
+      t = xt || pp.title;
+    } else t=pp.title;
   }
   const [H,M]=hh.split(':').map(Number);
   let ev;
@@ -2904,6 +2931,8 @@ function prefijosCampos(){
   return base;
 }
 /* ¿El prefijo leído corresponde a este campo, en cualquier idioma? */
+/* ¿Es una práctica creada por la persona? Los ids propios empiezan por «u». */
+function esUserPractice(id){ return typeof id==='string' && id.startsWith('u'); }
 function esCampo(campo, leido){
   const norm = x => String(x).toLowerCase().replace(/\\/g,'').replace(/[\[\]]/g,'')
     .normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
