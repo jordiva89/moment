@@ -4,7 +4,7 @@
 > desarrollo. Describe qué hace la app, cómo está construida, por qué se tomaron
 > las decisiones que se tomaron y qué hay que respetar al tocarla.
 >
-> Versión documentada: **3.78** · 139 pruebas · 52 archivos
+> Versión documentada: **3.80** · 143 pruebas · 52 archivos
 >
 > La app se llama **Moment**. «Momento para ti» sigue siendo el nombre de la
 > **función** con la que cada persona crea sus propios momentos: son cosas distintas.
@@ -167,7 +167,7 @@ huecos. De ahí salen `PRACTICES_ES` y `PRACTICES_EN`, que conservan la forma
 anterior (`id`, `cat`, `catLabel`, `title`, `text`, `link`) para que el resto del
 código no cambie.
 
-Estado actual: **209 prácticas** en 8 categorías. 62 con vídeo enlazado.
+Estado actual: **208 prácticas** en 8 categorías. 62 con vídeo enlazado.
 
 Dos constantes gobiernan comportamientos especiales:
 
@@ -291,6 +291,7 @@ Piezas transversales:
   el desplazamiento.
 - `caraReloj(fase, valor, tamaño, callback)` — esfera táctil para elegir horas y
   minutos. Se usa en la bienvenida, en Ajustes y en los momentos propios.
+  `_relojAtras()` permite volver de los minutos a la hora sin cerrar el reloj.
 - `esc(texto)` — **obligatorio** para cualquier contenido creado por la persona
   antes de insertarlo en HTML (títulos, categorías, nombres de momentos).
 
@@ -347,6 +348,16 @@ Repetición dentro del día en dos modos: `int` (n veces cada x horas) y `list`
 (horas concretas). `eventTimes()` devuelve minutos crudos que pueden pasar de 1439
 —esas repeticiones caen al día siguiente— y `evChocaPatron()` detecta si pisa el
 patrón; la decisión se guarda en `ev.excl`.
+
+**Días concretos de la semana (`rep:'wdays'`, `ev.wd`).** Además de diaria, cada
+X días, semanal y mensual, un momento puede repetirse en los días de la semana
+que se elijan: `ev.wd` guarda los números (0 = domingo). `eventsFor()` cuenta las
+repeticiones ya ocurridas para que el límite siga funcionando.
+
+**Edición de prácticas propias desde su momento.** Si el momento usa una práctica
+creada por la persona (`esUserPractice()`, ids que empiezan por `u`), el formulario
+muestra sus campos rellenos y permite corregir título, texto y enlace. Las
+prácticas de la biblioteca no se editan desde ahí.
 
 **Límite de repeticiones (`ev.veces`).** Un momento puede apagarse solo tras un
 número de repeticiones: probar una práctica 7, 13, 21 o 30 veces, o las que se
