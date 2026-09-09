@@ -4,7 +4,7 @@
 > desarrollo. Describe qué hace la app, cómo está construida, por qué se tomaron
 > las decisiones que se tomaron y qué hay que respetar al tocarla.
 >
-> Versión documentada: **3.77** · 139 pruebas · 52 archivos
+> Versión documentada: **3.78** · 139 pruebas · 52 archivos
 >
 > La app se llama **Moment**. «Momento para ti» sigue siendo el nombre de la
 > **función** con la que cada persona crea sus propios momentos: son cosas distintas.
@@ -314,6 +314,10 @@ Desde la v3.77, los textos de la app y de la biblioteca van **justificados** con
 partición de palabras (`hyphens:auto`); sin ella, el justificado deja huecos
 enormes en pantallas estrechas. Títulos y etiquetas no se justifican.
 
+El texto de cada práctica vive en **`.ptext`** y lleva su propia regla con
+`!important`: es el bloque más largo de la app y no debe heredar el centrado de
+la tarjeta que lo contiene.
+
 Los botones van **centrados**. El contenedor se marca con la clase **`.cbtn`**, que
 lleva `text-align:center !important` porque la regla de justificado tiene más
 peso. **Al añadir un botón dentro de un párrafo o una fila, poner `.cbtn` en el
@@ -507,13 +511,16 @@ versión antigua).
 6. **No introducir temporizadores periódicos** sin justificarlo y sin apagarlos
    en segundo plano.
 7. **Subir `APP_VERSION` y `CACHE`** en cada entrega.
-8. **Los ids de práctica son posicionales**: al borrar, renumerar todo y revisar
+8. **Si se añade una clave de idioma, subir también `i18n.js`.** Si no, la app
+   muestra el nombre de la clave en pantalla (`ef_times` en vez del texto). Los
+   textos ya no viven en `index.html`: van en archivo aparte y es fácil olvidarlo.
+9. **Los ids de práctica son posicionales**: al borrar, renumerar todo y revisar
    `VIS_ID` y `ESPECIALES`.
-9. **Botones de verdad, no texto pulsable.** Para acciones secundarias, usar
+10. **Botones de verdad, no texto pulsable.** Para acciones secundarias, usar
    `<button class="tbtn">`; nunca un `<span onclick>`. Si un `<div>` debe ser
    pulsable, darle `role="button"`, `tabindex="0"` y `onkeydown`.
-10. **No cambiar el identificador** (`com.novecami.moment`) una vez publicada la app.
-11. **Nada de servidores ni cuentas.** Si algún día se añade contenido remoto,
+11. **No cambiar el identificador** (`com.novecami.moment`) una vez publicada la app.
+12. **Nada de servidores ni cuentas.** Si algún día se añade contenido remoto,
    habrá que actualizar antes la pantalla de aceptación.
 
 ---
