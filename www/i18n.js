@@ -161,6 +161,10 @@ const I18N = {
     lb_ask_txt:'Esta biblioteca no está traducida por completo a tu idioma. ¿En qué idioma prefieres ver las prácticas que falten? Podrás cambiarlo en Ajustes.',
     lb_set:'Idioma de respaldo: {l}',
     mk_moment_btn:'⏰ Crear un «Momento para ti» con esta práctica',
+    ef_times:'¿Cuántas veces se repite?',
+    ef_times_txt:'Para probar algo durante una temporada: se apaga solo al terminar, sin que tengas que acordarte de borrarlo.',
+    ef_times_inf:'Sin límite', ef_times_n:'{n} veces', ef_times_other:'Otro número…',
+    ef_times_ph:'Número de veces (2-365)', ev_total:'{n} veces en total',
     ef_dayrep:'¿Se repite durante el día?', ef_dr_once:'Una sola vez',
     ef_dr_int:'Varias veces al día, cada X horas', ef_dr_list:'A horas concretas que yo elijo',
     ef_dr_count:'Veces al día', ef_dr_gap:'Cada (horas)',
@@ -305,6 +309,10 @@ const I18N = {
     notif_muted_toast:'Notificación silenciada 🔕', notif_unmuted_toast:'Notificación reactivada 🔔'
   },
   en:{
+    ef_times:'How many times does it repeat?',
+    ef_times_txt:'For trying something out for a while: it switches itself off when done, with nothing to remember to delete.',
+    ef_times_inf:'No limit', ef_times_n:'{n} times', ef_times_other:'Another number…',
+    ef_times_ph:'Number of times (2-365)', ev_total:'{n} times in total',
     tab_program:'Agenda', tab_library:'Library', tab_path:'The Ninth Path', tab_settings:'Settings', path_title:'The Ninth Path', path_soon:'Something special will be here very soon.',
     path_sub:'Holistic spirituality for a coherent, free and purposeful way of life.',
     path_soc_link:'See The Ninth Path\u2019s social channels.',
