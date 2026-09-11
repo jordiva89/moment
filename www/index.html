@@ -433,7 +433,7 @@ function applyNavLang(){
   document.querySelectorAll('[data-lbl-html]').forEach(el=>{ el.innerHTML=t(el.getAttribute('data-lbl-html')); });
 }
 
-const APP_VERSION = '3.80';   // visible en Ajustes: confirma qué versión está corriendo
+const APP_VERSION = '3.81';   // visible en Ajustes: confirma qué versión está corriendo
 
 /* ---- Entorno nativo (Capacitor / APK) ---- */
 const IS_NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
@@ -1152,7 +1152,9 @@ if (!IS_NATIVE && navigator.serviceWorker) navigator.serviceWorker.addEventListe
 if(IS_NATIVE){
   CapLN.checkPermissions().then(r=>{ nativePerm=r.display; }).catch(()=>{});
   CapLN.registerActionTypes({types:[{id:'MPT', actions:[
-    {id:'done', title:t('notif_act_done')},{id:'snooze', title:t('notif_act_snooze')},{id:'open', title:t('notif_act_open')}
+    {id:'done', title:t('notif_act_done')},
+    {id:'snooze', title:t('notif_act_snooze')},
+    {id:'open', title:t('notif_act_open'), foreground:true}
   ]}]}).catch(()=>{});
   CapLN.addListener('localNotificationActionPerformed', ev=>{
     setTimeout(checkRecharge, 1500); // cualquier interacción con una notificación recarga si toca
@@ -1197,9 +1199,14 @@ if(IS_NATIVE){
   });
 }
 /* Abre la práctica pendiente en cuanto la app está lista (arranque frío o templado) */
-function tryOpenPending(){
-  if(!pendingOpen || !cfg){ return; }
-  if(document.getElementById('splash')){ setTimeout(tryOpenPending, 400); return; }
+function tryOpenPending(intento){
+  const n = intento || 0;
+  // al abrir la app DESDE el aviso, cfg o la pantalla pueden no estar listos
+  if(!pendingOpen){ return; }
+  if(!cfg || document.getElementById('splash')){
+    if(n < 30) setTimeout(()=>tryOpenPending(n+1), 400);
+    return;
+  }
   const id=pendingOpen; pendingOpen=null;
   gotoTab('home');
   try{ openFullPractice(id, true); }catch(e){ toast(t('ts_no_open_notif')); }
