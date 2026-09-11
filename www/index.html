@@ -433,7 +433,7 @@ function applyNavLang(){
   document.querySelectorAll('[data-lbl-html]').forEach(el=>{ el.innerHTML=t(el.getAttribute('data-lbl-html')); });
 }
 
-const APP_VERSION = '3.81';   // visible en Ajustes: confirma qué versión está corriendo
+const APP_VERSION = '3.82';   // visible en Ajustes: confirma qué versión está corriendo
 
 /* ---- Entorno nativo (Capacitor / APK) ---- */
 const IS_NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
@@ -764,7 +764,7 @@ function openEventForm(editId, presetPid){
     <label class="fld">${t('ef_exercise')}</label>
     <select id="ev_p" onchange="document.getElementById('ev_nuevo').style.display=this.value==='__new__'?'block':'none'">
       <option value="__new__">${t('ef_new_ex')}</option>
-      ${Object.keys(cats).sort((a,b)=>a.localeCompare(b)).map(c=>`<optgroup label="${esc(catLabel(c))}">${cats[c].map(p=>`<option value="${p.id}" ${ed&&ed.pid===p.id?'selected':''}>${esc(p.title)}</option>`).join('')}</optgroup>`).join('')}
+      ${Object.keys(cats).sort((a,b)=>a.localeCompare(b)).map(c=>`<optgroup label="── ${esc(catLabel(c).toUpperCase())} ──">${cats[c].map(p=>`<option value="${p.id}" ${ed&&ed.pid===p.id?'selected':''}>&nbsp;&nbsp;&nbsp;${esc(p.title)}</option>`).join('')}</optgroup>`).join('')}
     </select>
     <div id="ev_nuevo" ${ed?'style="display:none"':''}>
       <label class="fld" id="ev_nuevo_lbl">${t('ef_new_title')}</label>
