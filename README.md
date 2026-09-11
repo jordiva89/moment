@@ -46,7 +46,7 @@ pero las versiones derivadas deben seguir siendo libres y con el código abierto
 Esto protege la promesa de la aplicación: que nadie pueda tomarla, añadirle rastreo
 y cerrarla.
 
-Los textos de las prácticas y los contenidos de El Novè Camí no son código y
+Los textos de las prácticas y los contenidos de El Noveno Camino no son código y
 mantienen sus derechos reservados por su autor.
 
 ## Estructura
@@ -103,4 +103,4 @@ condición alguna. No sustituye a los profesionales de la salud.
 
 ---
 
-Una iniciativa de **El Novè Camí** · Jordi Beold · jordibeold@jordibeold.com
+Una iniciativa de **El Noveno Camino** · Jordi Beold · jordibeold@jordibeold.com
