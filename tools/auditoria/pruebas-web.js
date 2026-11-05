@@ -46,7 +46,7 @@ setTimeout(()=>{
   ok('bienvenida: el último paso habla del calendario', ob.includes(w.t('ob_cal_start')) && ob.includes('descargarICS()'));
   ok('bienvenida: sin pedir permiso de notificaciones', !ob.includes('toggleNotif') && !ob.includes(w.t('ob_rem_title')));
   // ---------- calendario ----------
-  w.eval("cfg.constSem={on:true,dias:[1],horas:[1260]}; LS.set('mpt_plans',{});");
+  w.eval("cfg.constSem={on:true,filas:[{d:1,h:1260,pid:null},{d:4,h:1290,pid:'p039'}]}; LS.set('mpt_plans',{});");
   const ics=w.generarICS(), L=ics.split('\r\n'), enc=new w.TextEncoder();
   ok('calendario: empieza y termina bien', ics.startsWith('BEGIN:VCALENDAR') && ics.trim().endsWith('END:VCALENDAR'));
   ok('calendario: tres avisos de renovación', (ics.match(/moment-renovar-/g)||[]).length===3);
@@ -54,8 +54,13 @@ setTimeout(()=>{
   ok('calendario: identificadores únicos', (function(){ const u=L.filter(l=>l.startsWith('UID:')); return new Set(u).size===u.length; })());
   ok('calendario: hora flotante, sin zona', !/DTSTART:[0-9T]+Z/.test(ics) && !/TZID/.test(ics));
   ok('calendario: incluye las constelaciones semanales', /DTSTART:\d{8}T210000/.test(ics));
+  ok('calendario: la constelación elegida, su día y a su hora', (function(){
+    const ev=ics.split('BEGIN:VEVENT').filter(b=>/DTSTART:\d{8}T213000/.test(b));
+    const titulo=w.eval("byId('p039').title");
+    return ev.length>=11 && ev.every(b=>b.replace(/\r\n /g,'').includes(titulo));
+  })());
   ok('calendario: el aviso legal va como texto fijo', w.eval("NO_TRADUCIBLE.test('legal_ics')") && ics.replace(/\r\n /g,'').includes('No diagnostica'));
-  w.eval("cfg.constSem={on:false,dias:[],horas:[]}; LS.set('mpt_plans',{});");
+  w.eval("cfg.constSem={on:false,filas:[]}; LS.set('mpt_plans',{});");
   // como hace Ajustes al cambiar algo (applyCfg): se rehace también el día de hoy
   w.eval("cfg.patron=false; cfg.azar={on:true,ini:540,fin:1260,min:2,max:2,excl:[]}; LS.set('mpt_plans',{}); dayState=null;");
   const icsAz=w.generarICS();

@@ -36,6 +36,9 @@ const GRUPOS = [
 const ZONAS_OK = {
   'contenido.js': [['const ACEPT_ES', '\n};'], ['const ACEPT_EN', '\n};']],
   'js/compartir.js': [['const LEGAL_COND_ES', 'function LEGAL_COND()']],
+  // El prompt para crear constelaciones con una IA lleva su propio aviso («no
+  // diagnostica ni trata nada», «busca ayuda profesional»): también es protector.
+  'i18n.js': [["cp_prompt:'Quiero que me ayudes", 'Constelaciones de Moment:'], ["cp_prompt:'I would like you", 'Moment’s constellations:']],
 };
 const CLAVE_LEGAL = /^\s*(legal_|acept|cond_|priv_|pr_titular|pr_accept)\w*\s*:/;
 function zonasDe(archivo, txt){

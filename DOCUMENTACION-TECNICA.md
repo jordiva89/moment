@@ -4,7 +4,7 @@
 > desarrollo. Describe qué hace la app, cómo está construida, por qué se tomaron
 > las decisiones que se tomaron y qué hay que respetar al tocarla.
 >
-> Versión documentada: **3.80** · 143 pruebas · 52 archivos
+> Versión documentada: **3.89** · 303 pruebas (246 de la app, 21 de la web y 36 de seguridad) · 82 archivos
 >
 > La app se llama **Moment**. «Momento para ti» sigue siendo el nombre de la
 > **función** con la que cada persona crea sus propios momentos: son cosas distintas.
@@ -147,7 +147,7 @@ con JSON y captura de errores). Claves:
 
 | Clave | Contenido |
 |---|---|
-| `mpt_cfg` | Configuración: `startH`, `startM`, `freq`, `span`, `favPerDay`, `visDia`, `catsPref`, `constIni/Med/Fin`, `constNo`, `constSem`, `patron` (sí/no), `azar` (`{on, ini, fin, min, max, excl}`), `v` |
+| `mpt_cfg` | Configuración: `startH`, `startM`, `freq`, `span`, `favPerDay`, `visDia`, `catsPref`, `constIni/Med/Fin`, `constNo`, `constSem` (`{on, filas:[{d, h, pid}]}`: de 1 a 7, día 0-6, hora en minutos y constelación o `null` = al azar), `patron` (sí/no), `azar` (`{on, ini, fin, min, max, sep, excl}`), `v` |
 | `mpt_day` | Plan del día en curso: `{date, used, plan[]}` |
 | `mpt_plans` | Caché de planes de días futuros |
 | `mpt_events` | Momentos propios creados por la persona |
@@ -200,6 +200,24 @@ código no cambie.
 
 Estado actual: **208 prácticas** en 8 categorías. 62 con vídeo enlazado.
 
+**Archivos de la biblioteca (3.89).** Una práctica puede llevar audio, imagen o
+vídeo, igual que las propias. Van **dentro de la app**, en `www/medios/`, y se
+declaran en su línea de `PRACTICAS`:
+
+```js
+{id:'p001', cat:'armonizacion', adj:[
+  {tipo:'audio', src:'medios/p001-es.mp3', idioma:'es'},
+  {tipo:'audio', src:'medios/p001-en.mp3', idioma:'en'},
+  {tipo:'image', src:'medios/p001.jpg'}
+]}
+```
+
+`adjuntosDe()` se queda solo con los de `medios/` (nada de internet: lo impide
+además la política de contenido) y con los del idioma activo; si no hay, los del
+idioma de respaldo. `construirPracticas()` los deja en `p.adjs` y `adjuntoHTML()`
+los pinta con los de las prácticas propias. El service worker no los guarda en
+caché: el audio y el vídeo se piden a trozos. Cada archivo engorda el APK.
+
 Dos constantes gobiernan comportamientos especiales:
 
 - `VIS_ID` — la práctica que entra con «una visualización cada día».
@@ -233,12 +251,24 @@ Cómo se construye el plan (`buildDayEntries`):
 6. Las horas marcadas como exclusivas por un momento propio (`ev.excl`) pierden
    su propuesta del patrón. **Esa decisión se guarda en el momento, no en el día**,
    así que se respeta también mañana.
-7. **Prácticas al azar** (`azarEntradas`), al final y solo si el modo está activo:
-   cada día se sortea cuántas (entre `min` y `max`), a qué horas (de 5 en 5
-   minutos dentro de la franja, con al menos 15 minutos entre una y otra y sin
-   pisar el patrón ni los momentos) y cuáles (de las categorías no excluidas, sin
-   las pausadas ni las ya propuestas ese día). El sorteo de horas reparte por igual
-   entre todas las combinaciones válidas, sin probar y descartar.
+7. **Constelaciones «x por semana»** (`constSemanaDe`), solo con el patrón: cada
+   fila trae su día, su hora y su constelación (`pid`) o `null` = al azar. Si la
+   elegida está en pausa o ya sale ese día, ese día no se propone; si ya no existe
+   (una propia que se borró), vuelve a ser al azar. Si cae a la hora de una
+   propuesta del patrón, la sustituye.
+8. **Prácticas al azar** (`azarEntradas`), al final y solo si el modo está activo:
+   cada día se sortea cuántas (entre `min` y `max`), a qué horas (a cualquier
+   minuto de la franja, con al menos `sep` minutos entre una y otra, 13 de
+   partida) y cuáles (de las categorías no excluidas, sin las pausadas ni las ya
+   propuestas ese día). El sorteo de horas reparte por igual entre todas las
+   combinaciones válidas. Respecto al patrón y a los momentos se buscan también
+   `sep` minutos: se prueban varios sorteos; si en un día muy lleno ninguno lo
+   consigue, se eligen entre los minutos libres (`azarLibres`, `azarVoraz`) y, si
+   ni así caben, vale el sorteo con menos choques.
+
+«Profundizar en una constelación» no es un paso aparte: son momentos propios con
+`prof: true`, que Ajustes lista también junto a las demás opciones de
+constelaciones (casilla marcada = alguno en marcha; al desmarcarla se pausan).
 
 `franjasConstelacion(n)` es la única definición de qué franjas se reservan a
 constelaciones; la usan tanto la visualización como las categorías preferidas.
@@ -337,12 +367,21 @@ Piezas transversales:
 
 ### Dónde vive cada ajuste
 
-- **Tu patrón de práctica**: hora de inicio, frecuencia, horas al día, favoritas,
-  constelaciones, visualización diaria, categorías preferidas, momentos propios y
-  Especiales. Es decir: cómo se organiza el día.
+- **Prácticas propuestas** (hasta la 3.88, «Tu patrón de práctica»): cómo se
+  organiza el día, en tres apartados con título (`.modotit`):
+  **Patrón estándar** (hora de inicio, frecuencia, horas al día, favoritas,
+  categorías preferidas, constelaciones —principio, mediodía, final, x por semana
+  y Profundizar— y visualización diaria), **Momentos propios** (la lista, crear y
+  Especiales) y **Al azar**.
 - **Datos y privacidad**: idioma principal (con banderas, `banderaIdioma()`),
-  idioma de respaldo, importar un idioma, copia de seguridad, archivos
-  encontrados en el móvil, incidencias técnicas, versión y restablecer.
+  idioma de respaldo, «Traduce Moment a tu idioma» (descargar el archivo, copiar
+  las instrucciones para la IA, subir el archivo traducido y los idiomas
+  añadidos, con enviar y quitar), copia de seguridad, archivos encontrados en el
+  móvil, incidencias técnicas, versión y restablecer.
+- **Biblioteca**: además de crear una práctica, «Crear una constelación con IA»
+  (`abrirConstelacionIA()`): copia un prompt (`promptConstelacion()`, con la
+  lista de constelaciones del idioma activo, también las propias) y abre el
+  formulario de práctica nueva con la categoría Constelaciones.
 
 Hasta la v3.74 los ajustes de idioma estaban repartidos entre las dos secciones y
 el selector de idioma aparecía duplicado. Si se añade un ajuste nuevo, decidir a
@@ -507,6 +546,11 @@ Al añadir un `try/catch` nuevo, **anotar en él** en vez de dejarlo vacío.
 orden y solo las que falten. **No añadir comprobaciones sueltas** del tipo
 `if(cfg.x===undefined)`.
 
+La última es la **v11** (3.89): `constSem` pasa de días × horas a filas
+(`constSemFilasDe`, hasta 7) y el azar recibe `sep: 13`. Las migraciones se
+ejecutan al cargar `configuracion.js`, antes que `azar.js`: por eso `AZ_SEP_DEF`
+y `CONST_SEM_MAX` viven en `configuracion.js`.
+
 ## 11. Herramientas de auditoría
 
 En `tools/auditoria/`. No forman parte de la app: no se compilan ni se envían.
@@ -590,8 +634,15 @@ y se **importan a mano**; siempre con revisión previa de Jordi Beold.
 
 ### 14.1 Textos que la comunidad NUNCA traduce
 
-Se traducen profesionalmente o se muestran en inglés. Viajan en el bloque `fijos`
-de cada archivo de idioma, separados del resto para que se vea claro.
+Se muestran siempre en español o en inglés (el idioma de respaldo elegido).
+Viajan en el bloque `fijos` de cada archivo de idioma, separados del resto para
+que se vea claro, y **la app los ignora al importar**: `normalizarIdioma()`
+descarta `fijos` y las claves de `NO_TRADUCIBLE` que vengan en `interfaz`, fija
+`licencia` (AGPL-3.0), `esquema`, `revisado: false` y `traducidoDe`, deja
+«Moment» (`MARCA_FIJA`) y cambia por la oficial cada frase que pierde o gana un
+marcador (`{n}`, `{d}`…). Lo mismo se hace al arrancar con los idiomas ya
+guardados. Hasta la 3.88 un archivo sí podía cambiar los textos legales que se
+veían. `t()` busca lo que falte en el idioma de respaldo y, al final, en español.
 
 | Bloque | Por qué |
 |---|---|
@@ -623,7 +674,8 @@ Dos reglas que no se negocian:
 | Pieza | Qué hace |
 |---|---|
 | `idiomasPropios` (`mpt_idiomas`) | Idiomas importados, guardados en el móvil |
-| `revisarIdioma(d)` | Valida antes de aceptar: esquema, código, sin HTML, no pisa es/en |
+| `revisarIdioma(d)` | Valida antes de aceptar: código, sin HTML, no pisa es/en; el esquema solo se rechaza si es de una versión más nueva |
+| `normalizarIdioma(d)` | Deja lo que no se traduce como lo oficial (ver 14.1) y cuenta las frases cambiadas |
 | `activarIdioma(d)` | Lo incorpora a `I18N`, `TEXTOS`, `CATEGORIAS` y `CREDITOS` |
 | `tipoDeArchivo(texto, nombre)` | Reconoce si es copia, idioma o prácticas |
 | `importarArchivo(file)` | **Punto único**: mira el contenido y encamina solo |

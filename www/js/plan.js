@@ -73,24 +73,23 @@ function placeVisualization(ids){
 }
 function anyConstFlag(){ return cfg && (cfg.constIni || cfg.constMed || cfg.constFin || constSemActiva()); }
 /* ---- Constelaciones «x por semana» ----
-   Además de (o en vez de) una constelación diaria, la persona elige días de la
-   semana y horas: ese día, a esa hora, entra una constelación. Se guardan en
-   cfg.constSem = {on, dias:[0-6, 0 = domingo], horas:[minutos desde medianoche]}. */
+   Además de (o en vez de) una constelación diaria, la persona elige cuántas quiere a
+   la semana (de 1 a 7) y, para cada una, el día, la hora y cuál: una concreta o al
+   azar. Formato y conversión del antiguo en configuracion.js (constSemFilasDe). */
 function constSemCfg(){
-  if(!cfg.constSem) cfg.constSem={on:false, dias:[], horas:[]};
+  if(!cfg.constSem || !Array.isArray(cfg.constSem.filas)) cfg.constSem=constSemFilasDe(cfg.constSem);
   return cfg.constSem;
 }
 function constSemActiva(){
   const c=cfg && cfg.constSem;
-  return !!(c && c.on && (c.dias||[]).length && (c.horas||[]).length);
+  return !!(c && c.on && Array.isArray(c.filas) && c.filas.length);
 }
-function constSemTotal(){ const c=cfg && cfg.constSem; return c && c.on ? (c.dias||[]).length*(c.horas||[]).length : 0; }
-// Horas de constelación que tocan en una fecha concreta (AAAA-MM-DD)
-function constSemanaHoras(dstr){
+// Constelaciones de la semana que tocan en una fecha (AAAA-MM-DD): [{h, pid}] por hora.
+// pid null = al azar.
+function constSemanaDe(dstr){
   if(!constSemActiva() || cfg.constNo) return [];
-  const [y,m,d]=dstr.split('-').map(Number);
-  return cfg.constSem.dias.includes(new Date(y,m-1,d).getDay())
-    ? cfg.constSem.horas.slice().sort((a,b)=>a-b) : [];
+  const [y,m,d]=dstr.split('-').map(Number), dia=new Date(y,m-1,d).getDay();
+  return cfg.constSem.filas.filter(f=>f.d===dia).map(f=>({h:f.h, pid:f.pid||null})).sort((a,b)=>a.h-b.h);
 }
 // Una constelación para hoy que no se repita en el día: primero las favoritas
 function elegirConstelacion(usados){
@@ -210,9 +209,15 @@ function buildDayEntries(dstr){
     // Constelaciones «x por semana»: si coinciden con una propuesta del patrón, la
     // sustituyen (así no suenan dos a la vez); si no, se añaden a su hora.
     const usados=new Set(entries.map(e=>e.pid));
-    constSemanaHoras(dstr).forEach(h=>{
+    constSemanaDe(dstr).forEach(({h, pid})=>{
       if(excl.has(h)) return;                 // un momento propio pidió esa hora para él solo
-      const c=elegirConstelacion(usados); if(!c) return;
+      // La elegida, salvo que esté en pausa o ya salga hoy: entonces ese día no se
+      // propone (en pausa = no la quiere ahora). Si ya no existe (una propia que se
+      // borró), vuelve a ser al azar.
+      let c;
+      if(pid && byId(pid)){ if(paused.includes(pid) || usados.has(pid)) return; c=pid; }
+      else c=elegirConstelacion(usados);
+      if(!c) return;
       usados.add(c);
       const k=entries.findIndex(e=>!e.ev && e.time===h);
       if(k>=0){ usados.delete(entries[k].pid); entries[k].pid=c; }

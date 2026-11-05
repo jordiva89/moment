@@ -33,7 +33,8 @@ function renderLib(){
       <option value="">${t('lib_all_cats')} (${ALL().length})</option>
       ${cats.map(c=>`<option ${libCat===c?'selected':''} value="${esc(c)}">${esc(catLabel(c))}</option>`).join('')}
     </select>
-    <button class="btn gold block" style="margin:0 0 14px" onclick="openAddForm()">${t('lib_new')}</button>
+    <button class="btn gold block" style="margin:0 0 8px" onclick="openAddForm()">${t('lib_new')}</button>
+    <button class="btn ghost block" style="margin:0 0 14px" onclick="abrirConstelacionIA()">${t('lib_ai_const')}</button>
     <p class="muted" style="margin:0 2px 8px">${t('lib_offline')}</p>
     ${botonPlegarTodo('toggleAllLib()', !showLibBox && !showFavBox && !showPropias && !showPausedBox && !showHechas)}
     <div id="liblist"></div>
@@ -244,13 +245,33 @@ function catSelectValue(selId, inpId){
   if(v!=='__otra__') return v;
   return (document.getElementById(inpId).value||'').trim() || t('na_cat_other');
 }
-function openAddForm(){
+/* ---- Crear una constelación con ayuda de una IA ----
+   La persona copia unas instrucciones (el «prompt»), las pega en la IA que use y
+   esta le hace unas preguntas y le propone una constelación de Moment o una nueva.
+   Si es nueva, la añade aquí a su Biblioteca, en Constelaciones: a partir de ahí
+   puede llegarle con el patrón, al azar o como momento propio, como cualquier otra.
+   No está atada a ninguna función: por eso vive en la Biblioteca. */
+function promptConstelacion(){
+  const lista=ALL().filter(p=>esCatConst(p.cat)).map((p,i)=>(i+1)+'. '+p.title).join('\n');
+  return t('cp_prompt').replace('{lista}', lista);
+}
+function abrirConstelacionIA(){
+  document.getElementById('modalContent').innerHTML=`
+    <h2>${t('cp_title')}</h2>
+    <p class="muted" style="line-height:1.55">${t('cp_txt')}</p>
+    <button class="btn primary block" onclick="copyText(promptConstelacion()).then(ok=>toast(ok?t('tr_prompt_ok'):t('sr_copy_fail')))">${t('cp_copy')}</button>
+    <button class="btn gold block" onclick="openAddForm('constelaciones')">${t('cp_add')}</button>
+    <button class="btn ghost block" onclick="closeModal()">${t('gd_ok')}</button>`;
+  openModal();
+}
+
+function openAddForm(selCat){
   document.getElementById('modalContent').innerHTML=`
     <h2>${t('na_title')}</h2>
     <p class="muted">${t('na_intro')}</p>
     <label class="fld">${t('na_title_l')}</label><input type="text" id="np_t" placeholder="${t('na_title_ph')}">
     <label class="fld">${t('na_cat')}</label>
-    ${catSelectHTML('np_c','np_c_new')}
+    ${catSelectHTML('np_c','np_c_new', selCat)}
     <label class="fld">${t('na_text')}</label>
     <textarea id="np_x" placeholder="${t('na_text_ph')}"></textarea>
     <label class="fld">${t('na_link')}</label><input type="url" id="np_l" placeholder="https://…">

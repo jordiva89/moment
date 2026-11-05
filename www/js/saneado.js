@@ -64,6 +64,7 @@ function sanearEvento(e){
     startM: entero(e.startM, 1, 12, 1), startD: entero(e.startD, 1, 31, 1),
   };
   if (e.excl) o.excl = true;
+  if (e.prof) o.prof = true;     // «Profundizar en una constelación»
   return o;
 }
 function sanearIds(a, max){ return [...new Set((Array.isArray(a) ? a : []).filter(esId))].slice(0, max || 5000); }
@@ -100,14 +101,25 @@ function sanearCfg(c){
       min: Math.min(entero(z.min, 1, 24, 3), mx), max: mx,
       excl: [...new Set((Array.isArray(z.excl) ? z.excl : []).filter(x => typeof x === 'string' && x.length <= 80))].slice(0, 200),
     };
+    if (z.sep !== undefined) o.azar.sep = entero(z.sep, 1, 240, 13);
   }
   if (c.constSem && typeof c.constSem === 'object'){
     const s = c.constSem;
-    o.constSem = {
-      on: !!s.on,
-      dias: [...new Set((Array.isArray(s.dias) ? s.dias : []).map(d => entero(d, 0, 6, -1)).filter(d => d >= 0))].sort((a,b) => a-b),
-      horas: [...new Set((Array.isArray(s.horas) ? s.horas : []).map(m => entero(m, 0, 1439, -1)).filter(m => m >= 0))].sort((a,b) => a-b).slice(0, 6),
-    };
+    if (Array.isArray(s.filas)){
+      // 3.89: de 1 a 7 filas con día, hora y constelación (o null = al azar)
+      o.constSem = {
+        on: !!s.on,
+        filas: s.filas.filter(f => f && typeof f === 'object').slice(0, 7)
+          .map(f => ({ d: entero(f.d, 0, 6, 1), h: entero(f.h, 0, 1439, 1260), pid: esId(f.pid) ? f.pid : null })),
+      };
+    } else {
+      // copias de antes de la 3.89 (días × horas): la migración v11 las pasa a filas
+      o.constSem = {
+        on: !!s.on,
+        dias: [...new Set((Array.isArray(s.dias) ? s.dias : []).map(d => entero(d, 0, 6, -1)).filter(d => d >= 0))].sort((a,b) => a-b),
+        horas: [...new Set((Array.isArray(s.horas) ? s.horas : []).map(m => entero(m, 0, 1439, -1)).filter(m => m >= 0))].sort((a,b) => a-b).slice(0, 6),
+      };
+    }
   }
   return o;
 }
