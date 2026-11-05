@@ -633,19 +633,19 @@ mk(async (w,d)=>{
   })());
   w.gotoTab('lib');
   ok('Biblioteca: ya no lleva el botón de la constelación con IA', !d.getElementById('main').innerHTML.includes('abrirConstelacionIA()')
-     && w.t('lib_ai_const')==='✨ Elige o crea una constelación con IA');
+     && w.t('lib_ai_const')==='✨ Elige o crea una constelación con la ayuda de la IA');
   ok('Agenda: cada propuesta dice de dónde viene', w.origenTxt({ev:'e1'})===w.t('hm_own') && w.origenTxt({az:true})==='🎲 Al azar'
      && w.origenTxt({})==='🕐 Patrón estándar' && w.t('h_today')==='Siguientes del día' && w.t('fold_all')==='Plegar');
   ok('prompt de constelaciones: preguntas, contexto y la lista entera', (function(){
     const p=w.promptConstelacion(), n=w.eval("ALL().filter(p=>esCatConst(p.cat)).length");
     return n>=58 && p.includes('Bert Hellinger') && p.includes('Brigitte Champetier de Ribes') && p.includes('o crea una nueva')
-      && p.includes('https://www.insconsfa.com/ejercicios.php\n'+w.eval("ALL().filter(p=>esCatConst(p.cat))[0].title")) && !p.includes('{lista}')
+      && p.includes('ejercicios.php**\n\n1. '+w.eval("ALL().filter(p=>esCatConst(p.cat))[0].title")) && p.includes('**Cómo elegir:**') && p.includes('\n---\n') && !p.includes('{lista}')
       && p.includes('estructura de una constelación sistémica clásica')
       && p.includes('emergencias') && p.includes('¿Qué tema o situación quieres trabajar?') && !/<[a-z]/i.test(p);
   })());
   ok('prompt de constelaciones: también en inglés', (function(){
     w.setLang('en'); const p=w.promptConstelacion(); w.setLang('es');
-    return p.startsWith('I would like you to help me') && p.includes('ejercicios.php\n'+w.eval("PRACTICES_EN.find(p=>p.cat==='constelaciones').title")) && !p.includes('{lista}');
+    return p.startsWith('I would like you to help me') && p.includes('ejercicios.php**\n\n1. '+w.eval("PRACTICES_EN.find(p=>p.cat==='constelaciones').title")) && !p.includes('{lista}');
   })());
   ok('crear constelación con IA: copiar y añadirla a la Biblioteca, en Constelaciones', (function(){
     w.abrirConstelacionIA();

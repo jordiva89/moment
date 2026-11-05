@@ -254,7 +254,8 @@ function catSelectValue(selId, inpId){
 // IA que se recomienda para crear constelaciones (decisión del autor)
 const QWEN_URL='https://chat.qwen.ai/';
 function promptConstelacion(){
-  const lista=ALL().filter(p=>esCatConst(p.cat)).map(p=>p.title).join('\n');
+  // numerada, una por línea (el prompt va en Markdown: las IA lo muestran con formato)
+  const lista=ALL().filter(p=>esCatConst(p.cat)).map((p,i)=>(i+1)+'. '+p.title).join('\n');
   return t('cp_prompt').replace('{lista}', lista);
 }
 function abrirConstelacionIA(){
