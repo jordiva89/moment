@@ -326,6 +326,9 @@ button.hpart:focus-visible{ outline:2px solid var(--dorado); outline-offset:1px 
 .constfila select{ padding:9px 4px 9px 8px; font-size:.95rem }
 .constfila .btn .hpart{ padding:2px 3px }   /* botón de hora más estrecho: el día cabe entero */
 
+/* Constelaciones dentro de «Patrón estándar»: un apartado más, sin marco propio */
+.constsec{ margin:6px 0 4px }
+
 /* Pasos de «Traduce Moment a tu idioma» */
 .pasotr{ margin:12px 0 6px; font-size:.9rem; font-weight:600; color:var(--oscuro); text-align:left }
 [dir="rtl"] .pasotr{ text-align:right }

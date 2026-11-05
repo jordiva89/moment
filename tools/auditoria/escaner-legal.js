@@ -38,7 +38,7 @@ const ZONAS_OK = {
   'js/compartir.js': [['const LEGAL_COND_ES', 'function LEGAL_COND()']],
   // El prompt para crear constelaciones con una IA lleva su propio aviso («no
   // diagnostica ni trata nada», «busca ayuda profesional»): también es protector.
-  'i18n.js': [["cp_prompt:'Quiero que me ayudes", 'Constelaciones de Moment:'], ["cp_prompt:'I would like you", 'Moment’s constellations:']],
+  'i18n.js': [["cp_prompt:'Quiero que me ayudes", 'Constelaciones de Moment que se encuentran'], ["cp_prompt:'I would like you", 'Moment’s constellations, found at']],
 };
 const CLAVE_LEGAL = /^\s*(legal_|acept|cond_|priv_|pr_titular|pr_accept)\w*\s*:/;
 function zonasDe(archivo, txt){

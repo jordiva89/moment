@@ -33,8 +33,7 @@ function renderLib(){
       <option value="">${t('lib_all_cats')} (${ALL().length})</option>
       ${cats.map(c=>`<option ${libCat===c?'selected':''} value="${esc(c)}">${esc(catLabel(c))}</option>`).join('')}
     </select>
-    <button class="btn gold block" style="margin:0 0 8px" onclick="openAddForm()">${t('lib_new')}</button>
-    <button class="btn ghost block" style="margin:0 0 14px" onclick="abrirConstelacionIA()">${t('lib_ai_const')}</button>
+    <button class="btn gold block" style="margin:0 0 14px" onclick="openAddForm()">${t('lib_new')}</button>
     <p class="muted" style="margin:0 2px 8px">${t('lib_offline')}</p>
     ${botonPlegarTodo('toggleAllLib()', !showLibBox && !showFavBox && !showPropias && !showPausedBox && !showHechas)}
     <div id="liblist"></div>
@@ -255,7 +254,7 @@ function catSelectValue(selId, inpId){
 // IA que se recomienda para crear constelaciones (decisión del autor)
 const QWEN_URL='https://chat.qwen.ai/';
 function promptConstelacion(){
-  const lista=ALL().filter(p=>esCatConst(p.cat)).map((p,i)=>(i+1)+'. '+p.title).join('\n');
+  const lista=ALL().filter(p=>esCatConst(p.cat)).map(p=>p.title).join('\n');
   return t('cp_prompt').replace('{lista}', lista);
 }
 function abrirConstelacionIA(){

@@ -430,9 +430,11 @@ mk(async (w,d)=>{
   ok('Ajustes: resumen bajo las horas', aj.includes('id="pt_sum"'));
   ok('Ajustes: la primera hora se toca por partes', /onclick="abrirReloj\(cfg\.startH\*60\+cfg\.startM[^"]*faseDe\(event\)\)">🕐 <span class="hpart" data-f="h">/.test(aj));
   ok('Ajustes: las horas empiezan en 0 h', /onclick="cfg\.span=0;applyCfg\(\)">0 h</.test(aj));
-  ok('Ajustes: constelaciones dentro de Categorías preferidas', (function(){
-    const iCat=aj.indexOf(w.t('pt_vis_label')), iCaja=aj.indexOf('class="subcaja"'), iConst=aj.indexOf(w.t('pt_const_label'));
-    return iCat>0 && iCaja>iCat && iConst>iCaja && aj.indexOf(w.t('pt_const_label'))===aj.lastIndexOf(w.t('pt_const_label'));
+  ok('Ajustes: constelaciones como un apartado más del patrón, sin marco, y luego Especiales', (function(){
+    const iCat=aj.indexOf(w.t('pt_vis_label')), iCaja=aj.indexOf('class="constsec"'), iConst=aj.indexOf(w.t('pt_const_label'));
+    const iEsp=aj.indexOf('>'+w.t('pt_esp_label')+'<'), iMom=aj.indexOf(w.t('pt_moments_label')), iHint=aj.indexOf(w.t('ob_hint_title'));
+    return iCat>0 && iCaja>iCat && iConst>iCaja && aj.indexOf(w.t('pt_const_label'))===aj.lastIndexOf(w.t('pt_const_label'))
+      && iEsp>iConst && iMom>iEsp && iHint>iMom;
   })());
   ok('Ajustes: «x por semana» y «Profundizar», los dos en la lista', aj.includes(w.t('pt_const_sem')) && aj.includes('profundizarToggle(this.checked)')
      && aj.includes(w.t('pt_const_deep_txt')) && !aj.includes('class="btn ghost block" style="margin-top:10px" onclick="openEventForm(null,null,{soloConst:true})"'));
@@ -626,20 +628,24 @@ mk(async (w,d)=>{
   // ---------- crear una constelación con IA (3.89) ----------
   w.gotoTab('lib');
   ok('Ajustes: también al final de las constelaciones del día', (function(){
-    w.eval('setCollapsed={}'); w.renderSet(); const caja=d.querySelector('#main .subcaja');
+    w.eval('setCollapsed={}'); w.renderSet(); const caja=d.querySelector('#main .constsec');
     const bs=[...caja.querySelectorAll('button')]; return bs.length && bs[bs.length-1].getAttribute('onclick')==='abrirConstelacionIA()';
   })());
-  ok('Biblioteca: botón para crear una constelación con IA', d.getElementById('main').innerHTML.includes('abrirConstelacionIA()')
-     && d.getElementById('main').innerHTML.includes(w.t('lib_ai_const')));
+  w.gotoTab('lib');
+  ok('Biblioteca: ya no lleva el botón de la constelación con IA', !d.getElementById('main').innerHTML.includes('abrirConstelacionIA()')
+     && w.t('lib_ai_const')==='✨ Elige o crea una constelación con IA');
+  ok('Agenda: cada propuesta dice de dónde viene', w.origenTxt({ev:'e1'})===w.t('hm_own') && w.origenTxt({az:true})==='🎲 Al azar'
+     && w.origenTxt({})==='🕐 Patrón estándar' && w.t('h_today')==='Siguientes del día' && w.t('fold_all')==='Plegar');
   ok('prompt de constelaciones: preguntas, contexto y la lista entera', (function(){
     const p=w.promptConstelacion(), n=w.eval("ALL().filter(p=>esCatConst(p.cat)).length");
     return n>=58 && p.includes('Bert Hellinger') && p.includes('Brigitte Champetier de Ribes') && p.includes('o crea una nueva')
-      && p.includes('\n'+n+'. ') && p.includes('\n1. '+w.eval("ALL().filter(p=>esCatConst(p.cat))[0].title")) && !p.includes('{lista}')
+      && p.includes('https://www.insconsfa.com/ejercicios.php\n'+w.eval("ALL().filter(p=>esCatConst(p.cat))[0].title")) && !p.includes('{lista}')
+      && p.includes('estructura de una constelación sistémica clásica')
       && p.includes('emergencias') && p.includes('¿Qué tema o situación quieres trabajar?') && !/<[a-z]/i.test(p);
   })());
   ok('prompt de constelaciones: también en inglés', (function(){
     w.setLang('en'); const p=w.promptConstelacion(); w.setLang('es');
-    return p.startsWith('I would like you to help me') && p.includes('\n1. '+w.eval("PRACTICES_EN.find(p=>p.cat==='constelaciones').title")) && !p.includes('{lista}');
+    return p.startsWith('I would like you to help me') && p.includes('ejercicios.php\n'+w.eval("PRACTICES_EN.find(p=>p.cat==='constelaciones').title")) && !p.includes('{lista}');
   })());
   ok('crear constelación con IA: copiar y añadirla a la Biblioteca, en Constelaciones', (function(){
     w.abrirConstelacionIA();
