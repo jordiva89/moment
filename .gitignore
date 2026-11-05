@@ -1,7 +1,10 @@
 # Generado por la compilación: no debe subirse
 node_modules/
-android/
-package-lock.json
+# Solo el proyecto Android que se genera en la raíz al compilar. Con «android/» a
+# secas se quedaba fuera también resources/android (los iconos de la app).
+/android/
+# package-lock.json SÍ se sube: fija las versiones exactas de las dependencias
+# (con su huella) para que la compilación no instale nada distinto sin avisar.
 
 # Clave de firma: va en el secreto ANDROID_KEYSTORE_B64 de GitHub,
 # nunca en el repositorio si este es público

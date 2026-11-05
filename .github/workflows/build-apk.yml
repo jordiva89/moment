@@ -20,26 +20,40 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Descargar el código
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
       - name: Preparar Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: 22
       - name: Preparar Java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
         with:
           distribution: temurin
           java-version: 17
+      # npm ci instala exactamente las versiones de package-lock.json, con su huella:
+      # una versión nueva y manipulada de una dependencia no entra sin que se note.
       - name: Instalar dependencias
-        run: npm install
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else
+            echo "::warning::Falta package-lock.json en el repositorio: se instalan las últimas versiones sin fijar. Súbelo para que la compilación sea reproducible."
+            npm install
+          fi
+      # Si alguna prueba falla, no se publica ningún APK.
+      - name: Pruebas automáticas
+        run: npm test
       - name: Generar el proyecto Android
-        env:
-          ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
         run: |
           npx cap add android
           node tools/prepare-android.js
-          node tools/setup-signing.js
-          npx cap sync android
+      # La clave de firma solo está disponible en este paso, no en los demás.
+      - name: Firma
+        env:
+          ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: node tools/setup-signing.js
+      - name: Copiar la app al proyecto Android
+        run: npx cap sync android
       - name: Primera compilación
         run: |
           cd android
@@ -63,7 +77,7 @@ jobs:
         run: |
           set -e
           APK=android/app/build/outputs/apk/release/app-release.apk
-          VER=$(node -e "const s=require('fs').readFileSync('www/index.html','utf8');console.log((s.match(/APP_VERSION = '([^']+)'/)||[,'?'])[1])")
+          VER=$(node -e "const s=require('fs').readFileSync('www/js/base.js','utf8');console.log((s.match(/APP_VERSION = '([^']+)'/)||[,'?'])[1])")
           TAG=apk-ultimo
           cp "$APK" "moment-v$VER.apk"
           gh release delete "$TAG" --yes --cleanup-tag 2>/dev/null || true
@@ -99,7 +113,7 @@ jobs:
       # el APK ya está publicado como Release en el paso anterior.
       - name: Copia como artefacto (opcional)
         continue-on-error: true
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           retention-days: 5
           name: moment-apk
