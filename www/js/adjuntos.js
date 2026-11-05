@@ -54,8 +54,18 @@ function adjSoltarURL(id){ const u=_adjURL.get(id); if(u){ try{ URL.revokeObject
 // Hueco del adjunto dentro de una ficha. Se rellena solo, en cuanto aparece en
 // pantalla (ver hidratarAdjuntos), porque leer el archivo es asíncrono.
 function adjuntoHTML(p){
-  if(!p || !p.adj || !p.adj.id) return '';
-  return `<div class="adjunto" data-adj="${esc(p.adj.id)}" data-tipo="${esc(p.adj.tipo||'')}"><p class="muted" style="font-size:.85rem;margin:0">${t('adj_loading')}</p></div>`;
+  if(!p) return '';
+  // los de la biblioteca (p.adjs) van dentro de la app: se pintan tal cual
+  const deBiblioteca=(Array.isArray(p.adjs)?p.adjs:[]).map(a=>{
+    const src=esc(a.src);
+    return `<div class="adjunto">${a.tipo==='image' ? `<img src="${src}" alt="" loading="lazy">`
+      : a.tipo==='audio' ? `<audio controls preload="none" src="${src}"></audio>`
+      : `<video controls playsinline preload="none" src="${src}"></video>`}</div>`;
+  }).join('');
+  // el de una práctica propia vive en IndexedDB: se pinta un hueco y lo rellena hidratarAdjuntos()
+  const propio=(p.adj && p.adj.id)
+    ? `<div class="adjunto" data-adj="${esc(p.adj.id)}" data-tipo="${esc(p.adj.tipo||'')}"><p class="muted" style="font-size:.85rem;margin:0">${t('adj_loading')}</p></div>` : '';
+  return deBiblioteca + propio;
 }
 function hidratarAdjuntos(){
   document.querySelectorAll('.adjunto[data-adj]:not([data-ok])').forEach(el=>{

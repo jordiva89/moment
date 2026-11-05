@@ -308,3 +308,23 @@ button.hpart:focus-visible{ outline:2px solid var(--dorado); outline-offset:1px 
 [dir="rtl"] .contador span{ text-align:right }
 .contador b{ min-width:44px; text-align:center; font-size:1.5rem; font-variant-numeric:tabular-nums }
 .stp:disabled{ opacity:.35; cursor:default }
+/* Separación mínima del modo al azar: se puede escribir el número */
+.contador input.numsep{ width:68px; border:1.5px solid #D8CCB2; border-radius:10px; padding:4px 2px;
+  font:inherit; font-size:1.35rem; font-weight:700; text-align:center; background:#FFFDF7; color:var(--oscuro);
+  font-variant-numeric:tabular-nums; -moz-appearance:textfield }
+.contador input.numsep::-webkit-inner-spin-button, .contador input.numsep::-webkit-outer-spin-button{ -webkit-appearance:none; margin:0 }
+
+/* Las tres formas de recibir prácticas en Ajustes → Prácticas propuestas: títulos
+   que separan bien cada apartado */
+.modotit{ display:flex; align-items:center; gap:8px; margin:22px 0 10px; padding-top:16px;
+  border-top:1.5px solid rgba(176,141,62,.35); font-size:1.12rem; font-weight:800; color:var(--verde2) }
+
+/* Constelaciones «x por semana»: una tarjeta por constelación (día, hora y cuál) */
+.constfila{ border:1px solid #E3D8C2; border-radius:12px; padding:8px 10px 10px; margin:8px 0; background:#FFFDF7 }
+.constfila-n{ margin:0 0 6px; font-size:.8rem; font-weight:700; color:var(--verde2); text-transform:uppercase; letter-spacing:.04em }
+.constfila select{ padding:9px 4px 9px 8px; font-size:.95rem }
+.constfila .btn .hpart{ padding:2px 3px }   /* botón de hora más estrecho: el día cabe entero */
+
+/* Pasos de «Traduce Moment a tu idioma» */
+.pasotr{ margin:12px 0 6px; font-size:.9rem; font-weight:600; color:var(--oscuro); text-align:left }
+[dir="rtl"] .pasotr{ text-align:right }

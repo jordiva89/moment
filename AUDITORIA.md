@@ -43,6 +43,12 @@ copia posible (código en títulos, enlaces `javascript:`, identificadores con
 código, un idioma con HTML) y revisa cada pantalla. Pasada a la 3.86, falla en 5
 pantallas; en la 3.87 pasa entera (31 comprobaciones).
 
+### Corregido en la 3.89
+
+| Problema | Riesgo | Arreglo |
+|---|---|---|
+| Un idioma importado podía cambiar los textos legales que se ven (aviso de responsabilidad, condiciones, privacidad): la app copiaba tal cual el bloque `fijos` del archivo. | Medio | `normalizarIdioma()`: al importar y al arrancar se descartan `fijos` y las claves legales; se muestran siempre los oficiales, en español o inglés. También se fijan licencia, esquema y «revisado», y se conserva el nombre «Moment». |
+
 ### Fallos encontrados en la revisión de la 3.86 (ya corregidos allí)
 
 - El formulario de «Momento para ti» fallaba en silencio en cualquier aviso (y al

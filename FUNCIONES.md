@@ -3,25 +3,27 @@
 Inventario completo de funciones, para tenerlo a la vista al escribir sobre la
 app, preparar la ficha de Google Play o explicársela a alguien.
 
-Versión 3.88 · 208 prácticas · español e inglés
+Versión 3.89 · 208 prácticas · español e inglés
 
 ---
 
 ## 1. El día que te propone
 
 Tres formas de recibir prácticas, que se combinan como quieras. Al empezar se
-elige una; después, en Ajustes → Tu patrón de práctica, se activan las que se
+elige una; después, en Ajustes → Prácticas propuestas, se activan las que se
 quieran:
 
-- **Con un patrón:** cada día a las mismas horas (lo que se describe abajo).
-- **Al azar:** cada día a horas distintas, por sorpresa. Eliges la franja horaria
-  (primera y última hora, también pasando la medianoche), cuántas prácticas al
-  día con un mínimo y un máximo (iguales = siempre las mismas) y de qué
-  categorías. Nunca salen las pausadas ni se repite una práctica en el día, y
-  quedan al menos 15 minutos entre una y otra.
-- **Personalizado:** solo tus «Momentos para ti» (sección 3).
+- **Patrón estándar:** cada día a las mismas horas (lo que se describe abajo).
+- **Momentos propios:** tus «Momentos para ti», con prácticas de la biblioteca o
+  creadas por ti, el día y a la hora que elijas (sección 3).
+- **Al azar:** cada día a horas distintas, por sorpresa, a cualquier minuto
+  (13:00 o 13:41). Eliges la franja horaria (primera y última hora, también
+  pasando la medianoche), cuántas prácticas al día con un mínimo y un máximo
+  (iguales = siempre las mismas), cuántos minutos pasan como mínimo entre una
+  propuesta y otra (13 de partida) y de qué categorías. Nunca salen las
+  pausadas ni se repite una práctica en el día.
 
-**Con un patrón:**
+**Patrón estándar:**
 
 - **Hora de la primera práctica.** Tú decides a qué hora empieza tu día. En la
   hora mostrada se tocan por separado las horas o los minutos.
@@ -44,9 +46,11 @@ quieran:
   elijas.
 - **Constelaciones** (dentro de Categorías preferidas). Eliges en qué momentos
   del día quieres una: al principio, a mediodía, al final, en varios o en
-  ninguno. O **x por semana**: los días y las horas que tú elijas.
-- **Profundizar en una constelación:** crea un momento con una sola, siempre la
-  misma, para trabajarla a fondo.
+  ninguno. O **x por semana**: cuántas a la semana (de 1 a 7) y, para cada una,
+  el día, la hora y cuál, una concreta o al azar.
+- **Profundizar en una constelación**, una opción más de la misma lista: la misma
+  constelación una y otra vez (7, 13, 21 o 28 veces), a la hora y los días que
+  elijas, para trabajar un tema a fondo. Se pausa y se retoma desde la casilla.
 - **Una visualización cada día**, si la activas.
 - **Pausar prácticas** que no te encajan: dejan de proponerse.
 
@@ -79,6 +83,10 @@ Aquí está el control fino: cuando ya conoces las prácticas, montas tu día ex
   instalado.
 - **Edítalas** desde la biblioteca o desde el momento que las usa.
 - **Compártelas** con el autor por si encajan en la biblioteca oficial.
+- **Crea una constelación con una IA:** copias unas instrucciones, las pegas en
+  ChatGPT, Claude, Gemini…, la IA te hace unas preguntas sobre lo que quieres
+  trabajar y te propone una constelación de Moment o una nueva, que añades a tu
+  biblioteca. Desde ahí puede llegarte como cualquier otra.
 
 ## 5. La biblioteca base
 
@@ -89,6 +97,8 @@ Aquí está el control fino: cuando ya conoces las prácticas, montas tu día ex
 - **62 con vídeo** enlazado.
 - **Buscador** por texto y **filtro** por categoría.
 - **Caja de hechas** con el recuento de cada práctica.
+- **Preparada para archivos:** cualquier práctica de la biblioteca puede llevar
+  audio, imagen o vídeo dentro de la app, cada uno con su idioma.
 
 ## 6. Seguimiento
 
@@ -108,8 +118,13 @@ Aquí está el control fino: cuando ya conoces las prácticas, montas tu día ex
 - **Preparada para el árabe** y otras escrituras de derecha a izquierda.
 - **Traducciones de la comunidad**, con validación automática y revisión humana.
   Quien traduce aparece acreditado en la app.
-- **Traduce desde la app:** descarga el archivo para traducir, con instrucciones
-  listas para pegar en una IA, y envía el idioma por email para su revisión.
+- **Traduce desde la app**, todo en el mismo sitio y en tres pasos: descarga el
+  archivo, copia las instrucciones para la IA y sube el archivo traducido, que se
+  aplica al momento. Después puedes enviárselo al autor para que valore incluirlo
+  en la app para todo el mundo o publicarlo en la web.
+- **Lo que no se traduce es siempre lo oficial:** la licencia, los textos legales,
+  el nombre «Moment»…, aunque el archivo los traiga cambiados. Y una frase que
+  pierde un dato entre llaves ({n}) usa la oficial para no salir rota.
 
 ## 8. Tus datos
 

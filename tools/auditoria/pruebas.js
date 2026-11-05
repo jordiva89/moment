@@ -434,17 +434,18 @@ mk(async (w,d)=>{
     const iCat=aj.indexOf(w.t('pt_vis_label')), iCaja=aj.indexOf('class="subcaja"'), iConst=aj.indexOf(w.t('pt_const_label'));
     return iCat>0 && iCaja>iCat && iConst>iCaja && aj.indexOf(w.t('pt_const_label'))===aj.lastIndexOf(w.t('pt_const_label'));
   })());
-  ok('Ajustes: «x por semana» y «Profundizar»', aj.includes(w.t('pt_const_sem')) && aj.includes("openEventForm(null,null,{soloConst:true})"));
-  ok('configuración: migraciones al día', w.eval('CFG_VERSION')===10 && w.eval('cfg.v')===10 && !!w.eval('cfg.constSem') && !!w.eval('cfg.azar'));
+  ok('Ajustes: «x por semana» y «Profundizar», los dos en la lista', aj.includes(w.t('pt_const_sem')) && aj.includes('profundizarToggle(this.checked)')
+     && aj.includes(w.t('pt_const_deep_txt')) && !aj.includes('class="btn ghost block" style="margin-top:10px" onclick="openEventForm(null,null,{soloConst:true})"'));
+  ok('configuración: migraciones al día', w.eval('CFG_VERSION')===11 && w.eval('cfg.v')===11 && Array.isArray(w.eval('cfg.constSem.filas')) && w.eval('cfg.azar.sep')===13);
   // ---------- constelaciones x por semana ----------
   ok('x por semana: entra solo los días elegidos', (function(){
-    w.eval("cfg.constNo=false; cfg.constIni=false; cfg.constMed=false; cfg.constFin=false; cfg.constSem={on:true,dias:[1],horas:[1260]};");
+    w.eval("cfg.constNo=false; cfg.constIni=false; cfg.constMed=false; cfg.constFin=false; cfg.constSem={on:true,filas:[{d:1,h:1260,pid:null}]};");
     const lun=w.buildDayEntries('2026-01-05'), mar=w.buildDayEntries('2026-01-06');
     const c=lun.find(e=>e.time===1260);
     return !!c && w.esCatConst(byIdW(c.pid).cat) && !mar.some(e=>e.time===1260);
   })());
   ok('x por semana: si coincide con una propuesta, la sustituye', (function(){
-    w.eval("cfg.constSem={on:true,dias:[1],horas:[600]};");
+    w.eval("cfg.constSem={on:true,filas:[{d:1,h:600,pid:null}]};");
     const lun=w.buildDayEntries('2026-01-05').filter(e=>e.time===600);
     return lun.length===1 && w.esCatConst(byIdW(lun[0].pid).cat);
   })());
@@ -452,18 +453,85 @@ mk(async (w,d)=>{
     const mar=w.buildDayEntries('2026-01-06');
     return mar.every(e=>!w.esCatConst((byIdW(e.pid)||{}).cat));
   })());
-  ok('x por semana: total por semana', (function(){
-    w.eval("cfg.constSem={on:true,dias:[1,3],horas:[600,1260]};");
-    return w.constSemBloque().includes('Total: 4 constelaciones por semana');
+  ok('x por semana: cada una con su día y su hora', (function(){
+    w.eval("cfg.constSem={on:true,filas:[{d:1,h:600,pid:null},{d:3,h:1260,pid:null}]};");
+    const lun=w.buildDayEntries('2026-01-05'), mie=w.buildDayEntries('2026-01-07');
+    const esC=e=>w.esCatConst((byIdW(e.pid)||{}).cat);
+    return lun.some(e=>e.time===600 && esC(e)) && !lun.some(e=>e.time===1260)
+      && mie.some(e=>e.time===1260 && esC(e)) && !mie.some(e=>e.time===600 && esC(e));
+  })());
+  ok('x por semana: una concreta sale siempre ese día, a esa hora', (function(){
+    w.eval("cfg.constSem={on:true,filas:[{d:1,h:1265,pid:'p039'}]};");
+    return ['2026-01-05','2026-01-12','2026-01-19'].every(f=>w.buildDayEntries(f).some(e=>e.time===1265 && e.pid==='p039'));
+  })());
+  ok('x por semana: si la elegida está en pausa, ese día no se propone', (function(){
+    w.eval("paused.push('p039');");
+    const r=!w.buildDayEntries('2026-01-05').some(e=>e.time===1265);
+    w.eval("paused=paused.filter(x=>x!=='p039');"); return r;
+  })());
+  ok('x por semana: si la elegida ya no existe, vuelve a ser al azar', (function(){
+    w.eval("cfg.constSem={on:true,filas:[{d:1,h:1265,pid:'uBorrada'}]};");
+    const c=w.buildDayEntries('2026-01-05').find(e=>e.time===1265);
+    return !!c && w.esCatConst(byIdW(c.pid).cat);
+  })());
+  ok('x por semana: de 1 a 7, cada una con día, hora y cuál', (function(){
+    w.eval("cfg.constSem={on:true,filas:[{d:1,h:600,pid:null}]};");
+    const uno=w.constSemBloque();
+    w.constSemCuantas(1); w.constSemCuantas(1);
+    const f=w.eval('cfg.constSem.filas');
+    const tres=f.length===3 && f[1].d===2 && f[2].d===3 && f[2].h===600;
+    for(let k=0;k<9;k++) w.constSemCuantas(1);
+    const siete=w.eval('cfg.constSem.filas.length')===7 && w.constSemBloque().includes('Total: 7 constelaciones por semana');
+    for(let k=0;k<9;k++) w.constSemCuantas(-1);
+    const minimo=w.eval('cfg.constSem.filas.length')===1;
+    w.constSemCual(0,'p039'); w.constSemDia(0,'5');
+    const b=w.constSemBloque();
+    const fila=w.eval('cfg.constSem.filas[0]');
+    return uno.includes('Total: 1 constelación por semana') && uno.includes('🎲 '+w.t('pt_const_sem_rand'))
+      && (uno.match(/<option value="p0\d\d"/g)||[]).length>=58 && uno.includes('>'+w.nombreDia(1)+'<')
+      && tres && siete && minimo && fila.pid==='p039' && fila.d===5 && b.includes('value="p039" selected');
+  })());
+  ok('x por semana: lo de antes (días × horas) pasa a filas', (function(){
+    const c=w.constSemFilasDe({on:true,dias:[0,1,3],horas:[1260,600]});
+    const muchas=w.constSemFilasDe({on:true,dias:[0,1,2,3,4,5,6],horas:[600,1260]});
+    return c.on && JSON.stringify(c.filas)==='[{"d":1,"h":600,"pid":null},{"d":1,"h":1260,"pid":null},{"d":3,"h":600,"pid":null},{"d":3,"h":1260,"pid":null},{"d":0,"h":600,"pid":null},{"d":0,"h":1260,"pid":null}]'
+      && muchas.filas.length===7 && w.constSemFilasDe({on:true,dias:[],horas:[600]}).on===false;
   })());
   ok('«No proponer» apaga también las semanales', /cfg\.constNo=this\.checked;if\(this\.checked\)\{[^}]*cfg\.constSem\.on=false/.test(html));
-  w.eval("cfg.constSem={on:false,dias:[],horas:[]}; LS.set('mpt_cfg',cfg); LS.set('mpt_plans',{});");
+  w.eval("cfg.constSem={on:false,filas:[]}; LS.set('mpt_cfg',cfg); LS.set('mpt_plans',{});");
   ok('Profundizar: solo constelaciones, sin «ejercicio nuevo»', (function(){
     w.openEventForm(null,null,{soloConst:true});
     const ops=[...d.getElementById('ev_p').options].filter(o=>!o.disabled);
     const r=ops.length>10 && ops.every(o=>w.esCatConst(byIdW(o.value).cat)) && !ops.some(o=>o.value==='__new__')
       && d.getElementById('modalContent').innerHTML.includes(w.t('pt_const_deep'));
     w.closeModal(); return r;
+  })());
+  ok('Profundizar: casilla que crea, pausa y retoma', (function(){
+    w.eval('userEvents=[]; evPaused=[]; LS.set("mpt_events",[]); LS.set("mpt_evpaused",[]); setCollapsed={};'); w.renderSet();
+    const cas=()=>d.querySelector('#main input[onchange="profundizarToggle(this.checked)"]');
+    const sinMarcar=!!cas() && !cas().checked;
+    w.profundizarToggle(true);                       // sin ninguna: abre el formulario de constelaciones
+    const form=d.getElementById('modalContent').innerHTML.includes(w.t('ef_deep_txt'));
+    d.getElementById('ev_h').value='21:00'; d.getElementById('ev_p').value='p039'; d.getElementById('ev_r').value='daily'; d.getElementById('ev_veces').value='21';
+    w.saveEvent();
+    const ev=w.eval('userEvents[0]');
+    const creado=!!ev && ev.prof===true && ev.pid==='p039' && ev.veces===21;
+    w.closeModal(); w.renderSet();
+    const h=d.getElementById('main').innerHTML;
+    const marcada=cas().checked && h.includes('🔍 <b>') && h.includes(w.t('pt_const_deep_add'));
+    w.profundizarToggle(false);
+    const pausa=w.eval('evPaused.includes(userEvents[0].id)') && !cas().checked;
+    w.profundizarToggle(true);
+    const retoma=w.eval('evPaused.length')===0 && cas().checked;
+    w.eval('userEvents=[]; evPaused=[]; LS.set("mpt_events",[]); LS.set("mpt_evpaused",[]); rebuildToday();'); w.renderSet();
+    return sinMarcar && form && creado && marcada && pausa && retoma;
+  })());
+  ok('Profundizar: un momento normal no lleva la marca', (function(){
+    w.openEventForm();
+    d.getElementById('ev_h').value='10:30'; d.getElementById('ev_p').value='p001'; d.getElementById('ev_r').value='daily';
+    w.saveEvent(); w.closeModal();
+    const r=w.eval('userEvents.length')===1 && w.eval('userEvents[0].prof')===undefined;
+    w.eval('userEvents=[]; LS.set("mpt_events",[]); rebuildToday();'); return r;
   })());
   // ---------- idiomas ----------
   const pl=w.plantillaTraduccion('es');
@@ -487,10 +555,118 @@ mk(async (w,d)=>{
   w.setLang('es'); w.eval("delete idiomasPropios.fr; LS.set('mpt_idiomas', idiomasPropios);");
   w.eval('setCollapsed={}'); w.renderSet(); aj=d.getElementById('main').innerHTML;
   ok('Ajustes: descargar plantilla y copiar instrucciones para la IA', aj.includes('descargarPlantillaTraduccion()') && aj.includes("copyText(t('tr_prompt'))"));
+  ok('Ajustes: todo lo de traducir junto, en tres pasos, con el botón de subir', (function(){
+    // (el título también se cita en el texto de «Idioma»: se busca la etiqueta)
+    const i0=aj.indexOf('>'+w.t('tr_title')+'</label>'), i1=aj.indexOf(w.t('tr_s1')), i2=aj.indexOf(w.t('tr_s2')), i3=aj.indexOf(w.t('tr_s3'));
+    const iSubir=aj.indexOf('id="id_file"'), iResp=aj.indexOf(w.t('lb_label')), iIdiomas=aj.indexOf("setLang('en')");
+    return i0>0 && iIdiomas<iResp && iResp<i0 && i1>i0 && i2>i1 && i3>i2 && iSubir>i3
+      && aj.split('id="id_file"').length===2 && aj.includes(w.t('id_import'));
+  })());
+  // ---------- idiomas: lo que no se traduce es siempre lo oficial (3.89) ----------
+  const legal=Object.keys(pl.fijos)[0];
+  let alertado='';
+  w.alert=m=>{ alertado=String(m); };
+  ok('idioma: licencia, esquema, revisado, legales y «Moment» vuelven a ser los oficiales', (function(){
+    const it=JSON.parse(JSON.stringify(pl));
+    Object.assign(it, {codigo:'it', nombre:'Italiano', autor:'Prova', licencia:'MIT', esquema:'uno', revisado:true, traducidoDe:'xx'});
+    it.fijos[legal]='TESTO LEGALE CAMBIATO';
+    it.interfaz[legal]='ANCHE QUI CAMBIATO';
+    it.interfaz.app_title='Momento';
+    it.interfaz.az_cap='Ci stanno al massimo tante';           // ha perdido {n} y {s}
+    it.interfaz.set_pattern='Pratiche proposte';
+    it.interfaz.clave_inventada='x';
+    let msg='';
+    w.confirm=m=>{ msg=String(m); return true; };
+    w.aplicarIdiomaTexto(JSON.stringify(it));
+    w.closeModal(); w.confirm=()=>true;
+    const g=w.eval('idiomasPropios.it');
+    return !!g && g.licencia==='AGPL-3.0' && g.esquema===1 && g.revisado===false && g.traducidoDe==='es' && !g.fijos
+      && !(legal in g.interfaz) && !('app_title' in g.interfaz) && !('az_cap' in g.interfaz) && !('clave_inventada' in g.interfaz)
+      && w.getLang()==='it' && w.t(legal)===w.eval('I18N.es['+JSON.stringify(legal)+']') && w.t('app_title')==='Moment'
+      && w.t('set_pattern')==='Pratiche proposte' && w.t('az_cap').includes('{s}')
+      && msg.includes(w.eval('I18N.es.id_fixed').replace('{n}',1));
+  })());
+  ok('idioma: lo que falta se ve en el idioma de respaldo elegido', (function(){
+    w.eval("cfg.langBiblio='en';");
+    const r=w.t(legal)===w.eval('I18N.en['+JSON.stringify(legal)+']') && w.t('app_title')==='Moment';
+    w.eval("cfg.langBiblio='es';"); return r;
+  })());
+  ok('idioma: en Ajustes aparece entre «Tus idiomas añadidos»', (function(){
+    w.eval('setCollapsed={}'); w.renderSet(); const h=d.getElementById('main').innerHTML;
+    return h.includes(w.t('tr_mine')) && h.includes("enviarIdiomaEmail('it')") && h.includes("quitarIdioma('it')") && h.indexOf("quitarIdioma('it')")>h.indexOf('id="id_file"');
+  })());
+  ok('idioma: los guardados antes de la 3.89 se limpian al arrancar', (function(){
+    w.eval("idiomasPropios.it.fijos={"+JSON.stringify(legal)+":'VIEJO'}; idiomasPropios.it.interfaz["+JSON.stringify(legal)+"]='VIEJO'; idiomasPropios.it.licencia='MIT'; LS.set('mpt_idiomas', idiomasPropios);");
+    w.eval('cargarIdiomasPropios()');
+    const g=JSON.parse(w.localStorage.getItem('mpt_idiomas')).it;
+    return !g.fijos && !(legal in g.interfaz) && g.licencia==='AGPL-3.0' && w.t(legal)!=='VIEJO';
+  })());
+  ok('idioma: un archivo de una versión más nueva se rechaza', (function(){
+    alertado='';
+    const nuevo=Object.assign(JSON.parse(JSON.stringify(pl)), {codigo:'pt', nombre:'Português', esquema:99});
+    w.aplicarIdiomaTexto(JSON.stringify(nuevo));
+    return alertado.includes(w.t('iv_esquema')) && !w.eval('idiomasPropios.pt');
+  })());
+  w.setLang('es'); w.eval("delete idiomasPropios.it; LS.set('mpt_idiomas', idiomasPropios); delete I18N.it;");
+  w.eval('setCollapsed={}'); w.renderSet(); aj=d.getElementById('main').innerHTML;
   ok('plugin nativo: el correo llega con destinatario', /EXTRA_EMAIL/.test(require('fs').readFileSync(require('path').join(entorno.RAIZ,'tools','prepare-android.js'),'utf8')));
   // ---------- El Noveno Camino ----------
   w.gotoTab('fav');
   ok('El Noveno Camino: título centrado', d.getElementById('main').innerHTML.includes('font-size:1.7rem;text-align:center'));
+  // ---------- crear una constelación con IA (3.89) ----------
+  w.gotoTab('lib');
+  ok('Biblioteca: botón para crear una constelación con IA', d.getElementById('main').innerHTML.includes('abrirConstelacionIA()')
+     && d.getElementById('main').innerHTML.includes(w.t('lib_ai_const')));
+  ok('prompt de constelaciones: preguntas, contexto y la lista entera', (function(){
+    const p=w.promptConstelacion(), n=w.eval("ALL().filter(p=>esCatConst(p.cat)).length");
+    return n>=58 && p.includes('Bert Hellinger') && p.includes('Brigitte Champetier de Ribes') && p.includes('o crea una nueva')
+      && p.includes('\n'+n+'. ') && p.includes('\n1. '+w.eval("ALL().filter(p=>esCatConst(p.cat))[0].title")) && !p.includes('{lista}')
+      && p.includes('emergencias') && p.includes('¿Qué tema o situación quieres trabajar?') && !/<[a-z]/i.test(p);
+  })());
+  ok('prompt de constelaciones: también en inglés', (function(){
+    w.setLang('en'); const p=w.promptConstelacion(); w.setLang('es');
+    return p.startsWith('I would like you to help me') && p.includes('\n1. '+w.eval("PRACTICES_EN.find(p=>p.cat==='constelaciones').title")) && !p.includes('{lista}');
+  })());
+  ok('crear constelación con IA: copiar y añadirla a la Biblioteca, en Constelaciones', (function(){
+    w.abrirConstelacionIA();
+    const h=d.getElementById('modalContent').innerHTML;
+    const r=h.includes('copyText(promptConstelacion())') && h.includes("openAddForm('constelaciones')");
+    w.openAddForm('constelaciones');
+    const sel=d.getElementById('np_c').value==='constelaciones';
+    w.closeModal(); return r && sel;
+  })());
+  ok('una constelación propia se puede elegir en «x por semana», en Profundizar y entra en el prompt', (function(){
+    w.eval("userLib.push({id:'uC1',cat:'constelaciones',title:'Mi constelación',text:'pasos'}); libCacheDirty(); cfg.constSem={on:true,filas:[{d:1,h:600,pid:null}]};");
+    const enSem=w.constSemBloque().includes('value="uC1"');
+    w.openEventForm(null,null,{soloConst:true});
+    const enProf=[...d.getElementById('ev_p').options].some(o=>o.value==='uC1'); w.closeModal();
+    const enPrompt=w.promptConstelacion().includes('Mi constelación');
+    w.eval("userLib=userLib.filter(p=>p.id!=='uC1'); libCacheDirty(); cfg.constSem={on:false,filas:[]};");
+    return enSem && enProf && enPrompt;
+  })());
+  // ---------- archivos en la biblioteca estándar (3.89) ----------
+  ok('biblioteca: las prácticas pueden llevar archivos de dentro de la app, por idioma', (function(){
+    const p={id:'p001', cat:'armonizacion', adj:[
+      {tipo:'audio', src:'medios/p001-es.mp3', idioma:'es'}, {tipo:'audio', src:'medios/p001-en.mp3', idioma:'en'},
+      {tipo:'image', src:'medios/p001.jpg'}, {tipo:'video', src:'https://malo.example/v.mp4'},
+      {tipo:'audio', src:'medios/../../secreto'}, {tipo:'script', src:'medios/x.js'}]};
+    const src=l=>JSON.stringify(l.map(a=>a.src));
+    const es=w.adjuntosDe(p,'es','es'), en=w.adjuntosDe(p,'en','es'), de=w.adjuntosDe(p,'de','en');
+    const h=w.adjuntoHTML({id:'p001', adjs:es});
+    return src(es)==='["medios/p001.jpg","medios/p001-es.mp3"]' && src(en)==='["medios/p001.jpg","medios/p001-en.mp3"]'
+      && src(de)==='["medios/p001.jpg","medios/p001-en.mp3"]'
+      && h.includes('<img src="medios/p001.jpg"') && h.includes('<audio controls preload="none" src="medios/p001-es.mp3">')
+      && w.adjuntoHTML({id:'p002'})==='';
+  })());
+  ok('biblioteca: con un archivo declarado, la práctica lo muestra', (function(){
+    w.eval("PRACTICAS.find(p=>p.id==='p002').adj=[{tipo:'audio',src:'medios/p002.mp3'}]; PRACTICES=construirPracticas('es','es'); libCacheDirty();");
+    w.renderFullPractice('p002','lib');
+    const r=d.getElementById('main').innerHTML.includes('src="medios/p002.mp3"');
+    w.eval("delete PRACTICAS.find(p=>p.id==='p002').adj; refreshPracticesLang();");
+    return r && !w.eval("byId('p002').adjs");
+  })());
+  ok('service worker: los archivos de medios/ van directos, sin caché',
+     fs.readFileSync(require('path').join(entorno.RAIZ,'www','sw.js'),'utf8').includes("if (url.pathname.includes('/medios/')) return;"));
   // ---------- adjuntos ----------
   w.eval("window._adjMem=new Map(); ADJ.guardar=(id,b)=>{ _adjMem.set(id,b); return Promise.resolve(); }; ADJ.leer=id=>Promise.resolve(_adjMem.get(id)); ADJ.borrar=id=>{ _adjMem.delete(id); return Promise.resolve(); };");
   w.URL.createObjectURL=()=>'blob:prueba'; w.URL.revokeObjectURL=()=>{};
@@ -543,7 +719,7 @@ mk(async (w,d)=>{
   // ---------- migración ----------
   ok('migración: «solo mis momentos» pasa a patrón apagado', (function(){
     w.eval("cfg={startH:8,startM:0,freq:2,span:14,soloEventos:true,v:9}; migrarCfg();");
-    const r=w.eval('cfg.patron')===false && w.eval('cfg.soloEventos')===undefined && w.eval('cfg.azar.on')===false && w.eval('cfg.v')===10;
+    const r=w.eval('cfg.patron')===false && w.eval('cfg.soloEventos')===undefined && w.eval('cfg.azar.on')===false && w.eval('cfg.v')===w.eval('CFG_VERSION');
     w.eval("cfg={startH:8,startM:0,freq:2,span:14,soloEventos:false,v:9}; migrarCfg();");
     const r2=w.eval('cfg.patron')===true;
     restaurar(); return r && r2;
@@ -572,9 +748,15 @@ mk(async (w,d)=>{
     return h.size>=25 && h2.size>=5;
   })());
   ok('al azar: mínimo = máximo da siempre las mismas', revisar({ini:540,fin:1260,min:4,max:4,excl:[]}, 40, e=>e.length===4));
-  ok('al azar: dentro de la franja y de 5 en 5 minutos', revisar({ini:540,fin:1260,min:2,max:8,excl:[]}, 60, e=>e.every(x=>x.time>=540 && x.time<=1260 && x.time%5===0)));
-  ok('al azar: al menos 15 minutos entre una y otra', revisar({ini:600,fin:720,min:6,max:9,excl:[]}, 60, e=>e.every((x,i)=>!i || x.time-e[i-1].time>=15)));
-  ok('al azar: caben como mucho las de 15 en 15 minutos', revisar({ini:600,fin:660,min:9,max:9,excl:[]}, 20, e=>e.length===5));
+  ok('al azar: dentro de la franja y a cualquier minuto (13:00 o 13:41)', (function(){
+    let sueltos=0;
+    const r=revisar({ini:540,fin:1260,min:2,max:8,excl:[]}, 60, e=>{ sueltos+=e.filter(x=>x.time%5!==0).length; return e.every(x=>x.time>=540 && x.time<=1260); });
+    return r && sueltos>20;
+  })());
+  ok('al azar: al menos 13 minutos entre una y otra de partida', revisar({ini:600,fin:720,min:6,max:9,excl:[]}, 60, e=>e.every((x,i)=>!i || x.time-e[i-1].time>=13)));
+  ok('al azar: la separación la elige la persona', revisar({ini:600,fin:840,min:5,max:5,sep:45,excl:[]}, 60, e=>e.length===5 && e.every((x,i)=>!i || x.time-e[i-1].time>=45)));
+  ok('al azar: caben como mucho las de 13 en 13 minutos', revisar({ini:600,fin:660,min:9,max:9,excl:[]}, 20, e=>e.length===5)
+     && revisar({ini:600,fin:660,min:9,max:9,sep:30,excl:[]}, 10, e=>e.length===3));
   ok('al azar: la franja puede pasar la medianoche', revisar({ini:1320,fin:120,min:3,max:3,excl:[]}, 40, e=>e.length===3 && e.every(x=>x.time>=1320 && x.time<=1560)));
   ok('al azar: sin franja, una sola a su hora', revisar({ini:600,fin:600,min:3,max:5,excl:[]}, 10, e=>e.length===1 && e[0].time===600));
   ok('al azar: sin repetir práctica en el día', revisar({ini:0,fin:1435,min:24,max:24,excl:[]}, 30, e=>new Set(e.map(x=>x.pid)).size===e.length && e.length===24));
@@ -603,13 +785,13 @@ mk(async (w,d)=>{
     const pat=w.eval('slotTimes()');
     const r=dias(40).every(d=>{
       const e=plan(d), az=e.filter(x=>!pat.includes(x.time));
-      return az.length>=5 && az.every(x=>pat.every(p=>Math.abs(p-x.time)>=5)) && new Set(e.map(x=>x.pid)).size===e.length;
+      return az.length>=5 && az.every(x=>pat.every(p=>Math.abs(p-x.time)>=13)) && new Set(e.map(x=>x.pid)).size===e.length;
     });
     restaurar(); return r;
   })());
   ok('al azar: no pisa los momentos propios', (function(){
     w.eval("cfg.patron=false; userEvents=[{id:'eQ',title:'Q',time:600,pid:'p001',rep:'daily',n:2,startY:2026,startM:1,startD:1}]; cfg.azar={on:true,ini:570,fin:660,min:4,max:4,excl:[]};");
-    const r=dias(30).every(d=>{ const e=plan(d); return e.length===5 && e.filter(x=>!x.ev).every(x=>Math.abs(x.time-600)>=5) && e.filter(x=>x.pid==='p001').length===1; });
+    const r=dias(30).every(d=>{ const e=plan(d); return e.length===5 && e.filter(x=>!x.ev).every(x=>Math.abs(x.time-600)>=13) && e.filter(x=>x.pid==='p001').length===1; });
     restaurar(); return r;
   })());
   ok('al azar: el plan de cada día no cambia al pedirlo otra vez', (function(){
@@ -618,8 +800,8 @@ mk(async (w,d)=>{
     restaurar(); return a===b && a.length>10;
   })());
   ok('al azar: resumen legible', (function(){
-    const r1=w.azarResumen({ini:540,fin:1260,min:3,max:5})==='Cada día, de 3 a 5 prácticas al azar, entre las 09:00 y las 21:00.';
-    const r2=w.azarResumen({ini:540,fin:1260,min:4,max:4})==='Cada día, 4 prácticas al azar, entre las 09:00 y las 21:00.';
+    const r1=w.azarResumen({ini:540,fin:1260,min:3,max:5})==='Cada día, de 3 a 5 prácticas al azar, entre las 09:00 y las 21:00. Al menos 13 minutos entre una propuesta y otra.';
+    const r2=w.azarResumen({ini:540,fin:1260,min:4,max:4,sep:20})==='Cada día, 4 prácticas al azar, entre las 09:00 y las 21:00. Al menos 20 minutos entre una propuesta y otra.';
     const r3=w.azarResumen({ini:1320,fin:120,min:1,max:1}).includes('02:00 (del día siguiente)');
     const r4=w.azarFranjaTxt({ini:540,fin:1290})==='Franja de 12 h 30 min: de 09:00 a 21:30';
     return r1 && r2 && r3 && r4;
@@ -650,7 +832,8 @@ mk(async (w,d)=>{
     d.querySelector('#main .btn.primary').click();
     const p1=d.getElementById('main').innerHTML.includes(w.t('ob_az_win_title')) && d.querySelectorAll('#main [onclick^="azHora(\'ob\'"]').length===2;
     d.querySelector('#main .btn.primary').click();
-    const p2=d.getElementById('main').innerHTML.includes(w.t('ob_az_n_title')) && d.querySelectorAll('#main .contador').length===2;
+    const p2=d.getElementById('main').innerHTML.includes(w.t('ob_az_n_title')) && d.querySelectorAll('#main .contador').length===3
+      && !!d.querySelector('#main input.numsep');
     d.querySelector('#main .btn.primary').click();
     const p3=d.getElementById('main').innerHTML.includes(w.t('ob_az_cat_title')) && d.querySelectorAll('#main .chkrow input[type=checkbox]').length>=8;
     d.querySelector('#main .btn.primary').click();
@@ -664,8 +847,19 @@ mk(async (w,d)=>{
     w.azPaso('ob','max',-1);
     const b=w.eval('ob.azar.min')===5 && w.eval('ob.azar.max')===5;
     w.eval("ob.azar.fin=600;"); w.azPaso('ob','max',1);   // 1 h: caben 5
-    const c=w.eval('ob.azar.max')===5 && d.getElementById('main').innerHTML.includes(w.t('az_cap').replace('{n}',5));
+    const c=w.eval('ob.azar.max')===5 && d.getElementById('main').innerHTML.includes(w.t('az_cap').replace('{n}',5).replace('{s}',13));
     return a && b && c;
+  })());
+  ok('bienvenida: la separación mínima se elige y ajusta lo que cabe', (function(){
+    w.eval("ob.azar={on:false,ini:540,fin:600,min:4,max:5,sep:13,excl:[]}; ob._paso='az2';");
+    w.azSepFijar('ob', '30');                       // 1 h con 30 min: caben 3
+    const a=w.eval('ob.azar.sep')===30 && w.eval('ob.azar.max')===3 && w.eval('ob.azar.min')===3;
+    w.azSep('ob', 1);
+    const b=w.eval('ob.azar.sep')===31 && d.querySelector('#main input.numsep').value==='31';
+    w.azSepFijar('ob', '999'); const c=w.eval('ob.azar.sep')===240;
+    w.azSepFijar('ob', 'abc'); const e=w.eval('ob.azar.sep')===13;
+    w.eval("ob.azar.fin=1260;");
+    return a && b && c && e;
   })());
   ok('bienvenida: sin categorías no se puede seguir', (function(){
     w.eval("ob.azar.excl=catPairs().map(c=>c.id);"); w.renderOnboarding('az3');
@@ -712,9 +906,18 @@ mk(async (w,d)=>{
     return iMom>0 && iCrear>iMom && iAz>iCrear && (finSec<0 || iAz<finSec) && aj2.includes('azToggle(this.checked)') && !aj2.includes('class="contador"');
   })());
   ok('Ajustes: ya no existe «solo mis momentos»', !aj2.includes('soloEventos') && w.t('pt_only_own')==='pt_only_own');
+  ok('Ajustes: «Prácticas propuestas», con tres títulos: Patrón estándar, Momentos propios y Al azar', (function(){
+    w.eval('setCollapsed={}'); w.renderSet();
+    const h=d.getElementById('main').innerHTML;
+    const tit=[...d.querySelectorAll('#main h3.modotit')].map(x=>x.textContent.trim());
+    return w.t('set_pattern')==='Prácticas propuestas' && h.includes('>'+w.t('set_pattern')+' <')
+      && JSON.stringify(tit)===JSON.stringify(['🕐 Patrón estándar','✍️ Momentos propios','🎲 Al azar'])
+      && h.includes('Prácticas de la biblioteca o creadas por ti');
+  })());
   ok('Ajustes: con el azar activo aparecen franja, cantidad y categorías', (function(){
     w.azToggle(true); aj2=d.getElementById('main').innerHTML;
-    const r=w.eval('cfg.azar.on')===true && aj2.includes("azHora('cfg','ini'") && d.querySelectorAll('#main .contador').length===2
+    const r=w.eval('cfg.azar.on')===true && aj2.includes("azHora('cfg','ini'") && d.querySelectorAll('#main .contador').length===3
+      && aj2.includes("azSepFijar('cfg', this.value)")
       && aj2.includes('id="az_sum_cfg"') && aj2.includes(w.t('st_az'));
     restaurar(); return r;
   })());
@@ -734,6 +937,26 @@ mk(async (w,d)=>{
   ok('saneado: los modos se conservan y se corrigen', (function(){
     const c=w.sanearCfg({startH:8,startM:0,freq:2,span:12,patron:false,azar:{on:1,ini:9999,fin:'x',min:30,max:2,excl:['a',7,'<b>'.repeat(40)]}});
     return c.patron===false && c.azar.on===true && c.azar.ini===540 && c.azar.fin===1260 && c.azar.max===2 && c.azar.min===2 && c.azar.excl.join()==='a';
+  })());
+  ok('saneado: separación del azar, constelaciones por filas y la marca de Profundizar', (function(){
+    const c=w.sanearCfg({startH:8,startM:0,freq:2,span:12,azar:{on:true,ini:540,fin:1260,min:2,max:3,sep:9999},
+      constSem:{on:true,filas:[{d:9,h:-5,pid:'<img src=x onerror=alert(1)>'},{d:3,h:600,pid:'p039'},null,'x'].concat(Array(10).fill({d:1,h:60,pid:null}))}});
+    const viejo=w.sanearCfg({startH:8,startM:0,freq:2,span:12,constSem:{on:true,dias:[1,9],horas:[600]}});
+    const ev=w.sanearEvento({id:'e1',pid:'p039',title:'x',time:600,rep:'daily',prof:'sí'});
+    return c.azar.sep===13 && c.constSem.filas.length===7 && c.constSem.filas[0].d===1 && c.constSem.filas[0].h===1260 && c.constSem.filas[0].pid===null
+      && c.constSem.filas[1].pid==='p039' && JSON.stringify(viejo.constSem)==='{"on":true,"dias":[1],"horas":[600]}' && ev.prof===true
+      && w.sanearEvento({id:'e2',pid:'p039',title:'x',time:600,rep:'daily'}).prof===undefined;
+  })());
+  ok('diagnóstico: el azar dice también su separación', (function(){
+    w.eval("cfg.azar={on:true,ini:540,fin:1260,min:2,max:3,sep:21,excl:[]};");
+    const r=w.modosTxt().includes('(2–3, 09:00–21:00, 21 min)');
+    restaurar(); return r;
+  })());
+  ok('bienvenida: los modos se llaman como en Ajustes', (function(){
+    w.renderOnboarding('modo');
+    const nombres=[...d.querySelectorAll('#main button.modo b')].map(b=>b.textContent.trim());
+    return JSON.stringify(nombres)===JSON.stringify(['🕐 Patrón estándar','🎲 Al azar','✍️ Momentos propios'])
+      && w.t('ob_mode_sub').includes('Prácticas propuestas') && w.t('ob_pr_next').includes('Prácticas propuestas');
   })());
   restaurar(); w.eval('setCollapsed={}'); w.renderSet();
   ok('el .gitignore no deja fuera los iconos (resources/android)', (function(){

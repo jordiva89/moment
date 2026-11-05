@@ -126,7 +126,7 @@ function statsDay(){
 function modosTxt(){
   const a=cfg && cfg.azar;
   return t('dv_m_pat')+' '+(patronActivo()?'✓':'✗')
-    +' · '+t('dv_m_az')+' '+(azarActivo()?'✓ ('+a.min+'–'+a.max+', '+fmtT(a.ini)+'–'+fmtT(a.fin)+')':'✗')
+    +' · '+t('dv_m_az')+' '+(azarActivo()?'✓ ('+a.min+'–'+a.max+', '+fmtT(a.ini)+'–'+fmtT(a.fin)+', '+azarSep(a)+' min)':'✗')
     +' · '+t('dv_m_mom')+' '+userEvents.filter(ev=>!evPaused.includes(ev.id)).length;
 }
 function saveStats(){ LS.set('mpt_stats', stats); }

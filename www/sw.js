@@ -21,6 +21,9 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
+  // Audio, imagen y vídeo de la biblioteca (medios/): directos, sin pasar por la caché.
+  // El audio y el vídeo se piden a trozos y la caché no puede guardar respuestas parciales.
+  if (url.pathname.includes('/medios/')) return;
   const esCodigo = e.request.mode === 'navigate' ||
     /(index\.html|practices\.js|manifest\.webmanifest|sw\.js)$/.test(url.pathname) ||
     url.pathname.endsWith('/');

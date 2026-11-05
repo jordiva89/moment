@@ -38,9 +38,14 @@ legal o que hacen falta antes de haber elegido idioma:
 - La aceptación de responsabilidad y las contraindicaciones.
 - El titular del servicio y los enlaces legales.
 
-Si un idioma no tiene esos textos traducidos profesionalmente, la app los muestra
-en inglés. **Es lo correcto: preferimos un texto legal en un idioma que no es el
-tuyo antes que uno mal traducido.**
+La app los muestra siempre en español o en inglés (el idioma de respaldo que
+elija cada persona). **Es lo correcto: preferimos un texto legal en un idioma que
+no es el tuyo antes que uno mal traducido.**
+
+Aunque el archivo los traiga traducidos o cambiados, **la app usa siempre los
+oficiales**. Lo mismo pasa con los campos `licencia`, `esquema`, `revisado` y
+`traducidoDe`. Y si una frase pierde un marcador entre llaves (`{n}`, `{d}`…),
+la app usa la frase oficial para que no salga rota.
 
 Tampoco se traducen los nombres propios: **Moment**, **El Novè Camí** y
 **«Momento para ti»** (que es el nombre de la función con la que cada persona crea
@@ -50,14 +55,17 @@ sus propios momentos, no el de la app).
 
 ## Desde la app, sin ordenador
 
-En **Ajustes → Datos y privacidad → Idioma**:
+En **Ajustes → Datos y privacidad → Traduce Moment a tu idioma**, todo en el
+mismo sitio:
 
 1. **Descargar el archivo para traducir.** Trae dentro las instrucciones.
 2. **Copiar instrucciones para la IA**, si quieres traducirlo con ayuda de una
    IA. Revisa después el resultado con calma: una IA puede cambiar el sentido de
    una frase.
-3. Añádelo con **Añadir un idioma desde un archivo**. La app lo revisa y, si está
-   bien, te ofrece **enviarlo por email** para que llegue a todo el mundo.
+3. **Subir el archivo traducido.** La app lo revisa y, si está bien, se pone en
+   tu idioma al momento. Después te ofrece **enviarlo por email** a Jordi, que
+   valorará incluirlo en la app para todo el mundo o publicarlo en la web para que
+   otras personas lo descarguen.
 
 ## Cómo hacerlo
 
@@ -76,8 +84,8 @@ node tools/validar-idioma.js idiomas/ar.json ar
 ```
 
 También puedes probarlo en el móvil sin esperar a nadie: pasa el archivo al
-teléfono y añádelo desde **Ajustes → Idiomas → Añadir un idioma desde un
-archivo**. La app lo revisa y te dice qué falla. Si lo dejas en la carpeta de
+teléfono y súbelo desde **Ajustes → Datos y privacidad → Traduce Moment a tu
+idioma → Subir el archivo traducido**. La app lo revisa y te dice qué falla. Si lo dejas en la carpeta de
 Descargas, el botón «Buscar archivos de Moment» lo encuentra solo.
 
 ### Reglas que la validación comprueba

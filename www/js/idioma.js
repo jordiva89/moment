@@ -25,7 +25,16 @@ function detectLang(){
 function getLang(){ return LANG || detectLang(); }
 function setLang(l){ LANG=l; LS.set('mpt_lang', l); try{ applyNavLang(); }catch(e){} try{ refreshPracticesLang(); }catch(e){} try{ sincronizarCanal(); }catch(e){} }
 
-function t(key){ const l=getLang(); return (I18N[l] && I18N[l][key]) || I18N.es[key] || key; }
+// Lo que le falte al idioma activo se muestra en el idioma de respaldo (español o
+// inglés, el elegido en Ajustes) y, en último caso, en español. Así se ven también
+// los textos legales de un idioma aportado por la comunidad, que nunca se traducen.
+function t(key){
+  const l=getLang();
+  const v=I18N[l] && I18N[l][key];
+  if(v) return v;
+  if(l!=='es' && l!=='en'){ const r=langRespaldo(); if(I18N[r] && I18N[r][key]) return I18N[r][key]; }
+  return I18N.es[key] || key;
+}
 /* Idioma de respaldo de la biblioteca.
    Cuando un idioma no tenga todas las prácticas traducidas —caso normal en las
    traducciones aportadas por la comunidad— los textos que falten se muestran en
@@ -39,6 +48,9 @@ function t(key){ const l=getLang(); return (I18N[l] && I18N[l][key]) || I18N.es[
    traducción de la comunidad no puede meter código en la app. */
 const ESQUEMA_IDIOMA = 1;
 const IDIOMAS_BASE = ['es','en'];          // los que van dentro y no se pueden quitar
+// Textos que la comunidad no traduce: avisos legales, condiciones y la pantalla de
+// elección de idioma. Se muestran siempre en español o en inglés (idioma de respaldo).
+const NO_TRADUCIBLE = /^(acept|legal|priv_|cond_|ob_lang|pr_titular|pr_accept)/;
 let idiomasPropios = LS.get('mpt_idiomas', {});
 
 /* Revisión del archivo antes de aceptarlo. Es la misma idea que
@@ -48,17 +60,52 @@ function revisarIdioma(d){
   if (!d || typeof d !== 'object') return [t('iv_formato')];
   if (!d.codigo || !/^[a-z]{2,3}(-[A-Za-z]{2,4})?$/.test(d.codigo)) fallos.push(t('iv_codigo'));
   if (IDIOMAS_BASE.includes(d.codigo)) fallos.push(t('iv_base'));
-  if (d.esquema !== ESQUEMA_IDIOMA) fallos.push(t('iv_esquema'));
+  // El esquema no se traduce: si viene cambiado se usa el actual (normalizarIdioma).
+  // Solo se rechaza un archivo hecho para una versión más nueva de la app.
+  if (typeof d.esquema === 'number' && d.esquema > ESQUEMA_IDIOMA) fallos.push(t('iv_esquema'));
   if (!d.interfaz || typeof d.interfaz !== 'object') fallos.push(t('iv_interfaz'));
   if (!d.practicas || typeof d.practicas !== 'object') fallos.push(t('iv_practicas'));
   // HTML: solo las etiquetas de formato que usa la propia app (<b>, <i>, <br>…).
   // Antes se rechazaba cualquier etiqueta, y como la interfaz original ya lleva
-  // <b>, ninguna traducción completa podía importarse. Se revisan también los
-  // textos fijos y las categorías, que también acaban en pantalla.
+  // <b>, ninguna traducción completa podía importarse. Se revisan también las
+  // categorías, que también acaban en pantalla. El bloque «fijos» no: se descarta.
   const revisar = o => Object.values(o||{}).some(v =>
     typeof v === 'string' ? htmlNoPermitido(v) : (v && (htmlNoPermitido(v.t) || htmlNoPermitido(v.x))));
-  if (revisar(d.interfaz) || revisar(d.practicas) || revisar(d.fijos) || revisar(d.categorias)) fallos.push(t('iv_html'));
+  if (revisar(d.interfaz) || revisar(d.practicas) || revisar(d.categorias)) fallos.push(t('iv_html'));
   return fallos;
+}
+
+/* Lo que no se traduce es siempre lo oficial, traiga lo que traiga el archivo:
+   la licencia, el esquema, si está revisado, de qué idioma se tradujo, los textos
+   legales (bloque «fijos» y las claves de NO_TRADUCIBLE, que se ven en el idioma de
+   respaldo) y el nombre «Moment». Además, cada frase que haya perdido o ganado un
+   marcador ({n}, {d}…) usa la oficial, para que no salga rota. Hasta la 3.88 un
+   archivo sí podía cambiar los textos legales que se ven en pantalla.
+   Devuelve el idioma limpio y cuántas frases se han cambiado por la oficial. */
+const MARCA_FIJA = ['app_title', 'app_title_br', 'canal_std_nombre'];   // «Moment»
+const marcadoresDe = s => (String(s).match(/\{[a-z0-9_]+\}/gi) || []).sort().join('|');
+function normalizarIdioma(d){
+  const de = d.traducidoDe === 'en' ? 'en' : 'es', base = I18N[de] || I18N.es;
+  const interfaz = {}; let corregidas = 0;
+  Object.keys(d.interfaz || {}).forEach(k => {
+    const v = d.interfaz[k];
+    if (typeof v !== 'string' || !(k in base)) return;              // claves que la app no tiene
+    if (NO_TRADUCIBLE.test(k) || MARCA_FIJA.includes(k)) return;      // siempre las oficiales
+    if (marcadoresDe(v) !== marcadoresDe(base[k])){ corregidas++; return; }
+    interfaz[k] = v;
+  });
+  const ids = new Set(PRACTICAS.map(p => p.id)), practicas = {};
+  Object.keys(d.practicas || {}).forEach(id => {
+    const p = d.practicas[id];
+    if (ids.has(id) && p && typeof p === 'object' && typeof p.t === 'string') practicas[id] = {t: texto(p.t, 300), x: texto(p.x, 20000)};
+  });
+  const categorias = {};
+  CATEGORIAS.forEach(c => { const v = d.categorias && d.categorias[c.id]; if (typeof v === 'string' && v.trim()) categorias[c.id] = texto(v.trim(), 80); });
+  const idioma = { codigo: d.codigo, nombre: texto(d.nombre || d.codigo, 60), autor: texto(d.autor, 120),
+    esquema: ESQUEMA_IDIOMA, licencia: 'AGPL-3.0', revisado: false, traducidoDe: de,
+    categorias, interfaz, practicas };
+  if (d.bandera) idioma.bandera = texto(d.bandera, 16);
+  return { idioma, corregidas };
 }
 // Misma regla que tools/validar-idioma.js: <b>, <i>, <br>, <strong>, <em> (con
 // un estilo sencillo como mucho); nada de enlaces, imágenes, código ni recursos
@@ -75,8 +122,9 @@ function htmlNoPermitido(v){
 function activarIdioma(d){
   try{
     const c = d.codigo;
-    // interfaz: lo que traiga, y lo que falte se resuelve solo con t() (cae a español)
-    I18N[c] = Object.assign({}, d.fijos || {}, d.interfaz || {});
+    // interfaz: la ya limpia (normalizarIdioma); lo que falte, incluidos los textos
+    // legales, lo resuelve t() con el idioma de respaldo
+    I18N[c] = Object.assign({}, d.interfaz || {});
     if (d.practicas) TEXTOS[c] = d.practicas;
     if (d.categorias) CATEGORIAS.forEach(cat => { if (d.categorias[cat.id]) cat[c] = d.categorias[cat.id]; });
     if (typeof CREDITOS !== 'undefined' && d.autor) CREDITOS[c] = d.autor;
@@ -86,13 +134,17 @@ function activarIdioma(d){
 // Cada idioma guardado se revisa otra vez al arrancar: si alguno no pasa (por
 // ejemplo, porque llegó dentro de una copia manipulada), se descarta.
 function cargarIdiomasPropios(){
-  let quitados = 0;
+  let quitados = 0, cambia = false;
   Object.keys(idiomasPropios || {}).forEach(c => {
     const d = idiomasPropios[c];
     if (!d || d.codigo !== c || revisarIdioma(d).length){ delete idiomasPropios[c]; quitados++; return; }
-    activarIdioma(d);
+    // los guardados antes de la 3.89 se limpian igual que uno recién importado
+    const limpio = normalizarIdioma(d).idioma;
+    if (JSON.stringify(limpio) !== JSON.stringify(d)){ idiomasPropios[c] = limpio; cambia = true; }
+    activarIdioma(limpio);
   });
-  if (quitados){ LS.set('mpt_idiomas', idiomasPropios); anota('idioma-descartado', new Error(quitados + ' idioma(s)')); }
+  if (quitados || cambia) LS.set('mpt_idiomas', idiomasPropios);
+  if (quitados) anota('idioma-descartado', new Error(quitados + ' idioma(s)'));
 }
 cargarIdiomasPropios();
 
@@ -121,20 +173,23 @@ function aplicarIdiomaTexto(texto){
     catch(e){ toast(t('id_bad')); anota('importar-idioma', e); return; }
     const fallos = revisarIdioma(d);
     if (fallos.length){ alert(t('id_rejected') + '\n\n· ' + fallos.join('\n· ')); return; }
+    // lo que no se traduce vuelve a ser lo oficial (normalizarIdioma)
+    const {idioma, corregidas} = normalizarIdioma(d);
     const total = PRACTICAS.length;
-    const hechas = Object.keys(d.practicas || {}).length;
+    const hechas = Object.keys(idioma.practicas).length;
     if (!confirm(t('id_confirm')
-        .replace('{n}', d.nombre || d.codigo)
+        .replace('{n}', idioma.nombre || idioma.codigo)
         .replace('{p}', hechas + '/' + total)
-        .replace('{a}', d.autor || '—'))) return;
-    idiomasPropios[d.codigo] = d;
+        .replace('{a}', idioma.autor || '—')
+        + (corregidas ? '\n\n' + t('id_fixed').replace('{n}', corregidas) : ''))) return;
+    idiomasPropios[idioma.codigo] = idioma;
     LS.set('mpt_idiomas', idiomasPropios);
-    activarIdioma(d);
+    activarIdioma(idioma);
     olvidarPrefijos();
-    setLang(d.codigo);
-    toast(t('id_added').replace('{n}', d.nombre || d.codigo));
+    setLang(idioma.codigo);
+    toast(t('id_added').replace('{n}', idioma.nombre || idioma.codigo));
     renderSet();
-    ofrecerEnviarIdioma(d.codigo);
+    ofrecerEnviarIdioma(idioma.codigo);
   }
 }
 /* ---- Traducir desde la app ----
@@ -142,9 +197,10 @@ function aplicarIdiomaTexto(texto){
       (tools/exportar-idiomas.js), así lo traducido se valida y se importa igual.
       La regla de qué NO traduce la comunidad es la del exportador; una prueba
       comprueba que las dos coinciden.
-   2) Enviar un idioma importado a Jordi para que lo revise y, si está bien, lo
-      ofrezca a todo el mundo. */
-const NO_TRADUCIBLE = /^(acept|legal|priv_|cond_|ob_lang|pr_titular|pr_accept)/;
+   2) Enviar un idioma importado a Jordi para que lo revise y valore incluirlo en la
+      app para todo el mundo o publicarlo en la web.
+   (NO_TRADUCIBLE está arriba, junto a ESQUEMA_IDIOMA: lo usa la limpieza de los
+   idiomas guardados, que se ejecuta al cargar este archivo.) */
 function plantillaTraduccion(base){
   const b = (base==='en') ? 'en' : 'es';
   const interfaz={}, fijos={};

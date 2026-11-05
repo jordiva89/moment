@@ -13,12 +13,12 @@ const CREDITOS = {
 const I18N = {
   es:{
     ob_mode_title:'¿Cómo quieres recibir tus prácticas?',
-    ob_mode_sub:'Elige una forma de empezar. Más adelante podrás combinar las tres como quieras en Ajustes → Tu patrón de práctica.',
-    ob_mode_patron:'Con un patrón',
+    ob_mode_sub:'Elige una forma de empezar. Más adelante podrás combinar las tres como quieras en Ajustes → Prácticas propuestas.',
+    ob_mode_patron:'Patrón estándar',
     ob_mode_patron_txt:'Cada día a las mismas horas. Eliges a qué hora empieza tu día, cada cuánto quieres una práctica y durante cuántas horas. La práctica de cada momento la elige la app.',
     ob_mode_azar:'Al azar',
     ob_mode_azar_txt:'Cada día a horas distintas, por sorpresa. Eliges entre qué horas, cuántas prácticas al día (un mínimo y un máximo) y de qué categorías. El resto lo decide el azar.',
-    ob_mode_propio:'Personalizado',
+    ob_mode_propio:'Momentos propios',
     ob_mode_propio_txt:'Solo tus propios «Momentos para ti»: eliges cada práctica, a qué hora llega y cada cuánto se repite. La app no añade nada por su cuenta.',
     ob_az_win_title:'¿Entre qué horas te proponemos prácticas?',
     ob_az_win_sub:'Las prácticas llegarán dentro de esta franja, cada día a horas distintas. Si la última hora es anterior a la primera, la franja pasa la medianoche.',
@@ -30,21 +30,24 @@ const I18N = {
     ob_az_n_sub:'Cada día se elegirá al azar un número entre el mínimo y el máximo. Si pones el mismo en los dos, recibirás siempre las mismas.',
     az_min:'Mínimo',
     az_max:'Máximo',
-    az_cap:'Con esta franja caben como máximo {n}: así quedan al menos 15 minutos entre una y otra.',
+    az_cap:'Con esta franja caben como máximo {n}: así quedan al menos {s} minutos entre una y otra.',
     az_sum_range:'Cada día, de {min} a {max} prácticas al azar, entre las {a} y las {b}.',
     az_sum_fixed:'Cada día, {n} prácticas al azar, entre las {a} y las {b}.',
     az_sum_one:'Cada día, 1 práctica al azar, entre las {a} y las {b}.',
+    az_sum_sep:'Al menos {s} minutos entre una propuesta y otra.',
+    az_sep:'Separación mínima (min)',
+    az_sep_txt:'Minutos que pasan, como mínimo, entre una práctica al azar y cualquier otra propuesta: otra al azar, el patrón o tus momentos.',
     az_sum_zero:'Cada día, 1 práctica, a las {a}.',
     ob_az_cat_title:'¿De qué categorías?',
     az_cat_txt:'Solo se te propondrán prácticas de las categorías que marques. Las que pongas en pausa no se te propondrán nunca.',
     az_cat_none:'Marca al menos una categoría.',
     ob_pr_title:'A tu medida',
     ob_pr_txt:'Tu día lo formarán solo los «Momentos para ti» que crees. En cada uno eliges la práctica (de la biblioteca o una tuya), la hora y cada cuánto se repite: cada día, algunos días de la semana, varias veces al día o solo durante una temporada.',
-    ob_pr_next:'Al terminar se abrirá el formulario para crear tu primer momento. Después podrás crear más, editarlos o pausarlos en Ajustes → Tu patrón de práctica.',
+    ob_pr_next:'Al terminar se abrirá el formulario para crear tu primer momento. Después podrás crear más, editarlos o pausarlos en Ajustes → Prácticas propuestas.',
     ob_cal_propio:'Cuando hayas creado tus momentos, descarga tu calendario en Ajustes → Tu calendario.',
-    pt_modes_txt:'Tu día puede combinar tres formas de recibir prácticas: con un patrón, al azar y con tus propios «Momentos para ti». Activa las que quieras.',
+    pt_modes_txt:'Tu día puede combinar tres formas de recibir prácticas: el patrón estándar, los momentos propios y al azar. Activa las que quieras.',
     pt_nothing:'Ahora mismo no se te propondrá ninguna práctica: activa el patrón o las prácticas al azar, o crea un «Momento para ti».',
-    pt_pat_label:'Con un patrón',
+    pt_pat_label:'Patrón estándar',
     pt_pat_on:'Proponerme prácticas con un patrón',
     pt_pat_off:'Desactivado. Al activarlo podrás elegir la hora, el intervalo, las favoritas, las categorías preferidas y las constelaciones.',
     pt_az_label:'Al azar',
@@ -71,33 +74,43 @@ const I18N = {
     adj_fail:'No se ha podido guardar el adjunto en este dispositivo.',
     default_adj_text:'Abre el archivo adjunto y sigue la práctica.',
     tr_title:'Traduce Moment a tu idioma',
-    tr_txt:'¿Hablas otro idioma? Descarga este archivo, tradúcelo y añádelo con el botón de arriba: Moment hablará tu idioma. Puedes hacerlo con ayuda de una IA: copia las instrucciones de abajo y pégaselas junto con el archivo. Después revísalo con calma, porque una IA puede cambiar el sentido de una frase, y aquí cada palabra cuenta. Cuando lo añadas, podrás enviárselo a Jordi para que llegue a todo el mundo.',
+    tr_txt:'¿Hablas otro idioma? Puedes traducir Moment en tres pasos. Si lo haces con ayuda de una IA, revísalo después con calma: una IA puede cambiar el sentido de una frase, y aquí cada palabra cuenta.',
     tr_download:'⤓ Descargar el archivo para traducir',
     tr_prompt_btn:'📋 Copiar instrucciones para la IA',
     tr_prompt_ok:'Instrucciones copiadas',
-    tr_prompt:'Traduce al idioma que te indique los textos de este archivo JSON de la app Moment. Traduce solo los valores de los bloques «interfaz», «categorias» y «practicas». No cambies las claves, ni la estructura, ni los marcadores entre llaves. Deja el bloque «fijos» exactamente igual. Rellena «codigo» con el código del idioma (por ejemplo, fr) y «nombre» con su nombre en ese idioma (por ejemplo, Français). Usa un tono cercano y sencillo. Es una app de bienestar: no uses vocabulario médico ni prometas efectos sobre la salud. Devuélveme el archivo completo, listo para guardar.',
+    tr_prompt:'Traduce al idioma que te indique los textos de este archivo JSON de la app Moment. Traduce solo los valores de los bloques «interfaz», «categorias» y «practicas». No cambies las claves, ni la estructura, ni los marcadores entre llaves. Deja exactamente igual el bloque «fijos» y los campos «licencia», «esquema», «revisado» y «traducidoDe». Rellena «codigo» con el código del idioma (por ejemplo, fr) y «nombre» con su nombre en ese idioma (por ejemplo, Français). Usa un tono cercano y sencillo. Es una app de bienestar: no uses vocabulario médico ni prometas efectos sobre la salud. Devuélveme el archivo completo, listo para guardar.',
     tr_saved:'Guardado en Descargas: {f}',
     tr_l1:'1. Cambia «codigo» por el código de tu idioma (fr, de, it, pt, ca…) y «nombre» por su nombre (Français, Deutsch…).',
     tr_l2:'2. Pon tu nombre en «autor»: aparecerá en la app como responsable de la traducción.',
     tr_l3:'3. Traduce solo los textos de «interfaz», «categorias» y «practicas». No cambies las claves ni los marcadores entre llaves.',
-    tr_l4:'4. Deja «fijos» sin tocar: son los textos legales y se muestran en español o en inglés.',
-    tr_l5:'5. Añádelo en Moment desde Ajustes → Datos y privacidad → Idioma, y envíaselo a Jordi para que lo revise.',
+    tr_l4:'4. No hace falta traducir «fijos», «licencia», «esquema», «revisado» ni «traducidoDe»: la app usa siempre los oficiales. Los textos legales se muestran en español o en inglés.',
+    tr_l5:'5. Súbelo en Moment desde Ajustes → Datos y privacidad → Traduce Moment a tu idioma (paso 3) y envíaselo a Jordi para que lo revise.',
     tr_send_title:'¿Lo compartes con todo el mundo?',
-    tr_send_txt:'Si se lo envías a Jordi, lo revisará y, si está bien, lo ofrecerá a todas las personas que usan Moment, con tu nombre en los créditos. Al enviarlo aceptas cederlo bajo la licencia AGPL v3 del proyecto.',
+    tr_send_txt:'Si se lo envías a Jordi, lo revisará y valorará incluirlo en la app para todo el mundo o publicarlo en la web para que otras personas lo descarguen, con tu nombre en los créditos. Al enviarlo aceptas cederlo bajo la licencia AGPL v3 del proyecto.',
+    tr_s1:'1. Descarga el archivo para traducir.',
+    tr_s2:'2. Tradúcelo tú o con una IA: copia estas instrucciones y pégaselas junto con el archivo.',
+    tr_s3:'3. Sube el archivo traducido: Moment se pondrá en tu idioma al momento. También sirve para añadir un idioma descargado de la web.',
+    tr_mine:'Tus idiomas añadidos',
     tr_send_yes:'✉️ Enviar por email',
     tr_send_btn:'✉️ Enviar para revisión',
     tr_mail_subj:'Traducción de Moment: {n}',
     tr_mail_body:'Hola, Jordi:\n\nTe envío la traducción de Moment a {n}, hecha por {a}, para que la revises.\n\nAcepto cederla bajo la licencia AGPL v3 del proyecto.',
     tr_mail_attach:'El archivo {f} se acaba de descargar: adjúntalo a este correo antes de enviarlo.',
     pt_const_sem:'x por semana',
-    pt_const_sem_txt:'Elige qué días y a qué horas. Ese día, a esa hora, te llegará una constelación.',
-    pt_const_sem_add:'+ Añadir otra hora',
-    pt_const_sem_none:'Elige al menos un día.',
+    pt_const_sem_txt:'Elige cuántas constelaciones quieres a la semana y, para cada una, el día, la hora y cuál: una concreta o al azar.',
     pt_const_sem_total1:'Total: 1 constelación por semana',
+    pt_const_sem_n:'Constelaciones a la semana',
+    pt_const_sem_k:'Constelación {n}',
+    pt_const_sem_day:'Día',
+    pt_const_sem_hour:'Hora',
+    pt_const_sem_which:'Qué constelación',
+    pt_const_sem_rand:'Al azar',
     pt_const_sem_total:'Total: {n} constelaciones por semana',
-    pt_const_sem_max:'Como máximo, 6 horas.',
     pt_const_deep:'Profundizar en una constelación',
-    pt_const_deep_txt:'Crea un «Momento para ti» con una sola constelación, siempre la misma, para trabajarla a fondo: eliges cuál, cuándo y cuántas veces.',
+    pt_const_deep_txt:'Repite siempre la misma constelación durante un tiempo para trabajar a fondo un tema.',
+    pt_const_deep_add:'＋ Profundizar en otra constelación',
+    pt_const_deep_on:'Retomado: vuelves a profundizar en tus constelaciones.',
+    pt_const_deep_off:'En pausa. Puedes retomarlo cuando quieras.',
     ef_deep_txt:'Elige la constelación y cuándo quieres hacerla. Será siempre la misma, para que puedas profundizar en ella.',
     pt_sum_one:'Total: 1 propuesta al día · Hora: {h}',
     pt_sum_many:'Total: {n} propuestas al día · Última: {h}',
@@ -159,7 +172,7 @@ const I18N = {
     ob_lang_title:'Elige tu idioma', ob_lang_sub:'Puedes cambiarlo después en Ajustes.',
     ob_continue:'Continuar', ob_start:'Empezar',
     ob_hint_title:'Un consejo para empezar',
-    ob_hint_custom:'Puedes crear tus propios «Momentos para ti» en Ajustes → Tu patrón: eliges la hora, la práctica y cada cuánto se repite. Si además desactivas el patrón y las prácticas al azar, tu día lo formarán únicamente ellos. También puedes combinarlos: tus momentos junto a las propuestas de la app. O dejarte llevar y experimentar hasta encontrar lo que mejor te funciona.',
+    ob_hint_custom:'Puedes crear tus propios «Momentos para ti» en Ajustes → Prácticas propuestas: eliges la hora, la práctica y cada cuánto se repite. Si además desactivas el patrón y las prácticas al azar, tu día lo formarán únicamente ellos. También puedes combinarlos: tus momentos junto a las propuestas de la app. O dejarte llevar y experimentar hasta encontrar lo que mejor te funciona.',
     priv_language:'Idioma', priv_lang_es:'Español', priv_lang_en:'English', ab_title:'Sobre la app', cat_new_ph:'Nombre de la categoría nueva',
     ob_hour_title:'¿A qué hora quieres recibir la primera práctica?',
     ob_hour_sub:'A partir de esta hora organizaremos tus momentos del día.',
@@ -185,6 +198,50 @@ const I18N = {
     hdr_yest:'Ayer', hdr_yest_done:'hechas', hdr_yest_snoozed:'pospuestas', hdr_nodata:'sin datos',
     snoozed_pre:'Pospuesta', snoozed_next:'próximo aviso a las',
     lib_search:'Buscar práctica…', lib_new:'＋ Crear nueva práctica',
+    lib_ai_const:'✨ Crear una constelación con IA',
+    cp_title:'Crea una constelación con una IA',
+    cp_txt:'Copia estas instrucciones y pégalas en una IA (ChatGPT, Claude, Gemini…). Te hará unas preguntas sobre lo que quieres trabajar y te propondrá una constelación de Moment o una nueva. Si es nueva, añádela a tu Biblioteca: después te podrá llegar con el patrón estándar, al azar o como momento propio, como cualquier otra.',
+    cp_copy:'📋 Copiar las instrucciones para la IA',
+    cp_add:'＋ Añadir una constelación a mi Biblioteca',
+    cp_prompt:'Quiero que me ayudes a elegir una constelación para trabajar un tema personal con Moment.\n'
+      +'\n'
+      +'Sobre Moment: es una app de bienestar con prácticas breves de carácter espiritual y transpersonal. No diagnostica ni trata nada, y no sustituye la ayuda médica ni psicológica. Entre sus prácticas hay ejercicios de constelaciones familiares para hacer en solitario y sin materiales; cada uno se abre en una página de insconsfa.com que lo guía paso a paso. Las constelaciones de la Biblioteca de Moment, también las que añado yo, me pueden llegar con el patrón estándar, al azar o como momento propio, y con «Profundizar en una constelación» puedo repetir la misma 7, 13, 21 o 28 veces para trabajar un tema a fondo.\n'
+      +'\n'
+      +'Sobre las constelaciones: las desarrolló Bert Hellinger, inspirándose, entre otras fuentes, en los dieciséis años que vivió entre los zulúes de Sudáfrica y en su forma de honrar a los antepasados. Después las amplió Brigitte Champetier de Ribes con las Nuevas Constelaciones Familiares, que son las de los ejercicios de insconsfa.com. Hay quien las relaciona también con rituales muy antiguos de pueblos originarios de América.\n'
+      +'\n'
+      +'Cómo quiero que lo hagas:\n'
+      +'1. Primero hazme preguntas para entender qué quiero trabajar y qué necesito. Hazlas de una en una, espera mi respuesta antes de pasar a la siguiente y sáltate las que ya estén respondidas. No hace falta que te dé nombres ni detalles que no quiera compartir.\n'
+      +'2. Después propónme la constelación que mejor encaje o crea una nueva.\n'
+      +'\n'
+      +'Las preguntas:\n'
+      +'- ¿Qué tema o situación quieres trabajar? Por ejemplo: tu madre o tu padre, la pareja, un conflicto con alguien, un miedo, una emoción que se repite, una decisión, tu lugar en la familia, el trabajo o el dinero, algo del pasado…\n'
+      +'- ¿Cómo se nota hoy en tu vida? Cuéntalo con tus palabras y con el detalle que quieras.\n'
+      +'- ¿Qué te gustaría que cambiara, o cómo te gustaría sentirte?\n'
+      +'- ¿Es algo que se repite en tu vida o en tu familia?\n'
+      +'- Del 0 al 10, ¿cuánto te remueve ahora mismo?\n'
+      +'- ¿Prefieres hacerla una vez, unas cuantas veces a la semana o repetir la misma durante un tiempo para trabajarla a fondo?\n'
+      +'- ¿Hay algo que ahora no quieras tocar?\n'
+      +'\n'
+      +'Cómo elegir:\n'
+      +'- Busca primero en la lista de constelaciones de Moment que tienes al final, y usa su título exacto para que pueda encontrarla en la app.\n'
+      +'- Si ninguna encaja de verdad, inventa una nueva con estas condiciones: para hacer en solitario y sin materiales, de 10 a 20 minutos, con pasos sencillos en segunda persona, un comienzo para centrarse y un cierre para volver al presente. Que sea simbólica y respetuosa: sin enfrentarse a personas reales, sin forzar reconciliaciones y con libertad para parar en cualquier momento.\n'
+      +'- No uses lenguaje médico ni prometas efectos sobre la salud.\n'
+      +'\n'
+      +'Con cuidado:\n'
+      +'- Si lo que me remueve está en 8 o más, propónme algo más suave y recuérdame que puedo trabajarlo con el acompañamiento de un profesional.\n'
+      +'- Si te cuento que estoy en crisis, que pienso en hacerme daño o que vivo una situación de violencia o abuso, no me propongas ninguna constelación. Dime que busque ayuda profesional y, si es urgente, que llame a emergencias. Como mucho, propónme algo sencillo para calmarme.\n'
+      +'\n'
+      +'Tu respuesta final, en este orden:\n'
+      +'1. La constelación: su título exacto, o «Nueva: [título]» si la has inventado.\n'
+      +'2. Por qué encaja con lo que me pasa, en dos o tres frases.\n'
+      +'3. Cómo hacerla: una vez, unas cuantas veces a la semana (cuántas) o profundizando (7, 13, 21 o 28 veces).\n'
+      +'4. Si es nueva: el título y los pasos, listos para copiar y añadirla a mi Biblioteca de Moment.\n'
+      +'5. Una o dos alternativas, por si la primera no me resuena.\n'
+      +'\n'
+      +'Respóndeme en el idioma en el que te escribo.\n'
+      +'\n'
+      +'Constelaciones de Moment:\n'
+      +'{lista}',
     lib_box_practices:'Prácticas', lib_box_own:'Propias', lib_box_fav:'Favoritas',
     lib_clear:'Borrar búsqueda', what_is:'¿Qué es esto?',
     fmt_title:'Título: ', fmt_cat:'Categoría: ', fmt_text:'Texto: ', fmt_link:'Enlace: ',
@@ -198,7 +255,7 @@ const I18N = {
     pause_add_t:'Poner en pausa', pause_remove_t:'Quitar de pausa',
     box_paused:'En pausa', lib_all_cats:'Todas las categorías',
     set_expand_all:'Desplegar todo', set_collapse_all:'Plegar todo', set_collapse:'▲ Plegar',
-    set_notif:'Notificaciones', set_pattern:'Tu patrón de práctica', set_share:'Compartir app «Moment»',
+    set_notif:'Notificaciones', set_pattern:'Prácticas propuestas', set_share:'Compartir app «Moment»',
     set_stats:'Estadísticas', set_privacy:'Datos y privacidad',
     nt_next:'Próxima notificación:', nt_next_today:'hoy a las', nt_next_none:'no quedan más por hoy',
     nt_native:'Los avisos los gestiona Android: suenan a su hora aunque la app esté cerrada, con {n} días programados por adelantado. Se reprograman solos cuando cambias una práctica o tu patrón.',
@@ -232,8 +289,8 @@ const I18N = {
     pt_esp_label:'Especiales',
     pt_esp_txt:'Prácticas pensadas para una hora concreta del día. Crea un «Momento para ti» con la que quieras y elige tú a qué hora te la proponemos.',
     canal_nombre:'Moment (alarma)', canal_desc:'Avisos que suenan aunque el movil este en silencio',
-    pt_moments_label:'Tus «Momentos para ti» propios',
-    pt_moments_txt:'Tus propios momentos, a la hora que tú decidas y con la práctica que elijas. Se añaden a «Tu día» con su aviso, igual que cualquier otra propuesta, y puedes repetirlos varias veces al día. Si alguno coincide con una propuesta del patrón, la app te preguntará qué prefieres. Puedes pausarlos, editarlos o borrarlos cuando quieras.',
+    pt_moments_label:'Momentos propios',
+    pt_moments_txt:'Prácticas de la biblioteca o creadas por ti, el día y a la hora que tú elijas. Cada momento se añade a «Tu día» con su aviso, igual que cualquier otra propuesta, y puede repetirse varias veces al día. Si alguno coincide con una propuesta del patrón, la app te preguntará qué prefieres. Puedes pausarlos, editarlos o borrarlos cuando quieras.',
     pt_create:'＋ Crear un «Momento para ti»',
     rep_daily:'cada día', rep_days_a:'cada', rep_days_b:'días', rep_weekly:'cada', rep_monthly_a:'cada mes (día', rep_monthly_b:')',
     ef_edit:'Editar', ef_create_h:'Crear un', ef_hour:'Hora', ef_exercise:'Ejercicio',
@@ -251,8 +308,8 @@ const I18N = {
     lg_txt:'Anotaciones internas de fallos que la app ha podido sortear. Sirven para diagnosticar; no salen del móvil salvo que envíes el correo de sugerencias.',
     lg_clear:'Borrar el registro', lg_cleared:'Registro borrado',
     id_label:'Idiomas',
-    id_txt:'Español e inglés vienen dentro de la app. Otros idiomas se descargan desde la web y se añaden aquí. Al importarlos se guardan en el móvil y funcionan sin conexión.',
-    id_import:'📂 Añadir un idioma desde un archivo',
+    id_txt:'Español e inglés vienen dentro de la app. Otros idiomas se añaden desde un archivo (más abajo, en «Traduce Moment a tu idioma», paso 3) y, una vez añadidos, se guardan en el móvil y funcionan sin conexión.',
+    id_import:'📂 Subir el archivo traducido',
     id_remove:'Quitar', id_removed:'Idioma quitado',
     id_remove_q:'¿Quitar el idioma {n}? Podrás volver a añadirlo cuando quieras.',
     id_bad:'El archivo no es un idioma válido',
@@ -267,6 +324,7 @@ const I18N = {
     im_unknown:'No reconozco este archivo. Debe ser una copia de Moment, un idioma o prácticas.',
     id_rejected:'Este archivo no se puede añadir:',
     id_confirm:'¿Añadir el idioma {n}?\n\nPrácticas traducidas: {p}\nTraducción de: {a}\n\nLo que falte se mostrará en tu idioma de respaldo.',
+    id_fixed:'Se usará el texto oficial en {n} frases a las que les faltaba algún dato entre llaves.',
     id_added:'Idioma añadido: {n}',
     cr_txt:'Traducción de {n}. Gracias por hacer que Moment hable más idiomas.',
     lb_label:'Idioma de respaldo de la biblioteca',
@@ -424,12 +482,12 @@ const I18N = {
   },
   en:{
     ob_mode_title:'How would you like to receive your practices?',
-    ob_mode_sub:'Choose one way to start. Later you can combine all three as you like in Settings → Your practice pattern.',
-    ob_mode_patron:'With a pattern',
+    ob_mode_sub:'Choose one way to start. Later you can combine all three as you like in Settings → Suggested practices.',
+    ob_mode_patron:'Standard pattern',
     ob_mode_patron_txt:'At the same times every day. You choose when your day starts, how often you want a practice and for how many hours. The app chooses the practice for each moment.',
     ob_mode_azar:'At random',
     ob_mode_azar_txt:'At different times every day, as a surprise. You choose between which hours, how many practices a day (a minimum and a maximum) and from which categories. Chance decides the rest.',
-    ob_mode_propio:'Personalised',
+    ob_mode_propio:'Your own moments',
     ob_mode_propio_txt:'Only your own "Moments for you": you choose each practice, when it arrives and how often it repeats. The app adds nothing on its own.',
     ob_az_win_title:'Between which hours should we suggest practices?',
     ob_az_win_sub:'Practices will arrive within this window, at different times every day. If the last hour is earlier than the first, the window runs past midnight.',
@@ -441,21 +499,24 @@ const I18N = {
     ob_az_n_sub:'Each day a number between the minimum and the maximum is chosen at random. If both are the same, you will always get that many.',
     az_min:'Minimum',
     az_max:'Maximum',
-    az_cap:'This window fits {n} at most, so that there are at least 15 minutes between one and the next.',
+    az_cap:'This window fits {n} at most, so that there are at least {s} minutes between one and the next.',
     az_sum_range:'Every day, {min} to {max} random practices, between {a} and {b}.',
     az_sum_fixed:'Every day, {n} random practices, between {a} and {b}.',
     az_sum_one:'Every day, 1 random practice, between {a} and {b}.',
+    az_sum_sep:'At least {s} minutes between one suggestion and the next.',
+    az_sep:'Minimum gap (min)',
+    az_sep_txt:'The fewest minutes that pass between a random practice and any other suggestion: another random one, the pattern or your moments.',
     az_sum_zero:'Every day, 1 practice, at {a}.',
     ob_az_cat_title:'From which categories?',
     az_cat_txt:'You will only be offered practices from the categories you tick. Practices you pause will never be suggested.',
     az_cat_none:'Tick at least one category.',
     ob_pr_title:'Made to measure',
     ob_pr_txt:'Your day will be made up only of the "Moments for you" you create. For each one you choose the practice (from the library or one of your own), the time and how often it repeats: every day, some days of the week, several times a day or just for a while.',
-    ob_pr_next:'When you finish, the form to create your first moment will open. Afterwards you can create more, edit them or pause them in Settings → Your practice pattern.',
+    ob_pr_next:'When you finish, the form to create your first moment will open. Afterwards you can create more, edit them or pause them in Settings → Suggested practices.',
     ob_cal_propio:'Once you have created your moments, download your calendar in Settings → Your calendar.',
-    pt_modes_txt:'Your day can combine three ways of receiving practices: with a pattern, at random and with your own "Moments for you". Turn on the ones you want.',
+    pt_modes_txt:'Your day can combine three ways of receiving practices: the standard pattern, your own moments and at random. Turn on the ones you want.',
     pt_nothing:'Right now no practice will be suggested: turn on the pattern or the random practices, or create a "Moment for you".',
-    pt_pat_label:'With a pattern',
+    pt_pat_label:'Standard pattern',
     pt_pat_on:'Suggest practices with a pattern',
     pt_pat_off:'Off. When you turn it on you can choose the time, the interval, favourites, preferred categories and constellations.',
     pt_az_label:'At random',
@@ -482,33 +543,43 @@ const I18N = {
     adj_fail:'The attachment could not be saved on this device.',
     default_adj_text:'Open the attached file and follow the practice.',
     tr_title:'Translate Moment into your language',
-    tr_txt:'Do you speak another language? Download this file, translate it and add it with the button above: Moment will speak your language. You can do it with the help of an AI: copy the instructions below and paste them together with the file. Then review it calmly, because an AI can change the meaning of a sentence, and here every word counts. Once you add it, you can send it to Jordi so it reaches everyone.',
+    tr_txt:'Do you speak another language? You can translate Moment in three steps. If you do it with the help of an AI, review it calmly afterwards: an AI can change the meaning of a sentence, and here every word counts.',
     tr_download:'⤓ Download the file to translate',
     tr_prompt_btn:'📋 Copy instructions for the AI',
     tr_prompt_ok:'Instructions copied',
-    tr_prompt:'Translate the texts of this JSON file from the Moment app into the language I tell you. Translate only the values in the «interfaz», «categorias» and «practicas» blocks. Do not change the keys, the structure or the placeholders in curly braces. Leave the «fijos» block exactly as it is. Fill in «codigo» with the language code (for example, fr) and «nombre» with its name in that language (for example, Français). Use a warm, simple tone. This is a wellbeing app: do not use medical vocabulary or promise health effects. Give me back the complete file, ready to save.',
+    tr_prompt:'Translate the texts of this JSON file from the Moment app into the language I tell you. Translate only the values in the «interfaz», «categorias» and «practicas» blocks. Do not change the keys, the structure or the placeholders in curly braces. Leave the «fijos» block and the «licencia», «esquema», «revisado» and «traducidoDe» fields exactly as they are. Fill in «codigo» with the language code (for example, fr) and «nombre» with its name in that language (for example, Français). Use a warm, simple tone. This is a wellbeing app: do not use medical vocabulary or promise health effects. Give me back the complete file, ready to save.',
     tr_saved:'Saved to Downloads: {f}',
     tr_l1:'1. Change «codigo» to your language code (fr, de, it, pt, ca…) and «nombre» to its name (Français, Deutsch…).',
     tr_l2:'2. Put your name in «autor»: it will appear in the app as the person responsible for the translation.',
     tr_l3:'3. Translate only the texts in «interfaz», «categorias» and «practicas». Do not change the keys or the placeholders in curly braces.',
-    tr_l4:'4. Leave «fijos» untouched: these are the legal texts and they are shown in Spanish or English.',
-    tr_l5:'5. Add it in Moment from Settings → Data & privacy → Language, and send it to Jordi so he can review it.',
+    tr_l4:'4. There is no need to translate «fijos», «licencia», «esquema», «revisado» or «traducidoDe»: the app always uses the official ones. The legal texts are shown in Spanish or English.',
+    tr_l5:'5. Upload it in Moment from Settings → Data & privacy → Translate Moment into your language (step 3), and send it to Jordi so he can review it.',
     tr_send_title:'Will you share it with everyone?',
-    tr_send_txt:'If you send it to Jordi, he will review it and, if it is fine, offer it to everyone who uses Moment, with your name in the credits. By sending it you agree to license it under the project’s AGPL v3 licence.',
+    tr_send_txt:'If you send it to Jordi, he will review it and consider including it in the app for everyone or publishing it on the website so other people can download it, with your name in the credits. By sending it you agree to license it under the project’s AGPL v3 licence.',
+    tr_s1:'1. Download the file to translate.',
+    tr_s2:'2. Translate it yourself or with an AI: copy these instructions and paste them together with the file.',
+    tr_s3:'3. Upload the translated file: Moment will switch to your language right away. It also works for adding a language downloaded from the website.',
+    tr_mine:'Languages you have added',
     tr_send_yes:'✉️ Send by email',
     tr_send_btn:'✉️ Send for review',
     tr_mail_subj:'Moment translation: {n}',
     tr_mail_body:'Hi Jordi,\n\nI am sending you the translation of Moment into {n}, made by {a}, for you to review.\n\nI agree to license it under the project’s AGPL v3 licence.',
     tr_mail_attach:'The file {f} has just been downloaded: attach it to this email before sending it.',
     pt_const_sem:'x per week',
-    pt_const_sem_txt:'Choose which days and at what times. On that day, at that time, a constellation will come to you.',
-    pt_const_sem_add:'+ Add another time',
-    pt_const_sem_none:'Choose at least one day.',
+    pt_const_sem_txt:'Choose how many constellations you want a week and, for each one, the day, the time and which one: a specific one or at random.',
     pt_const_sem_total1:'Total: 1 constellation a week',
+    pt_const_sem_n:'Constellations a week',
+    pt_const_sem_k:'Constellation {n}',
+    pt_const_sem_day:'Day',
+    pt_const_sem_hour:'Time',
+    pt_const_sem_which:'Which constellation',
+    pt_const_sem_rand:'At random',
     pt_const_sem_total:'Total: {n} constellations a week',
-    pt_const_sem_max:'Six times at most.',
     pt_const_deep:'Go deeper into a constellation',
-    pt_const_deep_txt:'Create a "Moment for you" with a single constellation, always the same one, to work on it in depth: you choose which one, when and how many times.',
+    pt_const_deep_txt:'Repeat the same constellation for a while to work through a theme in depth.',
+    pt_const_deep_add:'＋ Go deeper into another constellation',
+    pt_const_deep_on:'Resumed: you are going deeper into your constellations again.',
+    pt_const_deep_off:'Paused. You can resume it whenever you like.',
     ef_deep_txt:'Choose the constellation and when you want to do it. It will always be the same one, so you can go deeper into it.',
     pt_sum_one:'Total: 1 suggestion a day · Time: {h}',
     pt_sum_many:'Total: {n} suggestions a day · Last one: {h}',
@@ -574,7 +645,7 @@ const I18N = {
     ob_lang_title:'Choose your language', ob_lang_sub:'You can change it later in Settings.',
     ob_continue:'Continue', ob_start:'Start',
     ob_hint_title:'A tip to get started',
-    ob_hint_custom:'You can create your own "Moments for you" in Settings → Your pattern: you choose the time, the practice and how often it repeats. If you also turn off the pattern and the random practices, your day will be made up of those alone. You can also combine them: your moments alongside the app’s suggestions. Or just go with the flow and experiment until you find what works best for you.',
+    ob_hint_custom:'You can create your own "Moments for you" in Settings → Suggested practices: you choose the time, the practice and how often it repeats. If you also turn off the pattern and the random practices, your day will be made up of those alone. You can also combine them: your moments alongside the app’s suggestions. Or just go with the flow and experiment until you find what works best for you.',
     priv_language:'Language', priv_lang_es:'Español', priv_lang_en:'English', ab_title:'About the app', cat_new_ph:'New category name',
     ob_hour_title:'What time would you like your first practice?',
     ob_hour_sub:"We'll build your daily moments starting from this time.",
@@ -600,6 +671,50 @@ const I18N = {
     hdr_yest:'Yesterday', hdr_yest_done:'done', hdr_yest_snoozed:'snoozed', hdr_nodata:'no data',
     snoozed_pre:'Snoozed', snoozed_next:'next reminder at',
     lib_search:'Search practice…', lib_new:'＋ Create new practice',
+    lib_ai_const:'✨ Create a constellation with AI',
+    cp_title:'Create a constellation with an AI',
+    cp_txt:'Copy these instructions and paste them into an AI (ChatGPT, Claude, Gemini…). It will ask you a few questions about what you want to work on and suggest one of Moment’s constellations or a new one. If it is new, add it to your Library: from then on it can come to you with the standard pattern, at random or as one of your own moments, like any other.',
+    cp_copy:'📋 Copy the instructions for the AI',
+    cp_add:'＋ Add a constellation to my Library',
+    cp_prompt:'I would like you to help me choose a constellation to work on a personal theme with Moment.\n'
+      +'\n'
+      +'About Moment: it is a wellbeing app with brief practices of a spiritual and transpersonal nature. It does not diagnose or treat anything, and it is not a substitute for medical or psychological help. Its practices include family constellation exercises to do on your own and without materials; each one opens on a page of insconsfa.com that guides you step by step. The constellations in Moment’s Library, including the ones I add myself, can come to me with the standard pattern, at random or as one of my own moments, and with “Go deeper into a constellation” I can repeat the same one 7, 13, 21 or 28 times to work through a theme in depth.\n'
+      +'\n'
+      +'About constellations: they were developed by Bert Hellinger, who drew, among other sources, on the sixteen years he lived among the Zulu people of South Africa and on their way of honouring the ancestors. Brigitte Champetier de Ribes later expanded them with the New Family Constellations, which are the ones behind the insconsfa.com exercises. Some people also relate them to very ancient rituals of the original peoples of the Americas.\n'
+      +'\n'
+      +'How I would like you to do it:\n'
+      +'1. First ask me questions to understand what I want to work on and what I need. Ask them one at a time, wait for my answer before moving on to the next one, and skip any that have already been answered. I do not need to give you names or details I do not want to share.\n'
+      +'2. Then suggest the constellation that fits best, or create a new one.\n'
+      +'\n'
+      +'The questions:\n'
+      +'- What theme or situation do you want to work on? For example: your mother or your father, your partner, a conflict with someone, a fear, an emotion that keeps coming back, a decision, your place in the family, work or money, something from the past…\n'
+      +'- How does it show up in your life today? Tell me in your own words, with as much detail as you like.\n'
+      +'- What would you like to change, or how would you like to feel?\n'
+      +'- Is it something that repeats in your life or in your family?\n'
+      +'- From 0 to 10, how much does it stir you right now?\n'
+      +'- Would you rather do it once, a few times a week, or repeat the same one for a while to work through it in depth?\n'
+      +'- Is there anything you do not want to touch right now?\n'
+      +'\n'
+      +'How to choose:\n'
+      +'- First look in the list of Moment’s constellations at the end, and use its exact title so I can find it in the app.\n'
+      +'- If none really fits, invent a new one with these conditions: to be done alone and without materials, 10 to 20 minutes long, with simple steps in the second person, an opening to centre yourself and a closing to come back to the present. It should be symbolic and respectful: no confronting real people, no forcing reconciliations, and freedom to stop at any moment.\n'
+      +'- Do not use medical language or promise health effects.\n'
+      +'\n'
+      +'With care:\n'
+      +'- If what stirs me is at 8 or more, suggest something gentler and remind me that I can work on it with the support of a professional.\n'
+      +'- If I tell you I am in crisis, that I am thinking of harming myself, or that I am living through violence or abuse, do not suggest any constellation. Tell me to seek professional help and, if it is urgent, to call the emergency services. At most, suggest something simple to calm me down.\n'
+      +'\n'
+      +'Your final answer, in this order:\n'
+      +'1. The constellation: its exact title, or “New: [title]” if you have invented it.\n'
+      +'2. Why it fits what is happening to me, in two or three sentences.\n'
+      +'3. How to do it: once, a few times a week (how many) or going deeper (7, 13, 21 or 28 times).\n'
+      +'4. If it is new: the title and the steps, ready to copy and add to my Moment Library.\n'
+      +'5. One or two alternatives, in case the first one does not resonate with me.\n'
+      +'\n'
+      +'Answer me in the language I write to you in.\n'
+      +'\n'
+      +'Moment’s constellations:\n'
+      +'{lista}',
     lib_box_practices:'Practices', lib_box_own:'Yours', lib_box_fav:'Favorites',
     lib_clear:'Clear search', what_is:'What is this?',
     fmt_title:'Title: ', fmt_cat:'Category: ', fmt_text:'Text: ', fmt_link:'Link: ',
@@ -613,7 +728,7 @@ const I18N = {
     pause_add_t:'Pause', pause_remove_t:'Unpause',
     box_paused:'Paused', lib_all_cats:'All categories',
     set_expand_all:'Expand all', set_collapse_all:'Collapse all', set_collapse:'▲ Collapse',
-    set_notif:'Notifications', set_pattern:'Your practice pattern', set_share:'Share the "Moment for you" app',
+    set_notif:'Notifications', set_pattern:'Suggested practices', set_share:'Share the "Moment for you" app',
     set_stats:'Statistics', set_privacy:'Data & privacy',
     nt_next:'Next notification:', nt_next_today:'today at', nt_next_none:'none left for today',
     nt_native:'Android handles reminders: they ring on time even when the app is closed, with {n} days scheduled ahead. They reschedule themselves whenever you change a practice or your pattern.',
@@ -647,8 +762,8 @@ const I18N = {
     pt_esp_label:'Special ones',
     pt_esp_txt:'Practices meant for a particular time of day. Create a "Moment for you" with any of them and choose the time yourself.',
     canal_nombre:'Moment (alarm)', canal_desc:'Reminders that ring even when the phone is on silent',
-    pt_moments_label:'Your own "Moments for you"',
-    pt_moments_txt:'Your own moments, at the time you decide and with the practice you choose. They are added to "Your day" with their own reminder, like any other suggestion, and can repeat several times a day. If one clashes with a pattern suggestion, the app will ask what you prefer. You can pause, edit or delete them whenever you like.',
+    pt_moments_label:'Your own moments',
+    pt_moments_txt:'Practices from the library or created by you, on the day and at the time you choose. Each moment is added to "Your day" with its own reminder, like any other suggestion, and can repeat several times a day. If one clashes with a pattern suggestion, the app will ask what you prefer. You can pause, edit or delete them whenever you like.',
     pt_create:'＋ Create a "Moment for you"',
     rep_daily:'every day', rep_days_a:'every', rep_days_b:'days', rep_weekly:'every', rep_monthly_a:'monthly (day', rep_monthly_b:')',
     ef_edit:'Edit', ef_create_h:'Create a', ef_hour:'Time', ef_exercise:'Exercise',
@@ -666,8 +781,8 @@ const I18N = {
     lg_txt:'Internal notes about failures the app was able to work around. They help with diagnosis and never leave your phone unless you send the feedback email.',
     lg_clear:'Clear the log', lg_cleared:'Log cleared',
     id_label:'Languages',
-    id_txt:'Spanish and English ship with the app. Other languages are downloaded from the website and added here. Once imported they are stored on your phone and work offline.',
-    id_import:'📂 Add a language from a file',
+    id_txt:'Spanish and English ship with the app. Other languages are added from a file (further down, in "Translate Moment into your language", step 3) and, once added, are stored on your phone and work offline.',
+    id_import:'📂 Upload the translated file',
     id_remove:'Remove', id_removed:'Language removed',
     id_remove_q:'Remove the {n} language? You can add it again whenever you like.',
     id_bad:'That file is not a valid language',
@@ -682,6 +797,7 @@ const I18N = {
     im_unknown:'I do not recognise this file. It should be a Moment backup, a language or practices.',
     id_rejected:'This file cannot be added:',
     id_confirm:'Add the {n} language?\n\nTranslated practices: {p}\nTranslated by: {a}\n\nAnything missing will be shown in your fallback language.',
+    id_fixed:'The official text will be used in {n} sentences that were missing a placeholder in curly braces.',
     id_added:'Language added: {n}',
     cr_txt:'Translated by {n}. Thank you for helping Moment speak more languages.',
     lb_label:'Library fallback language',

@@ -7,46 +7,118 @@
 
 let setCollapsed={};  // {idCaja:true} cajas de Ajustes plegadas
 
+/* ---- Constelaciones «x por semana» ----
+   Primero cuántas a la semana (de 1 a 7); después, cada una con su día, su hora y
+   cuál: una concreta o al azar. */
+const DIAS_LARGOS=['wd_sun','wd_mon','wd_tue','wd_wed','wd_thu','wd_fri','wd_sat'];
+function nombreDia(d){ const s=t(DIAS_LARGOS[d]||'wd_mon'); return s.charAt(0).toUpperCase()+s.slice(1); }
 function constSemToggle(on){
   const c=constSemCfg(); c.on=!!on;
-  if(on){ cfg.constNo=false; if(!c.horas.length) c.horas=[cfg.startH*60+cfg.startM]; }
+  if(on){ cfg.constNo=false; if(!c.filas.length) c.filas=[{d:1, h:cfg.startH*60+cfg.startM, pid:null}]; }
   applyCfg();
 }
-function constSemDia(d){
-  const c=constSemCfg(), i=c.dias.indexOf(d);
-  if(i>=0) c.dias.splice(i,1); else c.dias.push(d);
-  c.dias.sort((a,b)=>a-b);
+// Una más (el día siguiente a la última, a la misma hora) o una menos (la última)
+function constSemCuantas(delta){
+  const c=constSemCfg(), n=Math.max(1, Math.min(CONST_SEM_MAX, c.filas.length+delta));
+  while(c.filas.length<n){
+    const u=c.filas[c.filas.length-1] || {d:0, h:cfg.startH*60+cfg.startM};
+    c.filas.push({d:(u.d+1)%7, h:u.h, pid:null});
+  }
+  c.filas.length=n;
+  applyCfg();
+}
+function constSemDia(k, d){
+  const f=constSemCfg().filas[k]; if(!f) return;
+  f.d=Math.max(0, Math.min(6, parseInt(d,10)||0));
   applyCfg();
 }
 function constSemHora(k, e){
-  const c=constSemCfg();
-  const actual=(c.horas[k]!==undefined) ? c.horas[k] : cfg.startH*60+cfg.startM;
-  abrirReloj(actual, m=>{
-    c.horas[k]=m;
-    c.horas=[...new Set(c.horas)].sort((a,b)=>a-b);
-    applyCfg();
-  }, faseDe(e));
+  const f=constSemCfg().filas[k]; if(!f) return;
+  abrirReloj(f.h, m=>{ f.h=m; applyCfg(); }, faseDe(e));
 }
-function constSemQuitarHora(k){ const c=constSemCfg(); c.horas.splice(k,1); applyCfg(); }
-function constSemAddHora(){
-  const c=constSemCfg();
-  if(c.horas.length>=6){ toast(t('pt_const_sem_max')); return; }
-  constSemHora(c.horas.length);
+function constSemCual(k, pid){
+  const f=constSemCfg().filas[k]; if(!f) return;
+  f.pid = (pid && byId(pid)) ? pid : null;
+  applyCfg();
+}
+function constelacionesLista(){
+  return ALL().filter(p=>esCatConst(p.cat)).slice().sort((a,b)=>a.title.localeCompare(b.title));
 }
 function constSemBloque(){
-  const c=constSemCfg(), n=constSemTotal();
+  const c=constSemCfg(), n=c.filas.length, consts=constelacionesLista();
   return `<div style="margin:2px 0 8px 26px">
     <p class="muted" style="margin:0 0 6px;font-size:.85rem">${t('pt_const_sem_txt')}</p>
-    <div class="optgrid" style="grid-template-columns:repeat(4,1fr);margin-bottom:6px">
-      ${[1,2,3,4,5,6,0].map(d=>`<button type="button" class="optbtn ${c.dias.includes(d)?'sel':''}" onclick="constSemDia(${d})">${t('wd_s'+d)}</button>`).join('')}
+    <div class="contador">
+      <span>${t('pt_const_sem_n')}</span>
+      <button type="button" class="stp" ${n<=1?'disabled':''} onclick="constSemCuantas(-1)" aria-label="−">−</button>
+      <b>${n}</b>
+      <button type="button" class="stp" ${n>=CONST_SEM_MAX?'disabled':''} onclick="constSemCuantas(1)" aria-label="+">+</button>
     </div>
-    ${c.horas.map((m,k)=>`<div class="row" style="margin-top:6px;align-items:center">
-      <div style="flex:1"><button type="button" class="btn ghost" style="width:100%;font-weight:700" onclick="constSemHora(${k},event)">🕐 ${horaPartes(m)}</button></div>
-      ${c.horas.length>1?`<button type="button" class="btn ghost small" onclick="constSemQuitarHora(${k})">${t('ef_dr_del')}</button>`:''}
-    </div>`).join('')}
-    <p class="cbtn" style="margin:8px 0 0"><button type="button" class="tbtn" onclick="constSemAddHora()">${t('pt_const_sem_add')}</button></p>
-    <p class="muted" style="margin:6px 0 0;text-align:center"><b>${!c.dias.length ? t('pt_const_sem_none')
-      : n===1 ? t('pt_const_sem_total1') : t('pt_const_sem_total').replace('{n}', n)}</b></p>
+    ${c.filas.map((f,k)=>{
+      const elegida=f.pid && byId(f.pid) ? f.pid : '';
+      return `<div class="constfila">
+        <p class="constfila-n">${t('pt_const_sem_k').replace('{n}', k+1)}</p>
+        <div class="row" style="align-items:center;gap:8px;flex-wrap:nowrap">
+          <select style="flex:1 1 auto;min-width:0;margin:0" aria-label="${t('pt_const_sem_day')}" onchange="constSemDia(${k}, this.value)">
+            ${[1,2,3,4,5,6,0].map(d=>`<option value="${d}" ${f.d===d?'selected':''}>${nombreDia(d)}</option>`).join('')}
+          </select>
+          <button type="button" class="btn ghost" style="flex:0 0 auto;margin:0;padding:8px 10px;font-weight:700" onclick="constSemHora(${k},event)" aria-label="${t('pt_const_sem_hour')}: ${fmtT(f.h)}">${horaPartes(f.h)}</button>
+        </div>
+        <select style="margin:6px 0 0" aria-label="${t('pt_const_sem_which')}" onchange="constSemCual(${k}, this.value)">
+          <option value="" ${elegida?'':'selected'}>🎲 ${t('pt_const_sem_rand')}</option>
+          ${consts.map(p=>`<option value="${esc(p.id)}" ${elegida===p.id?'selected':''}>${esc(p.title)}</option>`).join('')}
+        </select>
+      </div>`;
+    }).join('')}
+    <p class="muted" style="margin:8px 0 0;text-align:center"><b>${n===1 ? t('pt_const_sem_total1') : t('pt_const_sem_total').replace('{n}', n)}</b></p>
+  </div>`;
+}
+
+// Una fila de momento propio con sus botones (pausar, editar, borrar). La usan la
+// lista de «Momentos propios» (con la lupa en los de Profundizar) y la de Profundizar.
+function filaMomentoHTML(ev, conLupa){
+  const pausado=evPaused.includes(ev.id);
+  return `<div style="display:flex;align-items:center;gap:10px;font-size:.92rem;margin-bottom:8px">
+      <div style="flex:1">${conLupa&&ev.prof?'🔍 ':''}<b>${esc(ev.title)}</b> · ${evTimesText(ev)} · ${repFullText(ev)}</div>
+      <button class="pau ${pausado?'on':''}" onclick="toggleEventPause('${ev.id}')" title="${pausado?t('pause_remove_t'):t('pause_add_t')}">⏸</button>
+      <button class="pau" onclick="openEventForm('${ev.id}')" title="${t('mo_edit')}" style="opacity:1;filter:none;color:var(--verde2)">✏️</button>
+      <button class="pau" onclick="delEvent('${ev.id}')" title="${t('mo_delete')}" style="color:#B3402A;opacity:1;filter:none">🗑</button>
+    </div>`;
+}
+
+/* ---- «Profundizar en una constelación» ----
+   Una opción más de la lista de constelaciones. Por dentro es un «Momento para ti»
+   marcado con prof: true: la misma constelación, con su hora, sus días y cuántas
+   veces (7, 13, 21, 28…). Así funciona aunque luego se apague el patrón, y aparece
+   también entre los momentos propios.
+   Casilla marcada = hay alguna en marcha. Al desmarcarla se ponen en pausa (no se
+   borran); al volver a marcarla se retoman, o se elige una si no había ninguna. */
+function momentosProfundizar(){ return userEvents.filter(ev=>ev.prof); }
+function profundizarActivo(){ return momentosProfundizar().some(ev=>!evPaused.includes(ev.id)); }
+function profundizarToggle(on){
+  const todos=momentosProfundizar();
+  if(on){
+    const pausados=todos.filter(ev=>evPaused.includes(ev.id));
+    if(pausados.length){
+      evPaused=evPaused.filter(id=>!pausados.some(ev=>ev.id===id));
+      LS.set('mpt_evpaused', evPaused);
+      rebuildToday(); scheduleNext(); renderSet(); toast(t('pt_const_deep_on'));
+      return;
+    }
+    renderSet();                      // la casilla refleja lo real mientras se elige
+    openEventForm(null, null, {soloConst:true});
+    return;
+  }
+  todos.forEach(ev=>{ if(!evPaused.includes(ev.id)) evPaused.push(ev.id); });
+  LS.set('mpt_evpaused', evPaused);
+  rebuildToday(); scheduleNext(); renderSet(); toast(t('pt_const_deep_off'));
+}
+function profundizarBloque(){
+  const todos=momentosProfundizar();
+  if(!todos.length) return '';
+  return `<div style="margin:2px 0 8px 26px">
+    ${todos.map(ev=>filaMomentoHTML(ev, false)).join('')}
+    <p class="cbtn" style="margin:2px 0 0"><button type="button" class="tbtn" onclick="openEventForm(null,null,{soloConst:true})">${t('pt_const_deep_add')}</button></p>
   </div>`;
 }
 
@@ -140,7 +212,7 @@ function renderSet(){
     ${secAjustes('patron', t('set_pattern'), `
       <p class="muted" style="margin:0 0 8px">${t('pt_modes_txt')}</p>
       ${nadaQueProponer()?`<div class="infobox" style="margin:0 0 10px">⚠️ ${t('pt_nothing')}</div>`:''}
-      <label class="fld">${t('pt_pat_label')}</label>
+      <h3 class="modotit">🕐 ${t('pt_pat_label')}</h3>
       <label class="chkrow" style="margin:0 0 6px">
         <input type="checkbox" ${patronActivo()?'checked':''} onchange="patronToggle(this.checked)"> ${t('pt_pat_on')}
       </label>
@@ -195,28 +267,25 @@ function renderSet(){
             <input type="checkbox" ${cfg.constSem&&cfg.constSem.on?'checked':''} onchange="constSemToggle(this.checked)"> ${t('pt_const_sem')}
           </label>
           ${cfg.constSem&&cfg.constSem.on?constSemBloque():''}
-          <button type="button" class="btn ghost block" style="margin-top:10px" onclick="openEventForm(null,null,{soloConst:true})">🔍 ${t('pt_const_deep')}</button>
-          <p class="muted" style="margin:6px 0 0;font-size:.85rem">${t('pt_const_deep_txt')}</p>
+          <label class="chkrow" style="margin-bottom:2px">
+            <input type="checkbox" ${profundizarActivo()?'checked':''} onchange="profundizarToggle(this.checked)"> ${t('pt_const_deep')}
+          </label>
+          <p class="muted" style="margin:0 0 8px 26px;font-size:.85rem">${t('pt_const_deep_txt')}</p>
+          ${profundizarBloque()}
         </div>
       `:`<p class="muted" style="margin:0 0 8px;font-size:.85rem">${t('pt_pat_off')}</p>`}
 
+      <h3 class="modotit">✍️ ${t('pt_moments_label')}</h3>
+      <p class="muted" style="margin:0 0 8px">${t('pt_moments_txt')}</p>
+      ${userEvents.length?userEvents.map(ev=>filaMomentoHTML(ev, true)).join(''):`<p class="muted">${t('mo_none')}</p>`}
+
+      <button class="btn gold block" onclick="openEventForm()">${t('pt_create')}</button>
       <label class="fld">${t('pt_esp_label')}</label>
       <p class="muted" style="margin:0 0 8px">${t('pt_esp_txt')}</p>
       ${especialesLista().map(p=>`<button class="btn ghost block" style="text-align:left" onclick="crearMomentoDe('${p.id}')">⏰ ${esc(p.title)}</button>`).join('')}
-      <label class="fld">${t('pt_moments_label')}</label>
-      <p class="muted" style="margin:0 0 8px">${t('pt_moments_txt')}</p>
-      ${userEvents.length?userEvents.map(ev=>`
-        <div style="display:flex;align-items:center;gap:10px;font-size:.92rem;margin-bottom:8px">
-          <div style="flex:1"><b>${esc(ev.title)}</b> · ${evTimesText(ev)} · ${repFullText(ev)}</div>
-          <button class="pau ${evPaused.includes(ev.id)?'on':''}" onclick="toggleEventPause('${ev.id}')" title="${evPaused.includes(ev.id)?t('pause_remove_t'):t('pause_add_t')}">⏸</button>
-          <button class="pau" onclick="openEventForm('${ev.id}')" title="${t('mo_edit')}" style="opacity:1;filter:none;color:var(--verde2)">✏️</button>
-          <button class="pau" onclick="delEvent('${ev.id}')" title="${t('mo_delete')}" style="color:#B3402A;opacity:1;filter:none">🗑</button>
-        </div>`).join(''):`<p class="muted">${t('mo_none')}</p>`}
-
-      <button class="btn gold block" onclick="openEventForm()">${t('pt_create')}</button>
       <div class="infobox" style="margin-top:12px">💡 <b>${t('ob_hint_title')}:</b> ${t('ob_hint_custom')}</div>
 
-      <label class="fld" style="margin-top:20px">${t('pt_az_label')}</label>
+      <h3 class="modotit">🎲 ${t('pt_az_label')}</h3>
       <p class="muted" style="margin:0 0 8px">${t('pt_az_txt')}</p>
       <label class="chkrow" style="margin:0 0 6px">
         <input type="checkbox" ${azarActivo()?'checked':''} onchange="azToggle(this.checked)"> ${t('pt_az_on')}
@@ -252,23 +321,33 @@ function renderSet(){
         ${idiomasDisponibles().map(c=>`<button class="optbtn ${getLang()===c?'sel':''}"
           onclick="setLang('${c}');renderSet()">${banderaIdioma(c)} ${esc(nombreIdioma(c))}</button>`).join('')}
       </div>
-      ${idiomasDisponibles().filter(c=>!IDIOMAS_BASE.includes(c)).map(c=>`<p class="center cbtn" style="margin:0 0 6px">
-        <button type="button" class="tbtn" onclick="enviarIdiomaEmail('${c}')">${t('tr_send_btn')}: ${esc(nombreIdioma(c))}</button>
-        <button type="button" class="tbtn peligro" onclick="quitarIdioma('${c}')">${t('id_remove')}: ${esc(nombreIdioma(c))}</button></p>`).join('')}
-      <input type="file" id="id_file" accept=".json,application/json" style="display:none"
-        onchange="importarArchivo(this.files[0]);this.value=''">
-      <button class="btn ghost block" onclick="document.getElementById('id_file').click()">${t('id_import')}</button>
       ${creditoIdioma()?`<p class="muted" style="margin:8px 0 0;font-size:.85rem">${t('cr_txt').replace('{n}', esc(creditoIdioma()))}</p>`:''}
-      <label class="fld" style="margin-top:16px">${t('tr_title')}</label>
-      <p class="muted" style="margin:0 0 8px;font-size:.85rem">${t('tr_txt')}</p>
-      <button class="btn ghost block" onclick="descargarPlantillaTraduccion()">${t('tr_download')}</button>
-      <p class="cbtn" style="margin:6px 0 0"><button type="button" class="tbtn" onclick="copyText(t('tr_prompt')).then(ok=>toast(ok?t('tr_prompt_ok'):t('sr_copy_fail')))">${t('tr_prompt_btn')}</button></p>
 
       <label class="fld" style="margin-top:16px">${t('lb_label')}</label>
       <p class="muted" style="margin:0 0 8px;font-size:.85rem">${t('lb_txt')}</p>
-      <div class="optgrid g2" style="margin-bottom:16px">
+      <div class="optgrid g2" style="margin-bottom:8px">
         <button class="optbtn ${langRespaldo()==='es'?'sel':''}" onclick="elegirRespaldo('es')">🇪🇸 Español</button>
         <button class="optbtn ${langRespaldo()==='en'?'sel':''}" onclick="elegirRespaldo('en')">🇬🇧 English</button>
+      </div>
+
+      <div class="subcaja" style="margin-bottom:16px">
+        <label class="fld" style="margin-top:0">${t('tr_title')}</label>
+        <p class="muted" style="margin:0 0 4px;font-size:.85rem">${t('tr_txt')}</p>
+        <p class="pasotr">${t('tr_s1')}</p>
+        <button class="btn ghost block" onclick="descargarPlantillaTraduccion()">${t('tr_download')}</button>
+        <p class="pasotr">${t('tr_s2')}</p>
+        <button class="btn ghost block" onclick="copyText(t('tr_prompt')).then(ok=>toast(ok?t('tr_prompt_ok'):t('sr_copy_fail')))">${t('tr_prompt_btn')}</button>
+        <p class="pasotr">${t('tr_s3')}</p>
+        <input type="file" id="id_file" accept=".json,application/json" style="display:none"
+          onchange="importarArchivo(this.files[0]);this.value=''">
+        <button class="btn gold block" onclick="document.getElementById('id_file').click()">${t('id_import')}</button>
+        ${idiomasDisponibles().filter(c=>!IDIOMAS_BASE.includes(c)).length?`
+          <label class="fld">${t('tr_mine')}</label>
+          ${idiomasDisponibles().filter(c=>!IDIOMAS_BASE.includes(c)).map(c=>`<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 6px">
+            <span style="flex:1;min-width:120px">${banderaIdioma(c)} <b>${esc(nombreIdioma(c))}</b></span>
+            <button type="button" class="tbtn" onclick="enviarIdiomaEmail('${c}')">${t('tr_send_btn')}</button>
+            <button type="button" class="tbtn peligro" onclick="quitarIdioma('${c}')">${t('id_remove')}</button>
+          </div>`).join('')}`:''}
       </div>
       <label class="fld">${t('ab_title')}</label>
       <p class="muted">${t('pr_intro')}</p>

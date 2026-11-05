@@ -20,9 +20,33 @@ function totalCats(){ try{ return new Set(PRACTICES.map(p=>p.cat)).size; }catch(
    En la bienvenida se elige solo uno; en Ajustes se combinan como se quiera.
    Lo que antes era «solo mis momentos» es ahora patrón y azar apagados. */
 function patronActivo(){ return !!cfg && cfg.patron!==false; }
+// Separación mínima, en minutos, entre una práctica al azar y cualquier otra propuesta.
+// Se define aquí (y no en azar.js) porque la usan las migraciones, que se ejecutan al
+// cargar este archivo, antes que azar.js.
+const AZ_SEP_DEF = 13;
 // Valores de partida del modo al azar: de 09:00 a 21:00, de 3 a 5 prácticas al día,
-// de todas las categorías (excl = las que NO se proponen).
-function azarPorDefecto(){ return {on:false, ini:9*60, fin:21*60, min:3, max:5, excl:[]}; }
+// con al menos 13 minutos entre una y otra, de todas las categorías (excl = las que
+// NO se proponen).
+function azarPorDefecto(){ return {on:false, ini:9*60, fin:21*60, min:3, max:5, sep:AZ_SEP_DEF, excl:[]}; }
+
+/* ---- Constelaciones «x por semana» ----
+   cfg.constSem = {on, filas:[{d, h, pid}]}: de 1 a 7 a la semana, cada una con su
+   día (0 = domingo … 6 = sábado), su hora (minutos desde medianoche) y su
+   constelación (pid) o null = al azar.
+   Hasta la 3.88 eran días × horas ({dias:[…], horas:[…]}): no quedaba claro qué hora
+   iba con qué día. Cada combinación antigua pasa a ser una fila, hasta 7. */
+const CONST_SEM_MAX = 7;
+function constSemFilasDe(s){
+  const o = {on: !!(s && s.on), filas: []};
+  if (s && Array.isArray(s.filas)) o.filas = s.filas.slice(0, CONST_SEM_MAX).map(f=>({d:f.d, h:f.h, pid:f.pid||null}));
+  else if (s && Array.isArray(s.dias) && Array.isArray(s.horas)){
+    const lunesPrimero = (a,b)=>((a+6)%7)-((b+6)%7);
+    s.dias.slice().sort(lunesPrimero).forEach(d=>
+      s.horas.slice().sort((a,b)=>a-b).forEach(h=>{ if(o.filas.length<CONST_SEM_MAX) o.filas.push({d, h, pid:null}); }));
+  }
+  if (o.on && !o.filas.length) o.on = false;
+  return o;
+}
 
 /* migración desde versión anterior (wakeH/wakeM) */
 if(cfg && cfg.wakeH!==undefined){ cfg={startH:cfg.wakeH, startM:cfg.wakeM, freq:cfg.freq, span:cfg.span}; LS.set('mpt_cfg',cfg); dayState=null; }
@@ -59,6 +83,12 @@ const MIGRACIONES = [
       if(c.patron===undefined) c.patron = !c.soloEventos;
       delete c.soloEventos;
       if(!c.azar) c.azar = azarPorDefecto();
+  } },
+  // v11: constelaciones «x por semana» por filas (día, hora y cuál) y separación
+  // mínima elegible en el modo al azar, 13 minutos de partida.
+  { v:11, aplica(c){
+      c.constSem = constSemFilasDe(c.constSem);
+      if(c.azar && c.azar.sep===undefined) c.azar.sep = AZ_SEP_DEF;
   } },
 ];
 // La versión es siempre la de la última migración: antes era un número fijo y,

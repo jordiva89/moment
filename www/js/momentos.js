@@ -6,6 +6,7 @@
    solo importa para lo que se ejecuta al cargar; las funciones se llaman después. */
 
 let editingEvent=null;
+let _evProf=false;   // el formulario abierto es el de «Profundizar en una constelación»
 // Abre el formulario de momento propio con una práctica ya elegida en «Ejercicio»
 function crearMomentoDe(pid){
   try{ closeModal(); }catch(e){}
@@ -18,6 +19,7 @@ function openEventForm(editId, presetPid, opts){
   const ed=editId?getEvent(editId):null;
   _evAdj={actual:null, nuevo:null, quitar:false};
   const soloConst=!!(opts && opts.soloConst) && !ed;
+  _evProf=soloConst;
   const cats={};
   ALL().filter(p=>!soloConst || esCatConst(p.cat)).forEach(p=>{ (cats[p.cat]=cats[p.cat]||[]).push(p); });
   document.getElementById('modalContent').innerHTML=`
@@ -304,6 +306,7 @@ function saveEvent(){
     const now=new Date();
     ev={id:'e'+Date.now(), title:titulo, time:H*60+M, pid, rep, n, wd, veces, dmode, dcount, dgap, dtimes,
       startY:now.getFullYear(), startM:now.getMonth()+1, startD:now.getDate()};
+    if(_evProf) ev.prof=true;          // se lista también en «Profundizar en una constelación»
     userEvents.push(ev);
     ensureDayPlan();
   }

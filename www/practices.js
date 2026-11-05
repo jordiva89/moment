@@ -2,7 +2,8 @@
 //
 // ESTRUCTURA
 //   CATEGORIAS  códigos de categoría y su etiqueta por idioma
-//   PRACTICAS   qué prácticas hay: id, categoría (CÓDIGO) y enlace opcional.
+//   PRACTICAS   qué prácticas hay: id, categoría (CÓDIGO), y enlace y archivos
+//               opcionales (audio, imagen, vídeo: ver ARCHIVOS DE LA BIBLIOTECA).
 //               No contiene texto: es igual para todos los idiomas.
 //   TEXTOS      los títulos y textos, agrupados por idioma e indexados por id.
 //
@@ -666,6 +667,33 @@ const IDIOMAS_BIBLIOTECA = Object.keys(TEXTOS);
 /* Construye la lista de prácticas de un idioma. Si a un idioma le falta algún
    texto (traducción incompleta), se rellena con el idioma de respaldo en vez de
    dejar el hueco vacío. */
+/* ARCHIVOS DE LA BIBLIOTECA (audio, imagen o vídeo)
+   Una práctica puede llevar archivos, igual que los momentos propios. Van DENTRO de
+   la app, en la carpeta www/medios/, y se declaran en su línea de PRACTICAS:
+
+     {id:'p001', cat:'armonizacion', adj:[
+       {tipo:'audio', src:'medios/p001-es.mp3', idioma:'es'},
+       {tipo:'audio', src:'medios/p001-en.mp3', idioma:'en'},
+       {tipo:'image', src:'medios/p001.jpg'}
+     ]}
+
+   · tipo: 'audio', 'image' o 'video'.
+   · src: siempre dentro de medios/; nada de direcciones de internet (la app no carga
+     nada de fuera: ver la política de contenido de index.html).
+   · idioma (opcional): un audio en español solo se ofrece con la app en español. Si
+     el idioma activo no tiene el suyo, se ofrece el del idioma de respaldo.
+   Cada archivo hace más grande el APK: mejor audio en mp3 o m4a, imágenes en jpg
+   o webp y vídeos cortos. */
+const ADJ_TIPOS = ['audio', 'image', 'video'];
+const ADJ_SRC_OK = /^medios\/[A-Za-z0-9._\/-]+$/;
+function adjuntosDe(p, lang, respaldo){
+  const lista = (Array.isArray(p.adj) ? p.adj : []).filter(a =>
+    a && ADJ_TIPOS.includes(a.tipo) && typeof a.src === 'string' && ADJ_SRC_OK.test(a.src) && !a.src.includes('..'));
+  const sinIdioma = lista.filter(a => !a.idioma);
+  const delIdioma = lista.filter(a => a.idioma === lang);
+  const deRespaldo = delIdioma.length ? [] : lista.filter(a => a.idioma === (respaldo || 'es'));
+  return sinIdioma.concat(delIdioma, deRespaldo).map(a => ({tipo:a.tipo, src:a.src}));
+}
 function construirPracticas(lang, respaldo){
   const t = TEXTOS[lang] || {};
   const r = TEXTOS[respaldo || 'es'] || TEXTOS.es || {};
@@ -675,6 +703,8 @@ function construirPracticas(lang, respaldo){
     const x = t[p.id] || r[p.id] || {t:p.id, x:''};
     const o = {id:p.id, cat:p.cat, catLabel:etiqueta[p.cat] || p.cat, title:x.t, text:x.x};
     if (p.link) o.link = p.link;
+    const adjs = adjuntosDe(p, lang, respaldo);
+    if (adjs.length) o.adjs = adjs;
     return o;
   });
 }
