@@ -503,3 +503,17 @@ try {
 } catch (e) {
   console.log('Aviso: splash no configurado (' + e.message + '); la compilacion sigue');
 }
+
+// Gradle se descarga en cada compilación desde services.gradle.org. El plazo por
+// defecto (10 s) a veces no basta y la compilación falla sin motivo real: se amplía.
+try {
+  const wp = 'android/gradle/wrapper/gradle-wrapper.properties';
+  if (fs.existsSync(wp)) {
+    let w = fs.readFileSync(wp, 'utf8');
+    w = /networkTimeout=/.test(w) ? w.replace(/networkTimeout=\d+/, 'networkTimeout=120000') : w.trimEnd() + '\nnetworkTimeout=120000\n';
+    fs.writeFileSync(wp, w);
+    console.log('Gradle: plazo de descarga ampliado a 120 s');
+  }
+} catch (e) {
+  console.log('Aviso: no se pudo ampliar el plazo de Gradle (' + e.message + ')');
+}
