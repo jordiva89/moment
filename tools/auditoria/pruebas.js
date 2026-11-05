@@ -615,6 +615,10 @@ mk(async (w,d)=>{
   ok('El Noveno Camino: título centrado', d.getElementById('main').innerHTML.includes('font-size:1.7rem;text-align:center'));
   // ---------- crear una constelación con IA (3.89) ----------
   w.gotoTab('lib');
+  ok('Ajustes: también al final de las constelaciones del día', (function(){
+    w.eval('setCollapsed={}'); w.renderSet(); const caja=d.querySelector('#main .subcaja');
+    const bs=[...caja.querySelectorAll('button')]; return bs.length && bs[bs.length-1].getAttribute('onclick')==='abrirConstelacionIA()';
+  })());
   ok('Biblioteca: botón para crear una constelación con IA', d.getElementById('main').innerHTML.includes('abrirConstelacionIA()')
      && d.getElementById('main').innerHTML.includes(w.t('lib_ai_const')));
   ok('prompt de constelaciones: preguntas, contexto y la lista entera', (function(){

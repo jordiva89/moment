@@ -272,6 +272,7 @@ function renderSet(){
           </label>
           <p class="muted" style="margin:0 0 8px 26px;font-size:.85rem">${t('pt_const_deep_txt')}</p>
           ${profundizarBloque()}
+          <button type="button" class="btn ghost block" style="margin-top:10px" onclick="abrirConstelacionIA()">${t('lib_ai_const')}</button>
         </div>
       `:`<p class="muted" style="margin:0 0 8px;font-size:.85rem">${t('pt_pat_off')}</p>`}
 
