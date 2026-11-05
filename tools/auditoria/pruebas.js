@@ -464,9 +464,9 @@ mk(async (w,d)=>{
     w.eval("cfg.constSem={on:true,filas:[{d:1,h:1265,pid:'p039'}]};");
     return ['2026-01-05','2026-01-12','2026-01-19'].every(f=>w.buildDayEntries(f).some(e=>e.time===1265 && e.pid==='p039'));
   })());
-  ok('x por semana: si la elegida está en pausa, ese día no se propone', (function(){
+  ok('x por semana: la elegida se propone aunque esté en pausa', (function(){
     w.eval("paused.push('p039');");
-    const r=!w.buildDayEntries('2026-01-05').some(e=>e.time===1265);
+    const r=w.buildDayEntries('2026-01-05').some(e=>e.time===1265 && e.pid==='p039');
     w.eval("paused=paused.filter(x=>x!=='p039');"); return r;
   })());
   ok('x por semana: si la elegida ya no existe, vuelve a ser al azar', (function(){
@@ -675,8 +675,11 @@ mk(async (w,d)=>{
   w.eval("window._adjMem=new Map(); ADJ.guardar=(id,b)=>{ _adjMem.set(id,b); return Promise.resolve(); }; ADJ.leer=id=>Promise.resolve(_adjMem.get(id)); ADJ.borrar=id=>{ _adjMem.delete(id); return Promise.resolve(); };");
   w.URL.createObjectURL=()=>'blob:prueba'; w.URL.revokeObjectURL=()=>{};
   ok('adjunto: el formulario lo ofrece', (function(){ w.openEventForm(); const r=!!d.getElementById('ev_adj'); return r; })());
-  ok('adjunto: rechaza lo que no es audio, imagen o vídeo', (function(){
-    w.evAdjElegir(new w.File(['x'], 'a.pdf', {type:'application/pdf'})); return w.eval('_evAdj.nuevo')===null;
+  ok('adjunto: acepta cualquier archivo (un PDF también)', (function(){
+    w.evAdjElegir(new w.File(['x'], 'a.pdf', {type:'application/pdf'}));
+    const r=w.eval('_evAdj.nuevo && _evAdj.nuevo.name')==='a.pdf' && w.adjTipo('application/pdf','a.pdf')==='file'
+      && w.adjTipo('text/plain','n.txt')==='text' && w.adjTipo('','notas.md')==='text' && w.adjTipo('image/png')==='image';
+    w.eval('_evAdj={actual:null, nuevo:null, quitar:false}'); return r;
   })());
   ok('adjunto: rechaza archivos demasiado grandes', (function(){
     w.evAdjElegir({name:'v.mp4', type:'video/mp4', size:300*1024*1024}); return w.eval('_evAdj.nuevo')===null;
@@ -703,6 +706,34 @@ mk(async (w,d)=>{
     w.delUser(pidAdj); return w.eval('_adjMem.size')===0;
   })());
   w.eval('userEvents=[]; LS.set("mpt_events",[]);');
+  ok('Crear nueva práctica: permite adjuntar un archivo y basta con él', (function(){
+    w.openAddForm();
+    const hay=!!d.getElementById('ev_adj') && !d.getElementById('ev_adj').getAttribute('accept');
+    d.getElementById('np_t').value='Con PDF';
+    w.evAdjElegir(new w.File(['%PDF'], 'guia.pdf', {type:'application/pdf'}));
+    w.eval('location.href="#"'); w.saveUserPractice();
+    const p=w.eval('userLib[userLib.length-1]');
+    const r=hay && p.title==='Con PDF' && p.adj && p.adj.tipo==='file' && p.adj.nombre==='guia.pdf';
+    w.eval("userLib=userLib.filter(x=>x.id!=="+JSON.stringify(p.id)+"); LS.set('mpt_userlib',userLib); libCacheDirty();");
+    return r;
+  })());
+  ok('cualquier práctica de la biblioteca admite un archivo, también las de la app', (function(){
+    w.abrirAdjuntoPractica('p002');
+    const form=!!d.getElementById('ev_adj') && d.getElementById('modalContent').innerHTML.includes(w.t('lib_adj_title'));
+    w.evAdjElegir(new w.File(['hola'], 'nota.txt', {type:'text/plain'}));
+    w.guardarAdjuntoPractica();
+    const a=w.eval("adjLibreria.p002");
+    const guardado=!!a && a.tipo==='text' && JSON.parse(w.localStorage.getItem('mpt_adjlib')).p002.nombre==='nota.txt';
+    const h=w.adjuntoHTML(w.eval("byId('p002')"));
+    const pinta=h.includes('data-adj="'+a.id+'"') && h.includes('data-tipo="text"');
+    w.gotoTab('lib'); w.eval("expandedLib.add('p002')"); w.renderLibList();
+    const boton=d.getElementById('main').innerHTML.includes("abrirAdjuntoPractica('p002')") && d.getElementById('main').innerHTML.includes(w.t('lib_adj_change'));
+    w.abrirAdjuntoPractica('p002'); w.evAdjQuitar(); w.guardarAdjuntoPractica();
+    const quitado=!w.eval("adjLibreria.p002") && !JSON.parse(w.localStorage.getItem('mpt_adjlib')).p002;
+    w.eval("expandedLib.delete('p002')");
+    return form && guardado && pinta && boton && quitado;
+  })());
+  ok('saneado: los adjuntos de texto y otros archivos se conservan', w.sanearPractica({id:'u9',title:'x',text:'y',cat:'c',adj:{id:'a1',tipo:'file',nombre:'a.pdf',mime:'application/pdf',kb:3}}).adj.tipo==='file');
   // ---------- arreglo: editar un momento guarda días y límite ----------
   ok('editar un momento guarda los días de la semana y el límite', (function(){
     w.eval("userEvents=[{id:'eW',title:'W',time:540,pid:'p001',rep:'wdays',wd:[1,4],veces:7,n:2,startY:2026,startM:1,startD:1}]; LS.set('mpt_events',userEvents);");

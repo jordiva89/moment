@@ -127,7 +127,7 @@ async function restaurarTodo(){
   // cancelar todos los avisos programados
   try{ if(IS_NATIVE && CapLN){ const pend=await CapLN.getPending(); if(pend && pend.notifications && pend.notifications.length) await CapLN.cancel({notifications:pend.notifications}); } }catch(e){}
   // borrar todos los datos de la app excepto las fechas de instalación/actualización
-  ['mpt_cfg','mpt_day','mpt_plans','mpt_favs','mpt_paused','mpt_evpaused','mpt_userlib','mpt_events','mpt_stats','mpt_donelog','mpt_alarm','mpt_log'].forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} });
+  ['mpt_cfg','mpt_day','mpt_plans','mpt_favs','mpt_paused','mpt_evpaused','mpt_userlib','mpt_adjlib','mpt_events','mpt_stats','mpt_donelog','mpt_alarm','mpt_log'].forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} });
   // los adjuntos de las prácticas propias también
   try{ if(window.indexedDB) indexedDB.deleteDatabase(ADJ_DB); }catch(e){}
   location.reload();

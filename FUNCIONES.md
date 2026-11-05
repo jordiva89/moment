@@ -47,7 +47,7 @@ quieran:
 - **Constelaciones** (dentro de Categorías preferidas). Eliges en qué momentos
   del día quieres una: al principio, a mediodía, al final, en varios o en
   ninguno. O **x por semana**: cuántas a la semana (de 1 a 7) y, para cada una,
-  el día, la hora y cuál, una concreta o al azar.
+  el día, la hora y cuál, una concreta (aunque esté en pausa) o al azar.
 - **Profundizar en una constelación**, una opción más de la misma lista: la misma
   constelación una y otra vez (7, 13, 21 o 28 veces), a la hora y los días que
   elijas, para trabajar un tema a fondo. Se pausa y se retoma desde la casilla.
@@ -75,8 +75,12 @@ Aquí está el control fino: cuando ya conoces las prácticas, montas tu día ex
 
 ## 4. Tu propia biblioteca
 
-- **Crea tus prácticas:** título, texto, categoría, enlace opcional y un audio,
-  una imagen o un vídeo adjunto (se guarda solo en el dispositivo).
+- **Crea tus prácticas:** título, texto, categoría, enlace opcional y un archivo
+  adjunto: imagen, audio, vídeo, texto o cualquier otro (se guarda solo en el
+  dispositivo). Basta con el archivo, aunque no haya texto.
+- **Añade un archivo a cualquier práctica**, también a las de la biblioteca de la
+  app, desde su ficha. Las imágenes, audios, vídeos y textos se ven en la propia
+  ficha; el resto se guarda en el móvil con un botón.
 - **Tus propias categorías**, que entran en el reparto como las demás.
 - **Impórtalas en bloque** desde un documento Word o un archivo de texto, con una
   plantilla descargable. El lector entiende las etiquetas en cualquier idioma
