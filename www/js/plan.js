@@ -276,7 +276,7 @@ function ensureDayPlan(){
   Object.keys(plans).forEach(k=>{ if(k<=todayStr()) delete plans[k]; });
   LS.set('mpt_plans', plans);
   dayState={date:todayStr(), used:[...new Set(entries.map(e=>e.pid))],
-    plan: entries.map(e=>Object.assign({time:e.time, pid:e.pid, ev:e.ev, done:false, snoozes:0, snoozeUntil:null}, e.fija?{fija:true}:{}))};
+    plan: entries.map(e=>Object.assign({time:e.time, pid:e.pid, ev:e.ev, done:false, snoozes:0, snoozeUntil:null}, e.fija?{fija:true}:{}, e.az?{az:true}:{}))};
   LS.set('mpt_day', dayState);
 }
 function saveDay(){ LS.set('mpt_day', dayState); }
@@ -297,7 +297,7 @@ function currentSlotIndex(){
 }
 
 function getPlanFor(dstr){
-  if(dstr===todayStr()){ ensureDayPlan(); return dayState.plan.map(s=>({time:s.time, pid:s.pid, ev:s.ev})); }
+  if(dstr===todayStr()){ ensureDayPlan(); return dayState.plan.map(s=>Object.assign({time:s.time, pid:s.pid, ev:s.ev}, s.az?{az:true}:{})); }
   const plans=LS.get('mpt_plans', {});
   if(plans[dstr]) return plans[dstr];
   const plan=buildDayEntries(dstr);

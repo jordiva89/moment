@@ -35,7 +35,7 @@ const I18N = {
     az_sum_fixed:'Cada día, {n} prácticas al azar, entre las {a} y las {b}.',
     az_sum_one:'Cada día, 1 práctica al azar, entre las {a} y las {b}.',
     az_sum_sep:'Al menos {s} minutos entre una propuesta y otra.',
-    az_sep:'Separación mínima (min)',
+    az_sep:'Separación mínima (minutos)',
     az_sep_txt:'Minutos que pasan, como mínimo, entre una práctica al azar y cualquier otra propuesta: otra al azar, el patrón o tus momentos.',
     az_sum_zero:'Cada día, 1 práctica, a las {a}.',
     ob_az_cat_title:'¿De qué categorías?',
@@ -180,7 +180,7 @@ const I18N = {
     ob_hour_sub:'A partir de esta hora organizaremos tus momentos del día.',
     clk_pick_h:'Selecciona la hora', clk_pick_m:'Selecciona los minutos',
     nc_quotes:'Citas', nc_social:'Seguir el Noveno Camino',
-    fold_all:'Plegar todo', unfold_all:'Desplegar todo',
+    fold_all:'Plegar', unfold_all:'Desplegar',
     ob_back:'← Atrás',
     ob_freq_title:'¿Cada cuántas horas quieres recibir una propuesta?',
     ob_freq_each:'Cada', ob_freq_h:'h',
@@ -190,8 +190,8 @@ const I18N = {
     ob_rem_box:'Cada práctica pospuesta espera primero 1 minuto, luego 1 más, luego 2, 3, 5, 8, 13, 21, 34 y 55 minutos más en ser recordada. Sin sobreponerse a la siguiente notificación.',
     ob_rem_notif:'Toda notificación se llama «Moment» y suena con el sonido predeterminado de tu teléfono. Para recibirlas, permite las notificaciones a continuación.',
     ob_notif_on:'🔔 Notificaciones activadas', ob_notif_ask:'🔕 Permitir notificaciones',
-    h_today:'Tu día', h_past:'Día pasado', h_next:'Siguiente día',
-    hm_own:'✦ Momento propio', st_done:' · hecha', st_next:' · siguiente', st_muted:' · 🔕 silenciada',
+    h_today:'Siguientes del día', h_past:'Día pasado', h_next:'Siguiente día',
+    hm_own:'✦ Momento propio', hm_pat:'🕐 Patrón estándar', hm_az:'🎲 Al azar', st_done:' · hecha', st_next:' · siguiente', st_muted:' · 🔕 silenciada',
     open_ex:'Abrir ejercicio ↗', done_now:'🌟 Hecha ahora', done_mark:'✔ Hecha', change:'✨ Cambiar',
     no_more:'No quedan más momentos por hoy.',
     mute_off:'Silenciar esta notificación', mute_on:'Reactivar esta notificación',
@@ -200,50 +200,55 @@ const I18N = {
     hdr_yest:'Ayer', hdr_yest_done:'hechas', hdr_yest_snoozed:'pospuestas', hdr_nodata:'sin datos',
     snoozed_pre:'Pospuesta', snoozed_next:'próximo aviso a las',
     lib_search:'Buscar práctica…', lib_new:'＋ Crear nueva práctica',
-    lib_ai_const:'✨ Crear una constelación con IA',
-    cp_title:'Crea una constelación con una IA',
+    lib_ai_const:'✨ Elige o crea una constelación con IA',
+    cp_title:'Elige o crea una constelación con IA',
     cp_txt:'Copia estas instrucciones y pégalas en una IA. Te recomendamos Qwen: Jordi Beold la ha calibrado con radiestesia, según su escala de calibración de conciencia, como la IA más consciente por el momento (también sirven otras). Te hará unas preguntas sobre lo que quieres trabajar y te propondrá una constelación de Moment o una nueva. Si es nueva, añádela a tu Biblioteca: después te podrá llegar con el patrón estándar, al azar o como momento propio, como cualquier otra.',
     cp_copy:'📋 Copiar las instrucciones para la IA',
     cp_qwen:'🔗 Abrir Qwen',
     cp_add:'＋ Añadir una constelación a mi Biblioteca',
-    cp_prompt:'Quiero que me ayudes a elegir una constelación para trabajar un tema personal con Moment.\n'
+    cp_prompt:'Quiero que me ayudes a elegir o crear una constelación para trabajar un tema personal con la app Moment.\n'
       +'\n'
       +'Sobre Moment: es una app de bienestar con prácticas breves de carácter espiritual y transpersonal. No diagnostica ni trata nada, y no sustituye la ayuda médica ni psicológica. Entre sus prácticas hay ejercicios de constelaciones familiares para hacer en solitario y sin materiales; cada uno se abre en una página de insconsfa.com que lo guía paso a paso. Las constelaciones de la Biblioteca de Moment, también las que añado yo, me pueden llegar con el patrón estándar, al azar o como momento propio, y con «Profundizar en una constelación» puedo repetir la misma 7, 13, 21 o 28 veces para trabajar un tema a fondo.\n'
       +'\n'
-      +'Sobre las constelaciones: las desarrolló Bert Hellinger, inspirándose, entre otras fuentes, en los dieciséis años que vivió entre los zulúes de Sudáfrica y en su forma de honrar a los antepasados. Después las amplió Brigitte Champetier de Ribes con las Nuevas Constelaciones Familiares, que son las de los ejercicios de insconsfa.com. Hay quien las relaciona también con rituales muy antiguos de pueblos originarios de América.\n'
+      +'Sobre las constelaciones: las desarrolló Bert Hellinger, inspirándose, entre otras fuentes, en los dieciséis años que vivió entre los zulúes de Sudáfrica y en su forma de honrar a los antepasados. Después, las amplió Brigitte Champetier de Ribes con las Nuevas Constelaciones Familiares, que son las de los ejercicios de insconsfa.com. Hay quienes las relacionan también con rituales muy antiguos de pueblos originarios de América.\n'
       +'\n'
       +'Cómo quiero que lo hagas:\n'
-      +'1. Primero hazme preguntas para entender qué quiero trabajar y qué necesito. Hazlas de una en una, espera mi respuesta antes de pasar a la siguiente y sáltate las que ya estén respondidas. No hace falta que te dé nombres ni detalles que no quiera compartir.\n'
-      +'2. Después propónme la constelación que mejor encaje o crea una nueva.\n'
+      +'Primero hazme preguntas para entender en qué quiero trabajar y qué necesito. Hazlas de una en una, espera mi respuesta antes de pasar a la siguiente y sáltate las que ya estén respondidas. No hace falta que te dé nombres ni detalles que no quiera compartir.\n'
+      +'Después, propónme la constelación que mejor encaje o crea una nueva.\n'
       +'\n'
-      +'Las preguntas:\n'
-      +'- ¿Qué tema o situación quieres trabajar? Por ejemplo: tu madre o tu padre, la pareja, un conflicto con alguien, un miedo, una emoción que se repite, una decisión, tu lugar en la familia, el trabajo o el dinero, algo del pasado…\n'
-      +'- ¿Cómo se nota hoy en tu vida? Cuéntalo con tus palabras y con el detalle que quieras.\n'
-      +'- ¿Qué te gustaría que cambiara, o cómo te gustaría sentirte?\n'
-      +'- ¿Es algo que se repite en tu vida o en tu familia?\n'
-      +'- Del 0 al 10, ¿cuánto te remueve ahora mismo?\n'
-      +'- ¿Prefieres hacerla una vez, unas cuantas veces a la semana o repetir la misma durante un tiempo para trabajarla a fondo?\n'
-      +'- ¿Hay algo que ahora no quieras tocar?\n'
+      +'Las preguntas a hacerme (de una en una):\n'
+      +'¿Qué tema o situación quieres trabajar? (Ej.: madre, padre, pareja, conflicto, miedo, emoción repetitiva, decisión, lugar en la familia, trabajo, dinero, pasado…).\n'
+      +'¿Cómo se nota hoy en tu vida? (Cuéntalo con tus palabras y con el detalle que quieras).\n'
+      +'¿Qué te gustaría que cambiara, o cómo te gustaría sentirte?\n'
+      +'¿Es algo que se repite en tu vida o en tu familia?\n'
+      +'Del 0 al 10, ¿cuánto te remueve ahora mismo?\n'
+      +'¿Prefieres hacerla una vez, unas cuantas veces a la semana o repetir la misma durante un tiempo para trabajarla a fondo?\n'
+      +'¿Hay algo que ahora no quieras tocar?\n'
       +'\n'
       +'Cómo elegir:\n'
-      +'- Busca primero en la lista de constelaciones de Moment que tienes al final, y usa su título exacto para que pueda encontrarla en la app.\n'
-      +'- Si ninguna encaja de verdad, inventa una nueva con estas condiciones: para hacer en solitario y sin materiales, de 10 a 20 minutos, con pasos sencillos en segunda persona, un comienzo para centrarse y un cierre para volver al presente. Que sea simbólica y respetuosa: sin enfrentarse a personas reales, sin forzar reconciliaciones y con libertad para parar en cualquier momento.\n'
-      +'- No uses lenguaje médico ni prometas efectos sobre la salud.\n'
+      +'Busca primero en la lista de constelaciones de Moment que tienes al final, y usa su título exacto para que pueda encontrarla en la app.\n'
+      +'Si ninguna encaja de verdad, inventa una nueva con estas condiciones obligatorias: debe seguir la estructura de una constelación sistémica clásica adaptada al trabajo en solitario. Esto significa que los pasos deben incluir:\n'
+      +'Delimitar espacialmente los lugares de los factores o elementos implicados (ej., yo, la emoción, el ancestro, el recurso).\n'
+      +'Invitar a la persona a representar o ponerse simbólicamente en el lugar de cada factor para observar qué siente o hacia dónde mira.\n'
+      +'Utilizar frases sanadoras o de reconocimiento desde cada lugar.\n'
+      +'Un movimiento de reordenamiento hacia un lugar adulto o de recurso.\n'
+      +'Debe ser para hacer en solitario y sin materiales, de 10 a 20 minutos, con pasos sencillos en segunda persona, un comienzo para centrarse y un cierre para volver al presente. Que sea simbólica y respetuosa: sin enfrentarse a personas reales, sin forzar reconciliaciones y con libertad para parar en cualquier momento.\n'
+      +'No uses lenguaje médico ni prometas efectos sobre la salud.\n'
       +'\n'
       +'Con cuidado:\n'
-      +'- Si lo que me remueve está en 8 o más, propónme algo más suave y recuérdame que puedo trabajarlo con el acompañamiento de un profesional.\n'
-      +'- Si te cuento que estoy en crisis, que pienso en hacerme daño o que vivo una situación de violencia o abuso, no me propongas ninguna constelación. Dime que busque ayuda profesional y, si es urgente, que llame a emergencias. Como mucho, propónme algo sencillo para calmarme.\n'
+      +'Si lo que me remueve está en 8 o más, propónme algo más suave y recuérdame que puedo trabajarlo con el acompañamiento de un profesional.\n'
+      +'Si te cuento que estoy en crisis, que pienso en hacerme daño o que vivo una situación de violencia o abuso, no me propongas ninguna constelación. Dime que busque ayuda profesional y, si es urgente, que llame a emergencias. Como mucho, propónme algo sencillo para calmarme.\n'
       +'\n'
       +'Tu respuesta final, en este orden:\n'
-      +'1. La constelación: su título exacto, o «Nueva: [título]» si la has inventado.\n'
-      +'2. Por qué encaja con lo que me pasa, en dos o tres frases.\n'
-      +'3. Cómo hacerla: una vez, unas cuantas veces a la semana (cuántas) o profundizando (7, 13, 21 o 28 veces).\n'
-      +'4. Si es nueva: el título y los pasos, listos para copiar y añadirla a mi Biblioteca de Moment.\n'
-      +'5. Una o dos alternativas, por si la primera no me resuena.\n'
+      +'La constelación: su título exacto o «Nueva: [título]» si la has inventado.\n'
+      +'Por qué encaja con lo que me pasa, en dos o tres frases\n'
+      +'Cómo hacerla: una vez, unas cuantas veces a la semana (cuántas) o profundizando (7, 13, 21 o 28 veces).\n'
+      +'Si es nueva: el título y los pasos, listos para copiar y añadir a mi Biblioteca de Moment (asegurando la estructura sistémica de representación de factores mencionada arriba).\n'
+      +'Una o dos alternativas, por si la primera no me resuena.\n'
       +'\n'
       +'Respóndeme en el idioma en el que te escribo.\n'
       +'\n'
-      +'Constelaciones de Moment:\n'
+      +'Constelaciones de Moment que se encuentran en https://www.insconsfa.com/ejercicios.php\n'
       +'{lista}',
     lib_box_practices:'Prácticas', lib_box_own:'Propias', lib_box_fav:'Favoritas',
     lib_clear:'Borrar búsqueda', what_is:'¿Qué es esto?',
@@ -507,7 +512,7 @@ const I18N = {
     az_sum_fixed:'Every day, {n} random practices, between {a} and {b}.',
     az_sum_one:'Every day, 1 random practice, between {a} and {b}.',
     az_sum_sep:'At least {s} minutes between one suggestion and the next.',
-    az_sep:'Minimum gap (min)',
+    az_sep:'Minimum gap (minutes)',
     az_sep_txt:'The fewest minutes that pass between a random practice and any other suggestion: another random one, the pattern or your moments.',
     az_sum_zero:'Every day, 1 practice, at {a}.',
     ob_az_cat_title:'From which categories?',
@@ -656,7 +661,7 @@ const I18N = {
     ob_hour_sub:"We'll build your daily moments starting from this time.",
     clk_pick_h:'Select the hour', clk_pick_m:'Select the minutes',
     nc_quotes:'Quotes', nc_social:'Follow the Ninth Path',
-    fold_all:'Collapse all', unfold_all:'Expand all',
+    fold_all:'Collapse', unfold_all:'Expand',
     ob_back:'← Back',
     ob_freq_title:'How often would you like a suggestion?',
     ob_freq_each:'Every', ob_freq_h:'h',
@@ -666,8 +671,8 @@ const I18N = {
     ob_rem_box:'A snoozed practice waits 1 minute, then 1 more, then 2, 3, 5, 8, 13, 21, 34 and 55 minutes before reminding you again — never overlapping the next notification.',
     ob_rem_notif:'Every notification is called "Moment for you" and plays your phone\u2019s default sound. To receive them, allow notifications below.',
     ob_notif_on:'🔔 Notifications on', ob_notif_ask:'🔕 Allow notifications',
-    h_today:'Your day', h_past:'Earlier today', h_next:'Next day',
-    hm_own:'✦ Your moment', st_done:' · done', st_next:' · next', st_muted:' · 🔕 muted',
+    h_today:'Coming up today', h_past:'Earlier today', h_next:'Next day',
+    hm_own:'✦ Your moment', hm_pat:'🕐 Standard pattern', hm_az:'🎲 At random', st_done:' · done', st_next:' · next', st_muted:' · 🔕 muted',
     open_ex:'Open practice ↗', done_now:'🌟 Done now', done_mark:'✔ Done', change:'✨ Change',
     no_more:'No more moments for today.',
     mute_off:'Mute this notification', mute_on:'Unmute this notification',
@@ -676,50 +681,55 @@ const I18N = {
     hdr_yest:'Yesterday', hdr_yest_done:'done', hdr_yest_snoozed:'snoozed', hdr_nodata:'no data',
     snoozed_pre:'Snoozed', snoozed_next:'next reminder at',
     lib_search:'Search practice…', lib_new:'＋ Create new practice',
-    lib_ai_const:'✨ Create a constellation with AI',
-    cp_title:'Create a constellation with an AI',
+    lib_ai_const:'✨ Choose or create a constellation with AI',
+    cp_title:'Choose or create a constellation with AI',
     cp_txt:'Copy these instructions and paste them into an AI. We recommend Qwen: Jordi Beold calibrated it with dowsing, according to his consciousness calibration scale, as the most conscious AI at the moment (others work too). It will ask you a few questions about what you want to work on and suggest one of Moment’s constellations or a new one. If it is new, add it to your Library: from then on it can come to you with the standard pattern, at random or as one of your own moments, like any other.',
     cp_copy:'📋 Copy the instructions for the AI',
     cp_qwen:'🔗 Open Qwen',
     cp_add:'＋ Add a constellation to my Library',
-    cp_prompt:'I would like you to help me choose a constellation to work on a personal theme with Moment.\n'
+    cp_prompt:'I would like you to help me choose or create a constellation to work on a personal theme with the Moment app.\n'
       +'\n'
       +'About Moment: it is a wellbeing app with brief practices of a spiritual and transpersonal nature. It does not diagnose or treat anything, and it is not a substitute for medical or psychological help. Its practices include family constellation exercises to do on your own and without materials; each one opens on a page of insconsfa.com that guides you step by step. The constellations in Moment’s Library, including the ones I add myself, can come to me with the standard pattern, at random or as one of my own moments, and with “Go deeper into a constellation” I can repeat the same one 7, 13, 21 or 28 times to work through a theme in depth.\n'
       +'\n'
-      +'About constellations: they were developed by Bert Hellinger, who drew, among other sources, on the sixteen years he lived among the Zulu people of South Africa and on their way of honouring the ancestors. Brigitte Champetier de Ribes later expanded them with the New Family Constellations, which are the ones behind the insconsfa.com exercises. Some people also relate them to very ancient rituals of the original peoples of the Americas.\n'
+      +'About constellations: they were developed by Bert Hellinger, who drew, among other sources, on the sixteen years he lived among the Zulu people of South Africa and on their way of honouring the ancestors. Later, Brigitte Champetier de Ribes expanded them with the New Family Constellations, which are the ones behind the insconsfa.com exercises. Some people also relate them to very ancient rituals of the original peoples of the Americas.\n'
       +'\n'
       +'How I would like you to do it:\n'
-      +'1. First ask me questions to understand what I want to work on and what I need. Ask them one at a time, wait for my answer before moving on to the next one, and skip any that have already been answered. I do not need to give you names or details I do not want to share.\n'
-      +'2. Then suggest the constellation that fits best, or create a new one.\n'
+      +'First ask me questions to understand what I want to work on and what I need. Ask them one at a time, wait for my answer before moving on to the next one, and skip any that have already been answered. I do not need to give you names or details I do not want to share.\n'
+      +'Then suggest the constellation that fits best, or create a new one.\n'
       +'\n'
-      +'The questions:\n'
-      +'- What theme or situation do you want to work on? For example: your mother or your father, your partner, a conflict with someone, a fear, an emotion that keeps coming back, a decision, your place in the family, work or money, something from the past…\n'
-      +'- How does it show up in your life today? Tell me in your own words, with as much detail as you like.\n'
-      +'- What would you like to change, or how would you like to feel?\n'
-      +'- Is it something that repeats in your life or in your family?\n'
-      +'- From 0 to 10, how much does it stir you right now?\n'
-      +'- Would you rather do it once, a few times a week, or repeat the same one for a while to work through it in depth?\n'
-      +'- Is there anything you do not want to touch right now?\n'
+      +'The questions to ask me (one at a time):\n'
+      +'What theme or situation do you want to work on? (E.g.: mother, father, partner, conflict, fear, a recurring emotion, a decision, your place in the family, work, money, the past…).\n'
+      +'How does it show up in your life today? (Tell me in your own words, with as much detail as you like).\n'
+      +'What would you like to change, or how would you like to feel?\n'
+      +'Is it something that repeats in your life or in your family?\n'
+      +'From 0 to 10, how much does it stir you right now?\n'
+      +'Would you rather do it once, a few times a week, or repeat the same one for a while to work through it in depth?\n'
+      +'Is there anything you do not want to touch right now?\n'
       +'\n'
       +'How to choose:\n'
-      +'- First look in the list of Moment’s constellations at the end, and use its exact title so I can find it in the app.\n'
-      +'- If none really fits, invent a new one with these conditions: to be done alone and without materials, 10 to 20 minutes long, with simple steps in the second person, an opening to centre yourself and a closing to come back to the present. It should be symbolic and respectful: no confronting real people, no forcing reconciliations, and freedom to stop at any moment.\n'
-      +'- Do not use medical language or promise health effects.\n'
+      +'First look in the list of Moment’s constellations at the end, and use its exact title so I can find it in the app.\n'
+      +'If none really fits, invent a new one with these mandatory conditions: it must follow the structure of a classic systemic constellation adapted to working alone. This means the steps must include:\n'
+      +'Marking out in space the places of the factors or elements involved (e.g., me, the emotion, the ancestor, the resource).\n'
+      +'Inviting the person to represent, or symbolically stand in, the place of each factor to notice what they feel or where they are looking.\n'
+      +'Using healing or acknowledging sentences from each place.\n'
+      +'A reordering movement towards an adult or resourceful place.\n'
+      +'It must be done alone and without materials, 10 to 20 minutes long, with simple steps in the second person, an opening to centre yourself and a closing to come back to the present. It should be symbolic and respectful: no confronting real people, no forcing reconciliations, and freedom to stop at any moment.\n'
+      +'Do not use medical language or promise health effects.\n'
       +'\n'
       +'With care:\n'
-      +'- If what stirs me is at 8 or more, suggest something gentler and remind me that I can work on it with the support of a professional.\n'
-      +'- If I tell you I am in crisis, that I am thinking of harming myself, or that I am living through violence or abuse, do not suggest any constellation. Tell me to seek professional help and, if it is urgent, to call the emergency services. At most, suggest something simple to calm me down.\n'
+      +'If what stirs me is at 8 or more, suggest something gentler and remind me that I can work on it with the support of a professional.\n'
+      +'If I tell you I am in crisis, that I am thinking of harming myself, or that I am living through violence or abuse, do not suggest any constellation. Tell me to seek professional help and, if it is urgent, to call the emergency services. At most, suggest something simple to calm me down.\n'
       +'\n'
       +'Your final answer, in this order:\n'
-      +'1. The constellation: its exact title, or “New: [title]” if you have invented it.\n'
-      +'2. Why it fits what is happening to me, in two or three sentences.\n'
-      +'3. How to do it: once, a few times a week (how many) or going deeper (7, 13, 21 or 28 times).\n'
-      +'4. If it is new: the title and the steps, ready to copy and add to my Moment Library.\n'
-      +'5. One or two alternatives, in case the first one does not resonate with me.\n'
+      +'The constellation: its exact title, or “New: [title]” if you have invented it.\n'
+      +'Why it fits what is happening to me, in two or three sentences.\n'
+      +'How to do it: once, a few times a week (how many) or going deeper (7, 13, 21 or 28 times).\n'
+      +'If it is new: the title and the steps, ready to copy and add to my Moment Library (keeping the systemic structure of representing factors described above).\n'
+      +'One or two alternatives, in case the first one does not resonate with me.\n'
       +'\n'
       +'Answer me in the language I write to you in.\n'
       +'\n'
-      +'Moment’s constellations:\n'
+      +'Moment’s constellations, found at https://www.insconsfa.com/ejercicios.php\n'
       +'{lista}',
     lib_box_practices:'Practices', lib_box_own:'Yours', lib_box_fav:'Favorites',
     lib_clear:'Clear search', what_is:'What is this?',

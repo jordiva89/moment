@@ -127,7 +127,7 @@ function azarEntradas(entradas){
   const ids=azarPracticas(horas.length, new Set(entradas.map(e=>e.pid)), a);
   // si no hay prácticas para todas las horas, las que se quedan son también al azar
   shuffle(horas);
-  return ids.map((pid,i)=>({time:horas[i], pid}));
+  return ids.map((pid,i)=>({time:horas[i], pid, az:true}));   // az: viene del azar (la Agenda lo indica)
 }
 
 /* ---- Textos ---- */

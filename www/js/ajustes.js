@@ -248,8 +248,8 @@ function renderSet(){
         ${catPairs().filter(cp=>cp.id!=='constelaciones').map(cp=>`<label class="chkrow" style="margin:0 0 6px">
           <input type="checkbox" ${cfg.catsPref && cfg.catsPref[cp.id]?'checked':''} onchange="setCatPref(${jsAttr(cp.id)}, this.checked)"> ${cp.propia?esc(cp.id):esc(catLabel(cp.id))}
         </label>`).join('')}
-        <div class="subcaja">
-          <label class="fld" style="margin-top:0">${t('pt_const_label')}</label>
+        <div class="constsec">
+          <label class="fld">${t('pt_const_label')}</label>
           <p class="muted" style="margin:0 0 8px">${t('pt_const_txt')}</p>
           <label class="chkrow">
             <input type="checkbox" ${cfg.constNo?'checked':''} onchange="cfg.constNo=this.checked;if(this.checked){cfg.constIni=false;cfg.constMed=false;cfg.constFin=false;if(cfg.constSem)cfg.constSem.on=false;}applyCfg()"> ${t('pt_const_no')}
@@ -275,15 +275,15 @@ function renderSet(){
           <button type="button" class="btn ghost block" style="margin-top:10px" onclick="abrirConstelacionIA()">${t('lib_ai_const')}</button>
         </div>
       `:`<p class="muted" style="margin:0 0 8px;font-size:.85rem">${t('pt_pat_off')}</p>`}
+      <label class="fld">${t('pt_esp_label')}</label>
+      <p class="muted" style="margin:0 0 8px">${t('pt_esp_txt')}</p>
+      ${especialesLista().map(p=>`<button class="btn ghost block" style="text-align:left" onclick="crearMomentoDe('${p.id}')">⏰ ${esc(p.title)}</button>`).join('')}
 
       <h3 class="modotit">✍️ ${t('pt_moments_label')}</h3>
       <p class="muted" style="margin:0 0 8px">${t('pt_moments_txt')}</p>
       ${userEvents.length?userEvents.map(ev=>filaMomentoHTML(ev, true)).join(''):`<p class="muted">${t('mo_none')}</p>`}
 
       <button class="btn gold block" onclick="openEventForm()">${t('pt_create')}</button>
-      <label class="fld">${t('pt_esp_label')}</label>
-      <p class="muted" style="margin:0 0 8px">${t('pt_esp_txt')}</p>
-      ${especialesLista().map(p=>`<button class="btn ghost block" style="text-align:left" onclick="crearMomentoDe('${p.id}')">⏰ ${esc(p.title)}</button>`).join('')}
       <div class="infobox" style="margin-top:12px">💡 <b>${t('ob_hint_title')}:</b> ${t('ob_hint_custom')}</div>
 
       <h3 class="modotit">🎲 ${t('pt_az_label')}</h3>

@@ -3,7 +3,7 @@
 Inventario completo de funciones, para tenerlo a la vista al escribir sobre la
 app, preparar la ficha de Google Play o explicársela a alguien.
 
-Versión 3.93 · 208 prácticas · español e inglés
+Versión 3.94 · 208 prácticas · español e inglés
 
 ---
 

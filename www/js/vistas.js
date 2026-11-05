@@ -144,6 +144,8 @@ function homeBody(p, evd, botones, extra=''){
       <button class="btn small ghost block" onclick="crearMomentoDe('${p.id}')">${t('mk_moment_btn')}</button>${extra}
     </div>`;
 }
+// De dónde viene una propuesta de la Agenda: momento propio, al azar o patrón estándar
+function origenTxt(s){ return s.ev ? t('hm_own') : s.az ? t('hm_az') : t('hm_pat'); }
 function dayItem(o, isNext, section){
   const s=o.s, i=o.i, p=byId(s.pid);
   if(!p) return '';
@@ -155,7 +157,7 @@ function dayItem(o, isNext, section){
   return `<div class="ditem ${isNext?'next':''} ${open?'open':''} ${s.done?'done':''}">
     <div class="dhead" id="dh${i}" role="button" tabindex="0" onclick="toggleExpand(${i})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleExpand(${i})}">
       <div class="hora">${fmtT(eff(s))}</div>
-      <div class="grow"><h4>${esc(p.title)}</h4><span class="catpill">${esc(catLabel(p.cat))}${evd?` · ${t('hm_own')}`:''}${estado}${s.muted?t('st_muted'):''}</span></div>
+      <div class="grow"><h4>${esc(p.title)}</h4><span class="catpill">${esc(catLabel(p.cat))} · ${origenTxt(s)}${estado}${s.muted?t('st_muted'):''}</span></div>
       ${iconColHome(p.id, i, 'renderHome()')}
     </div>
     ${open?homeBody(p, evd,
@@ -181,7 +183,7 @@ function nextItem(e,k){
   return `<div class="ditem ${open?'open':''} ${e.done?'done':''}">
     <div class="dhead" id="dhn${k}" role="button" tabindex="0" onclick="toggleNext(${k})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleNext(${k})}">
       <div class="hora">${fmtT(e.time)}</div>
-      <div class="grow"><h4>${esc(p.title)}</h4><span class="catpill">${esc(catLabel(p.cat))}${evd?` · ${t('hm_own')}`:''}${e.muted?t('st_muted'):''}</span></div>
+      <div class="grow"><h4>${esc(p.title)}</h4><span class="catpill">${esc(catLabel(p.cat))} · ${origenTxt(e)}${e.muted?t('st_muted'):''}</span></div>
       ${homeIcons(p.id, e.muted, `toggleMuteNext(${k}, renderHome)`)}
     </div>
     ${open?homeBody(p, evd,
