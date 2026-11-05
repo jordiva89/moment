@@ -292,6 +292,7 @@ button.hpart:focus-visible{ outline:2px solid var(--dorado); outline-offset:1px 
 .adjunto{ margin:12px 0 4px }
 .adjunto img, .adjunto video{ display:block; max-width:100%; height:auto; margin:0 auto; border-radius:12px }
 .adjunto audio{ display:block; width:100% }
+.adjtexto{ white-space:pre-wrap; max-height:340px; overflow:auto; background:#FFFDF7; border:1px solid #E3D8C2; border-radius:12px; padding:10px 12px; text-align:left }
 
 /* Elección de modo en la bienvenida: cada opción es una tarjeta con su explicación */
 .modo{ display:block; width:100%; text-align:left; font:inherit; color:var(--oscuro); cursor:pointer;

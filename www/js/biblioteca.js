@@ -86,6 +86,7 @@ function ditem(p, setName, rerender, o={}){
       `:''}<div class="ptext">${esc(p.text)}</div>
       ${enlaceSeguro(p.link)?`<a class="plink" href="${esc(enlaceSeguro(p.link))}" target="_blank" rel="noopener noreferrer">${t('open_ex')}</a>`:''}
       ${adjuntoHTML(p)}
+      <p class="cbtn" style="margin:6px 0 0"><button type="button" class="tbtn" onclick="abrirAdjuntoPractica('${p.id}')">${adjDe(p)?t('lib_adj_change'):t('ef_adj_btn')}</button></p>
       ${favPauseRow(p.id,rerender,'renderLib()')}
       ${hechaAhoraBtn(p.id,after,true)}
       <button class="btn small ghost block" onclick="crearMomentoDe('${p.id}')">${t('mk_moment_btn')}</button>
@@ -266,6 +267,7 @@ function abrirConstelacionIA(){
 }
 
 function openAddForm(selCat){
+  _evAdj={actual:null, nuevo:null, quitar:false};
   document.getElementById('modalContent').innerHTML=`
     <h2>${t('na_title')}</h2>
     <p class="muted">${t('na_intro')}</p>
@@ -275,6 +277,11 @@ function openAddForm(selCat){
     <label class="fld">${t('na_text')}</label>
     <textarea id="np_x" placeholder="${t('na_text_ph')}"></textarea>
     <label class="fld">${t('na_link')}</label><input type="url" id="np_l" placeholder="https://…">
+    <label class="fld">${t('ef_adj')}</label>
+    <p class="muted" style="margin:0 0 6px;font-size:.85rem">${t('ef_adj_txt').replace('{n}', ADJ_MAX_MB)}</p>
+    <input type="file" id="ev_adj" style="display:none" onchange="evAdjElegir(this.files[0]);this.value=''">
+    <div id="ev_adj_info"></div>
+    <button type="button" class="btn ghost block" onclick="document.getElementById('ev_adj').click()">${t('ef_adj_btn')}</button>
     <div class="row" style="margin-top:16px">
       <button class="btn primary" style="flex:1" onclick="saveUserPractice()">${t('na_save')}</button>
       <button class="btn ghost" style="flex:1" onclick="closeModal()">${t('na_cancel')}</button>
@@ -296,10 +303,11 @@ function saveUserPractice(enviar){
   const x=document.getElementById('np_x').value.trim();
   const l=document.getElementById('np_l').value.trim();
   const c=catSelectValue('np_c','np_c_new');
-  if(!titulo || (!x && !l)){ toast(t('ts_add_titletext')); return; }
+  if(!titulo || (!x && !l && !_evAdj.nuevo)){ toast(t('ts_add_titletext')); return; }
   if(l && !enlaceSeguro(l)){ toast(t('ev_bad_link')); return; }
-  const p={id:'u'+Date.now(), cat:texto(c,80), title:texto(titulo,300), text:texto(x||t('default_link_text'),20000)};
+  const p={id:'u'+Date.now(), cat:texto(c,80), title:texto(titulo,300), text:texto(x||(l?t('default_link_text'):t('default_adj_text')),20000)};
   if(l) p.link=enlaceSeguro(l);
+  evAdjAplicar(p);
   userLib.push(p); LS.set('mpt_userlib', userLib); libCacheDirty();
   closeModal(); renderLib(); toast(t('ts_added_sent'));
   const body=t('sh_prop_intro')+'\n\n'

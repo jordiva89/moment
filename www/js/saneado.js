@@ -43,7 +43,7 @@ function sanearPractica(p){
   const o = { id: p.id, cat: texto(p.cat, 80).trim() || 'Importadas', title, text: texto(p.text, 20000) };
   const l = enlaceSeguro(p.link); if (l) o.link = l;
   const a = p.adj;
-  if (a && typeof a === 'object' && esId(a.id) && ['image','audio','video'].includes(a.tipo))
+  if (a && typeof a === 'object' && esId(a.id) && ['image','audio','video','text','file'].includes(a.tipo))
     o.adj = { id: a.id, tipo: a.tipo, nombre: texto(a.nombre, 200), mime: texto(a.mime, 100), kb: entero(a.kb, 0, 1e7, 0) };
   return o;
 }

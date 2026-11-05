@@ -43,7 +43,7 @@ function openEventForm(editId, presetPid, opts){
       <input type="url" id="ev_l" placeholder="https://…">
       <label class="fld">${t('ef_adj')}</label>
       <p class="muted" style="margin:0 0 6px;font-size:.85rem">${t('ef_adj_txt').replace('{n}', ADJ_MAX_MB)}</p>
-      <input type="file" id="ev_adj" accept="image/*,audio/*,video/*" style="display:none" onchange="evAdjElegir(this.files[0]);this.value=''">
+      <input type="file" id="ev_adj" style="display:none" onchange="evAdjElegir(this.files[0]);this.value=''">
       <div id="ev_adj_info"></div>
       <button type="button" class="btn ghost block" onclick="document.getElementById('ev_adj').click()">${t('ef_adj_btn')}</button>
     </div>
@@ -148,7 +148,6 @@ function openEventForm(editId, presetPid, opts){
 let _evAdj={actual:null, nuevo:null, quitar:false};
 function evAdjElegir(f){
   if(!f) return;
-  if(!adjTipo(f.type)){ toast(t('adj_bad_type')); return; }
   if(f.size>ADJ_MAX_MB*1024*1024){ toast(t('adj_too_big').replace('{n}', ADJ_MAX_MB)); return; }
   _evAdj.nuevo=f; _evAdj.quitar=false;
   evAdjPintar();
@@ -157,7 +156,7 @@ function evAdjQuitar(){ _evAdj.nuevo=null; _evAdj.quitar=true; evAdjPintar(); }
 function evAdjPintar(){
   const el=document.getElementById('ev_adj_info'); if(!el) return;
   const f=_evAdj.nuevo;
-  const ficha = f ? {nombre:f.name, kb:Math.round(f.size/1024), tipo:adjTipo(f.type)}
+  const ficha = f ? {nombre:f.name, kb:Math.round(f.size/1024), tipo:adjTipo(f.type, f.name)}
                   : (!_evAdj.quitar && _evAdj.actual) ? _evAdj.actual : null;
   el.innerHTML = ficha ? `<div class="row" style="align-items:center;margin:0 0 6px">
       <div style="flex:1;font-size:.88rem">${adjIcono(ficha.tipo)} <b>${esc(ficha.nombre||'')}</b> · ${tamanoTxt(ficha.kb||0)}</div>
@@ -171,7 +170,7 @@ function evAdjAplicar(p){
   if(_evAdj.nuevo){
     const f=_evAdj.nuevo, id='a'+Date.now()+Math.floor(Math.random()*1000);
     if(p.adj && p.adj.id) adjBorrar(p.adj.id).catch(()=>{});
-    p.adj={id, tipo:adjTipo(f.type), nombre:f.name||'', mime:f.type||'', kb:Math.round(f.size/1024)};
+    p.adj={id, tipo:adjTipo(f.type, f.name), nombre:f.name||'', mime:f.type||'', kb:Math.round(f.size/1024)};
     // el archivo ya está en memoria como Blob: se muestra al instante mientras se guarda
     try{ _adjURL.set(id, URL.createObjectURL(f)); }catch(e){}
     ADJ.guardar(id, f).then(()=>{

@@ -211,11 +211,11 @@ function buildDayEntries(dstr){
     const usados=new Set(entries.map(e=>e.pid));
     constSemanaDe(dstr).forEach(({h, pid})=>{
       if(excl.has(h)) return;                 // un momento propio pidió esa hora para él solo
-      // La elegida, salvo que esté en pausa o ya salga hoy: entonces ese día no se
-      // propone (en pausa = no la quiere ahora). Si ya no existe (una propia que se
-      // borró), vuelve a ser al azar.
+      // La elegida se propone tal cual, aunque esté en pausa en la biblioteca: la
+      // persona la ha escogido para ese día. Solo si ya sale ese día no se repite.
+      // Si ya no existe (una propia que se borró), vuelve a ser al azar.
       let c;
-      if(pid && byId(pid)){ if(paused.includes(pid) || usados.has(pid)) return; c=pid; }
+      if(pid && byId(pid)){ if(usados.has(pid)) return; c=pid; }
       else c=elegirConstelacion(usados);
       if(!c) return;
       usados.add(c);

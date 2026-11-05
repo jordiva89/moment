@@ -252,8 +252,9 @@ Cómo se construye el plan (`buildDayEntries`):
    su propuesta del patrón. **Esa decisión se guarda en el momento, no en el día**,
    así que se respeta también mañana.
 7. **Constelaciones «x por semana»** (`constSemanaDe`), solo con el patrón: cada
-   fila trae su día, su hora y su constelación (`pid`) o `null` = al azar. Si la
-   elegida está en pausa o ya sale ese día, ese día no se propone; si ya no existe
+   fila trae su día, su hora y su constelación (`pid`) o `null` = al azar. La
+   elegida se propone aunque esté en pausa (la ha escogido la persona); si ya sale
+   ese día, no se repite; si ya no existe
    (una propia que se borró), vuelve a ser al azar. Si cae a la hora de una
    propuesta del patrón, la sustituye.
 8. **Prácticas al azar** (`azarEntradas`), al final y solo si el modo está activo:
