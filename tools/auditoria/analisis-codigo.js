@@ -1,12 +1,12 @@
 const fs = require('fs'), path = require('path');
-const W = path.join(__dirname, '..', '..', 'www') + path.sep;
+const entorno = require('./entorno');
+const W = entorno.WWW + path.sep;
+// El código de la app vive en los módulos de www/js/ (antes, dentro de index.html).
 // El diccionario y el contenido viven en archivos aparte: se concatenan para
 // que el análisis siga viendo el conjunto completo de textos.
-const s = fs.readFileSync(W+'index.html','utf8') + '\n'
-        + fs.readFileSync(W+'i18n.js','utf8') + '\n'
-        + fs.readFileSync(W+'contenido.js','utf8');
-const js = fs.readFileSync(W+'index.html','utf8').match(/<script>([\s\S]*)<\/script>/g).pop().replace(/<\/?script>/g,'')
-        + '\n' + fs.readFileSync(W+'i18n.js','utf8') + '\n' + fs.readFileSync(W+'contenido.js','utf8');
+const s = entorno.indexHtml() + '\n' + entorno.codigoApp() + '\n'
+        + entorno.leer('i18n.js') + '\n' + entorno.leer('contenido.js');
+const js = entorno.codigoApp() + '\n' + entorno.leer('i18n.js') + '\n' + entorno.leer('contenido.js');
 const L = js.split('\n');
 
 // 1. funciones sin uso (contando invocación por nombre en cadena)
@@ -49,8 +49,7 @@ const zonas = [['  es:{','\n  },'],['  en:{','\n  },'],['const ACEPT_ES','functi
 const ESre = /[áéíóúñ¿¡]|\b(Pospuesta|Plegar|Guardar|Cancelar|Aviso|Hecha|día|hora)\b/;
 // Los textos fijos se buscan solo en index.html: i18n.js y contenido.js SON
 // texto por definición, no código con literales incrustados.
-const Lh = fs.readFileSync(W+'index.html','utf8')
-  .match(/<script>([\s\S]*)<\/script>/g).pop().replace(/<\/?script>/g,'').split('\n');
+const Lh = entorno.codigoApp().split('\n');
 let pos=0, fijos=[];
 Lh.forEach((l,i)=>{
   const desde=pos; pos+=l.length+1;

@@ -3,19 +3,14 @@ const fs = require('fs'), path = require('path');
 
 // 0. Version minima de Android.
 //    Capacitor 6 genera minSdkVersion 22 (Android 5.1). Android 14 y posteriores
-//    RECHAZAN instalar aplicaciones con minSdk menor que 23 y muestran "el paquete
-//    parece no valido", aunque el APK este bien firmado y completo. Se sube a 23,
-//    que solo deja fuera Android 5.x (menos del 1% de los moviles en uso).
+//    rechazan instalar aplicaciones con minSdk menor que 23.
 try {
   const vg = 'android/variables.gradle';
   if (fs.existsSync(vg)) {
     let v = fs.readFileSync(vg, 'utf8');
-    const antes = v;
     v = v.replace(/minSdkVersion\s*=\s*\d+/, 'minSdkVersion = 23');
-    if (v === antes && !/minSdkVersion/.test(v))
-      v = v.replace(/ext\s*\{/, 'ext {\n    minSdkVersion = 23');
     fs.writeFileSync(vg, v);
-    console.log('minSdkVersion fijado en 23 (Android 14 rechaza menos de 23)');
+    console.log('minSdkVersion fijado en 23');
   }
 } catch (e) { console.log('no se pudo ajustar minSdkVersion:', e.message); }
 
@@ -253,6 +248,8 @@ public class AjustesPlugin extends Plugin {
     // por el menu de compartir. En Android 10+ se usa MediaStore (no requiere
     // permisos); en versiones anteriores se escribe en la carpeta publica.
     String nombre = call.getString("nombre", "archivo");
+    // solo el nombre, sin carpetas: «../» no puede llevar el archivo fuera de su sitio
+    nombre = new File(nombre).getName(); if (nombre.isEmpty()) nombre = "archivo";
     String base64 = call.getString("base64", "");
     String mime = call.getString("mime", "application/octet-stream");
     try {
@@ -293,9 +290,15 @@ public class AjustesPlugin extends Plugin {
     // comparte un archivo declarando su tipo real (MIME): asi el menu de compartir
     // ofrece Word, Documentos, Drive, etc. en vez de tratarlo como archivo generico
     String nombre = call.getString("nombre", "archivo");
+    // solo el nombre, sin carpetas: «../» no puede llevar el archivo fuera de su sitio
+    nombre = new File(nombre).getName(); if (nombre.isEmpty()) nombre = "archivo";
     String base64 = call.getString("base64", "");
     String mime = call.getString("mime", "application/octet-stream");
     String titulo = call.getString("titulo", "Compartir");
+    // opcionales: si se elige una app de correo, llega con destinatario, asunto y texto
+    String email = call.getString("email", "");
+    String asunto = call.getString("asunto", "");
+    String texto = call.getString("texto", "");
     try {
       byte[] datos = Base64.decode(base64, Base64.DEFAULT);
       File dir = new File(getContext().getCacheDir(), "compartir");
@@ -309,6 +312,9 @@ public class AjustesPlugin extends Plugin {
       i.setType(mime);
       i.putExtra(Intent.EXTRA_STREAM, uri);
       i.putExtra(Intent.EXTRA_TITLE, nombre);
+      if (email.length() > 0) i.putExtra(Intent.EXTRA_EMAIL, new String[]{ email });
+      if (asunto.length() > 0) i.putExtra(Intent.EXTRA_SUBJECT, asunto);
+      if (texto.length() > 0) i.putExtra(Intent.EXTRA_TEXT, texto);
       i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
       Intent chooser = Intent.createChooser(i, titulo);
       chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

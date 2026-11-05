@@ -1,5 +1,10 @@
-const CACHE = 'mpt-v3_81';
-const FILES = ['./', './index.html', './i18n.js', './contenido.js', './practices.js', './estilos.css', './noveno-es.png', './noveno-en.png', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
+// La versión llega en la URL con la que index.html registra este archivo
+// (sw.js?v=3.85). Así basta con subir APP_VERSION para que la caché se renueve:
+// no hay que acordarse de tocar nada aquí.
+const CACHE = 'mpt-v' + ((new URL(self.location)).searchParams.get('v') || 'dev').replace(/\./g,'_');
+const FILES = ['./', './index.html', './i18n.js', './contenido.js', './practices.js', './estilos.css', './noveno-es.png', './noveno-en.png', './manifest.webmanifest', './icon-192.png', './icon-512.png',
+  // la lógica de la app, en el mismo orden en que la carga index.html
+  './js/base.js', './js/registro.js', './js/saneado.js', './js/idioma.js', './js/configuracion.js', './js/adjuntos.js', './js/plan.js', './js/azar.js', './js/avisos.js', './js/reloj.js', './js/bienvenida.js', './js/momentos.js', './js/vistas.js', './js/biblioteca.js', './js/archivos.js', './js/compartir.js', './js/noveno.js', './js/ajustes.js', './js/calendario.js', './js/arranque.js'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));

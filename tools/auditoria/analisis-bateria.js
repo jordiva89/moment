@@ -4,8 +4,11 @@
    repetidas, llamadas nativas costosas y escuchas sin retirar.
    Cada hallazgo se clasifica: GRAVE (gasta seguro) · AVISO (puede gastar) · OK. */
 const fs = require('fs');
-const s = fs.readFileSync('/home/claude/momento-para-ti/index.html','utf8');
-const js = s.match(/<script>([\s\S]*)<\/script>/g).pop().replace(/<\/?script>/g,'');
+// Antes leía index.html desde una ruta fija del ordenador donde se escribió, así
+// que en cualquier otro sitio no llegaba a ejecutarse. Ahora lee los módulos.
+const entorno = require('./entorno');
+const s = entorno.indexHtml() + '\n' + entorno.codigoApp();
+const js = entorno.codigoApp();
 const L = js.split('\n');
 const out = [];
 const add = (n, msg, det) => out.push({n, msg, det});

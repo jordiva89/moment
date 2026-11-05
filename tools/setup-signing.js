@@ -15,15 +15,25 @@ fs.writeFileSync('android/app/momento-release.keystore', Buffer.from(b64, 'base6
 // 2. Inyectar signingConfig en build.gradle (bloque android { ... })
 const gp = 'android/app/build.gradle';
 let g = fs.readFileSync(gp, 'utf8');
+// 3. Contraseñas: desde los secretos ANDROID_KEYSTORE_PASSWORD y ANDROID_KEY_PASSWORD.
+//    Las de siempre estaban escritas aquí, en un repositorio público: si el archivo
+//    de la clave se filtrara algún día, nada impediría usarlo. Mientras no se
+//    cambien (ver AUDITORIA.md) se usan las antiguas y se avisa en el registro.
+const ANTIGUA = 'momento2026';
+const passAlmacen = process.env.ANDROID_KEYSTORE_PASSWORD || ANTIGUA;
+const passClave = process.env.ANDROID_KEY_PASSWORD || passAlmacen;
+if (passAlmacen === ANTIGUA) console.warn('AVISO: la clave de firma usa la contraseña antigua, que es pública. Conviene cambiarla (AUDITORIA.md, punto de la firma).');
+// Gradle lee las contraseñas como texto entre comillas simples: se escapan
+const gq = x => String(x).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 if (!g.includes('MOMENTO_SIGNING')) {
   const signing = `
     // MOMENTO_SIGNING: firma fija para conservar datos entre versiones
     signingConfigs {
         momento {
             storeFile file('momento-release.keystore')
-            storePassword 'momento2026'
+            storePassword '${gq(passAlmacen)}'
             keyAlias 'momento'
-            keyPassword 'momento2026'
+            keyPassword '${gq(passClave)}'
         }
     }`;
   // añadir signingConfigs justo tras la apertura de android {

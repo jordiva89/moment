@@ -1,0 +1,30 @@
+# Publicación de la versión web (calendario descargable) en Netlify.
+# Netlify lee este archivo solo: no hace falta configurar la carpeta en su panel.
+[build]
+  publish = "www"
+
+# Cabeceras de seguridad para todo el sitio. La política de contenido es la misma
+# que lleva index.html, más «frame-ancestors», que solo funciona como cabecera:
+# impide que otra web meta la app dentro de un marco para engañar a alguien.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self' data:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; frame-ancestors 'none'"
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+    Cross-Origin-Opener-Policy = "same-origin"
+    Strict-Transport-Security = "max-age=31536000"
+
+# La página y el service worker se revisan siempre: así una versión nueva llega
+# en cuanto se publica. La app ya guarda lo suyo para funcionar sin conexión.
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"

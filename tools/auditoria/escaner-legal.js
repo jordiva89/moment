@@ -4,11 +4,12 @@
    Distingue las zonas donde ese vocabulario PROTEGE (aviso legal) de aquellas
    donde EXPONE (descripción de la app o de una práctica). */
 const fs = require('fs');
-const RAIZ = require('path').join(__dirname, '..', '..', 'www') + require('path').sep;
-const html = fs.readFileSync(RAIZ + 'index.html', 'utf8') + '\n'
-           + fs.readFileSync(RAIZ + 'i18n.js', 'utf8') + '\n'
-           + fs.readFileSync(RAIZ + 'contenido.js', 'utf8');
-const [ES, EN] = eval(fs.readFileSync(RAIZ + 'practices.js','utf8') + ';[PRACTICES_ES, PRACTICES_EN]');
+const entorno = require('./entorno');
+const RAIZ = entorno.WWW + require('path').sep;
+const [ES, EN] = eval(entorno.leer('practices.js') + ';[PRACTICES_ES, PRACTICES_EN]');
+// La interfaz: index.html, los módulos de js/, el diccionario y el contenido.
+// Se revisa cada archivo por separado para poder decir dónde está cada hallazgo.
+const ARCHIVOS = ['index.html'].concat(entorno.scripts().filter(f => f !== 'practices.js'));
 
 const GRUPOS = [
  ['A · Servicio clínico o profesional',
@@ -28,10 +29,18 @@ const GRUPOS = [
   /\b(health benefits?|for your health|(physical|mental) health|side effects|contraindicated|healing (energy|power|process))\b/gi],
 ];
 
-// Zonas donde el vocabulario sanitario es PROTECTOR y debe conservarse
-const ZONAS_OK = [['const ACEPT_ES','function ACEPT()'], ['const ACEPT_EN','function ACEPT()']];
-const rangos = ZONAS_OK.map(([a,b])=>{ const i=html.indexOf(a); return [i, i<0?-1:html.indexOf(b,i)]; }).filter(r=>r[0]>=0);
-const enZonaOk = pos => rangos.some(([a,b])=>pos>=a && pos<=b);
+// Zonas donde el vocabulario sanitario es PROTECTOR y debe conservarse: el aviso
+// de aceptación, las condiciones y la privacidad, y las claves legales del
+// diccionario. (Antes estas zonas se buscaban en un texto concatenado en el que
+// el final quedaba antes que el principio, y no se reconocía ninguna.)
+const ZONAS_OK = {
+  'contenido.js': [['const ACEPT_ES', '\n};'], ['const ACEPT_EN', '\n};']],
+  'js/compartir.js': [['const LEGAL_COND_ES', 'function LEGAL_COND()']],
+};
+const CLAVE_LEGAL = /^\s*(legal_|acept|cond_|priv_|pr_titular|pr_accept)\w*\s*:/;
+function zonasDe(archivo, txt){
+  return (ZONAS_OK[archivo] || []).map(([a,b])=>{ const i=txt.indexOf(a); return [i, i<0?-1:txt.indexOf(b,i)]; }).filter(r=>r[0]>=0 && r[1]>=0);
+}
 
 const hallazgos = [];
 function anota(grupo, donde, id, frag, texto, protector){
@@ -53,18 +62,21 @@ function anota(grupo, donde, id, frag, texto, protector){
   });
 });
 
-// ---- 2. index.html completo (interfaz, legal, Noveno Camino, citas, plantilla) ----
-GRUPOS.forEach(([g, reES, reEN])=>{
-  [reES, reEN].forEach(base=>{
-    const re = new RegExp(base.source, 'gi');
-    let m; while((m = re.exec(html))){
-      const linea = html.slice(0, m.index).split('\n').length;
-      const around = html.slice(Math.max(0,m.index-70), m.index+80);
-      // saltar comentarios del código
-      const lineaTxt = html.split('\n')[linea-1] || '';
-      if (/^\s*(\/\/|\*)/.test(lineaTxt)) continue;
-      anota(g, 'index.html', 'línea '+linea, m[0], around, enZonaOk(m.index));
-    }
+// ---- 2. la interfaz, archivo por archivo (textos, legal, Noveno Camino, citas, plantilla) ----
+ARCHIVOS.forEach(archivo=>{
+  const txt = entorno.leer(archivo), lineas = txt.split('\n'), zonas = zonasDe(archivo, txt);
+  GRUPOS.forEach(([g, reES, reEN])=>{
+    [reES, reEN].forEach(base=>{
+      const re = new RegExp(base.source, 'gi');
+      let m; while((m = re.exec(txt))){
+        const linea = txt.slice(0, m.index).split('\n').length;
+        const lineaTxt = lineas[linea-1] || '';
+        // saltar comentarios del código
+        if (/^\s*(\/\/|\*)/.test(lineaTxt)) continue;
+        const protector = zonas.some(([a,b])=>m.index>=a && m.index<=b) || (archivo==='i18n.js' && CLAVE_LEGAL.test(lineaTxt));
+        anota(g, archivo, 'línea '+linea, m[0], txt.slice(Math.max(0,m.index-70), m.index+80), protector);
+      }
+    });
   });
 });
 

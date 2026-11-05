@@ -3,15 +3,31 @@
 Inventario completo de funciones, para tenerlo a la vista al escribir sobre la
 app, preparar la ficha de Google Play o explicársela a alguien.
 
-Versión 3.80 · 208 prácticas · español e inglés
+Versión 3.88 · 208 prácticas · español e inglés
 
 ---
 
 ## 1. El día que te propone
 
-- **Hora de la primera práctica.** Tú decides a qué hora empieza tu día.
+Tres formas de recibir prácticas, que se combinan como quieras. Al empezar se
+elige una; después, en Ajustes → Tu patrón de práctica, se activan las que se
+quieran:
+
+- **Con un patrón:** cada día a las mismas horas (lo que se describe abajo).
+- **Al azar:** cada día a horas distintas, por sorpresa. Eliges la franja horaria
+  (primera y última hora, también pasando la medianoche), cuántas prácticas al
+  día con un mínimo y un máximo (iguales = siempre las mismas) y de qué
+  categorías. Nunca salen las pausadas ni se repite una práctica en el día, y
+  quedan al menos 15 minutos entre una y otra.
+- **Personalizado:** solo tus «Momentos para ti» (sección 3).
+
+**Con un patrón:**
+
+- **Hora de la primera práctica.** Tú decides a qué hora empieza tu día. En la
+  hora mostrada se tocan por separado las horas o los minutos.
 - **Cada cuánto.** Una propuesta cada una, dos o tres horas.
-- **Durante cuántas horas.** Hasta 24. La primera y la última cuentan.
+- **Durante cuántas horas.** De 0 (una sola propuesta al día) a 24, en saltos del
+  intervalo elegido. Debajo se ve el total de propuestas y a qué hora cae la última.
 - **Avisos del sistema.** Llegan aunque la app esté cerrada, con la práctica ya
   elegida. Tres botones en el propio aviso: **Hecha**, **Posponer** y **Abrir**.
 - **Modo alarma.** Opcional: suena aunque el móvil esté en silencio.
@@ -26,8 +42,11 @@ Versión 3.80 · 208 prácticas · español e inglés
   marcaste con ★.
 - **Categorías preferidas.** Al menos una práctica al día de cada categoría que
   elijas.
-- **Constelaciones.** Eliges en qué momentos del día quieres una: al principio,
-  a mediodía, al final, en varios o en ninguno.
+- **Constelaciones** (dentro de Categorías preferidas). Eliges en qué momentos
+  del día quieres una: al principio, a mediodía, al final, en varios o en
+  ninguno. O **x por semana**: los días y las horas que tú elijas.
+- **Profundizar en una constelación:** crea un momento con una sola, siempre la
+  misma, para trabajarla a fondo.
 - **Una visualización cada día**, si la activas.
 - **Pausar prácticas** que no te encajan: dejan de proponerse.
 
@@ -38,13 +57,13 @@ Aquí está el control fino: cuando ya conoces las prácticas, montas tu día ex
 - **A la hora que tú digas**, con la práctica que tú elijas.
 - **Repetición:** cada día · cada X días · **días concretos de la semana**
   (lunes y jueves, por ejemplo) · cada semana · cada mes · una sola vez.
-- **Cuántas veces.** 7, 13, 21, 30 o el número que quieras. Se apaga solo al
+- **Cuántas veces.** 7, 13, 21, 28 o el número que quieras. Se apaga solo al
   terminar: ideal para probar algo una temporada sin tener que acordarte de
   borrarlo.
 - **Varias veces al día:** cada X horas, o a las horas concretas que definas.
 - **Si choca con el patrón**, la app te pregunta qué prefieres, y recuerda tu
   decisión para los días siguientes.
-- **Solo mis momentos.** Desactiva el patrón de la app: el día lo forman
+- **Solo mis momentos.** Con el patrón y el azar apagados, el día lo forman
   únicamente los tuyos.
 - **Especiales.** Prácticas pensadas para una hora fija —la meditación de la
   mañana, la revisión del día, el Karma Yoga— con un botón para crear su momento.
@@ -52,7 +71,8 @@ Aquí está el control fino: cuando ya conoces las prácticas, montas tu día ex
 
 ## 4. Tu propia biblioteca
 
-- **Crea tus prácticas:** título, texto, categoría y enlace opcional.
+- **Crea tus prácticas:** título, texto, categoría, enlace opcional y un audio,
+  una imagen o un vídeo adjunto (se guarda solo en el dispositivo).
 - **Tus propias categorías**, que entran en el reparto como las demás.
 - **Impórtalas en bloque** desde un documento Word o un archivo de texto, con una
   plantilla descargable. El lector entiende las etiquetas en cualquier idioma
@@ -88,6 +108,8 @@ Aquí está el control fino: cuando ya conoces las prácticas, montas tu día ex
 - **Preparada para el árabe** y otras escrituras de derecha a izquierda.
 - **Traducciones de la comunidad**, con validación automática y revisión humana.
   Quien traduce aparece acreditado en la app.
+- **Traduce desde la app:** descarga el archivo para traducir, con instrucciones
+  listas para pegar en una IA, y envía el idioma por email para su revisión.
 
 ## 8. Tus datos
 
@@ -98,6 +120,10 @@ Aquí está el control fino: cuando ya conoces las prácticas, montas tu día ex
 - **La app encuentra tus archivos**: busca en Descargas copias, idiomas y
   prácticas, y los importa de un toque.
 - **Un solo importador** que reconoce solo qué es cada archivo.
+- **Lo que importas se revisa antes de entrar**: una copia, unas prácticas o un
+  idioma manipulados no pueden colar nada en la app.
+- **No puede conectarse a ningún servidor por su cuenta**: lo impide su propia
+  política de contenido, que cualquiera puede leer en `index.html`.
 - **Borrar todo** y empezar de cero, cuando quieras.
 - **Código abierto** bajo AGPL v3: cualquiera puede comprobar que es cierto.
 

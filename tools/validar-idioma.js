@@ -119,7 +119,8 @@ Object.entries(ui).forEach(([k,v])=>{
    admiten. Cualquier otra etiqueta, o un atributo, sí es motivo de rechazo:
    por ahí se colarían enlaces, imágenes o código. */
 const ETIQUETAS_OK = /^<\/?(b|i|br|strong|em)(\s+style="[^"<>]*")?\s*\/?>$/i;
-const PELIGROSO = /\bon\w+\s*=|javascript:|<script|<iframe|<img|<a\s|href\s*=|src\s*=/i;
+// url(...), expression(...) y @import en un estilo cargarían o ejecutarían algo ajeno
+const PELIGROSO = /\bon\w+\s*=|javascript:|<script|<iframe|<img|<a\s|href\s*=|src\s*=|url\s*\(|expression\s*\(|@import/i;
 const conHTML = [];
 const revisarHTML = (donde, v) => {
   const txt = String(v);

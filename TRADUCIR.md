@@ -48,6 +48,17 @@ sus propios momentos, no el de la app).
 
 ---
 
+## Desde la app, sin ordenador
+
+En **Ajustes → Datos y privacidad → Idioma**:
+
+1. **Descargar el archivo para traducir.** Trae dentro las instrucciones.
+2. **Copiar instrucciones para la IA**, si quieres traducirlo con ayuda de una
+   IA. Revisa después el resultado con calma: una IA puede cambiar el sentido de
+   una frase.
+3. Añádelo con **Añadir un idioma desde un archivo**. La app lo revisa y, si está
+   bien, te ofrece **enviarlo por email** para que llegue a todo el mundo.
+
 ## Cómo hacerlo
 
 1. Copia `idiomas/en.json` (o `es.json`) y renómbralo con el código de tu idioma:

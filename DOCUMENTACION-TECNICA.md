@@ -48,14 +48,15 @@ las hace, las marca, las pospone o las ignora.
 
 ## 2. Arquitectura
 
-Aplicación web de un solo archivo envuelta en **Capacitor 6** para Android.
-No hay framework, ni compilador, ni paso de construcción para el código web:
-`index.html` se ejecuta tal cual.
+Aplicación web envuelta en **Capacitor 6** para Android, y publicada también
+como web en Netlify. No hay framework, ni compilador, ni paso de construcción
+para el código web: los archivos se ejecutan tal cual.
 
 ```
 moment/
 ├── www/                        ← la aplicación
-│   ├── index.html              lógica e interfaz
+│   ├── index.html              estructura de la página, política de contenido y orden de carga
+│   ├── js/                     la lógica, un módulo por área (ver abajo)
 │   ├── i18n.js                 diccionario de idiomas (ES/EN)
 │   ├── contenido.js            aviso legal, textos del Noveno Camino, citas, plantilla
 │   ├── estilos.css             hojas de estilo
@@ -83,10 +84,40 @@ añadir una cita no obliga a bucear en la lógica. **Si se añade otro archivo a
 hay que incluirlo en la lista `FILES` de `sw.js`** o la versión web dejará de
 funcionar sin conexión.
 
-**Por qué index.html sigue siendo un solo archivo.** El proyecto lo mantiene una persona sin formación
-técnica formal, con ayuda puntual. Un archivo editable y desplegable sin compilar
-reduce drásticamente la barrera de entrada. El coste (un archivo grande) se
-compensa con las herramientas de auditoría del §11.
+**Módulos (`www/js/`).** Hasta la 3.86 toda la lógica vivía dentro de `index.html`
+(unas 4.200 líneas). En la 3.87 se repartió, sin cambiar una sola línea de código,
+en módulos por área. Son scripts clásicos, sin compilar: comparten el ámbito
+global y `index.html` los carga en este orden:
+
+| Módulo | Qué contiene |
+|---|---|
+| `base.js` | almacén, entorno (APK o web), constantes, estado compartido, utilidades |
+| `registro.js` | registro de incidencias, diagnóstico y estadísticas locales |
+| `saneado.js` | revisión de todo lo que entra de fuera (copias, prácticas, enlaces) |
+| `idioma.js` | textos, idiomas importados y traducir desde la app |
+| `configuracion.js` | el patrón, las migraciones y las categorías |
+| `adjuntos.js` | audios, imágenes y vídeos de las prácticas propias |
+| `plan.js` | qué se propone cada día y a qué hora |
+| `azar.js` | el modo al azar: el sorteo diario y sus controles (bienvenida y Ajustes) |
+| `avisos.js` | notificaciones, posponer, puntualidad y sonido |
+| `reloj.js` | el reloj táctil |
+| `bienvenida.js` | primer arranque y aceptación |
+| `momentos.js` | «Momento para ti» |
+| `vistas.js` | navegación, Agenda y práctica a pantalla completa |
+| `biblioteca.js` | la biblioteca y las prácticas propias |
+| `archivos.js` | importar y exportar |
+| `compartir.js` | invitar, textos legales y suscripción |
+| `noveno.js` | la pestaña de El Noveno Camino |
+| `ajustes.js` | la pantalla de Ajustes |
+| `calendario.js` | el calendario descargable (solo web) |
+| `arranque.js` | lo que se ejecuta al abrir; va siempre el último |
+
+**Regla del orden:** un módulo solo puede *usar al cargarse* lo que esté definido
+en los anteriores; lo que se ejecuta al abrir la app va en `arranque.js`. Las
+funciones pueden llamarse entre módulos sin restricción, porque se llaman después.
+`tools/auditoria/carga.js` comprueba esta regla cargando cada archivo por separado.
+**Si se añade un módulo**, hay que ponerlo en `index.html` y en `FILES` de `sw.js`
+(una prueba lo vigila).
 
 ---
 
@@ -116,7 +147,7 @@ con JSON y captura de errores). Claves:
 
 | Clave | Contenido |
 |---|---|
-| `mpt_cfg` | Configuración: `startH`, `startM`, `freq`, `span`, `favPerDay`, `visDia`, `catsPref`, `soloEventos`, `constIni/Med/Fin` |
+| `mpt_cfg` | Configuración: `startH`, `startM`, `freq`, `span`, `favPerDay`, `visDia`, `catsPref`, `constIni/Med/Fin`, `constNo`, `constSem`, `patron` (sí/no), `azar` (`{on, ini, fin, min, max, excl}`), `v` |
 | `mpt_day` | Plan del día en curso: `{date, used, plan[]}` |
 | `mpt_plans` | Caché de planes de días futuros |
 | `mpt_events` | Momentos propios creados por la persona |
@@ -190,8 +221,11 @@ Cómo se construye el plan (`buildDayEntries`):
 2. `eventOccurrences(fecha)` obtiene los momentos propios de ese día, incluidos
    los **arrastres**: una repetición que pasa de medianoche cae al día siguiente
    (`eventTimes` devuelve minutos crudos que pueden superar 1439).
-3. Si `cfg.soloEventos` está activo, el día lo forman **únicamente** los momentos
-   propios. Si no hay ninguno, el día queda vacío: es lo que se ha pedido.
+3. **Tres fuentes que se combinan**: el patrón (`cfg.patron`), los momentos propios
+   y las prácticas al azar (`cfg.azar.on`, en `azar.js`). Con el patrón y el azar
+   apagados, el día son **únicamente** los momentos propios; si no hay ninguno, el
+   día queda vacío: es lo que se ha pedido. (Hasta la 3.87 esto era
+   `cfg.soloEventos`; la migración v10 lo convierte en `patron: false`.)
 4. `pickPractices()` elige el resto evitando repetir, respetando pausas y
    reservando el cupo de favoritas (`favPerDay`).
 5. Cadena de colocación:
@@ -199,6 +233,12 @@ Cómo se construye el plan (`buildDayEntries`):
 6. Las horas marcadas como exclusivas por un momento propio (`ev.excl`) pierden
    su propuesta del patrón. **Esa decisión se guarda en el momento, no en el día**,
    así que se respeta también mañana.
+7. **Prácticas al azar** (`azarEntradas`), al final y solo si el modo está activo:
+   cada día se sortea cuántas (entre `min` y `max`), a qué horas (de 5 en 5
+   minutos dentro de la franja, con al menos 15 minutos entre una y otra y sin
+   pisar el patrón ni los momentos) y cuáles (de las categorías no excluidas, sin
+   las pausadas ni las ya propuestas ese día). El sorteo de horas reparte por igual
+   entre todas las combinaciones válidas, sin probar y descartar.
 
 `franjasConstelacion(n)` es la única definición de qué franjas se reservan a
 constelaciones; la usan tanto la visualización como las categorías preferidas.
@@ -506,9 +546,9 @@ segunda incluye el propio APK dentro de la app para poder compartirla— y
 **`build-release.yml`** — manual. Genera el AAB firmado para Google Play y el APK
 de release. La firma viene de `keystore.b64` y los secretos del repositorio.
 
-**Al publicar una versión nueva:** subir `APP_VERSION` en `index.html` **y** la
-constante `CACHE` en `sw.js` (si no se sube la caché, los navegadores sirven la
-versión antigua).
+**Al publicar una versión nueva:** subir `APP_VERSION` en `www/js/base.js`. La caché
+del service worker se renueva sola, porque `index.html` lo registra con la versión
+en la dirección (`sw.js?v=…`).
 
 ---
 
@@ -518,10 +558,12 @@ versión antigua).
 2. **Nunca texto literal en la interfaz**: siempre `t('clave')`, en ambos idiomas.
 3. **Nunca afirmaciones sanitarias ni promesas de eficacia** (§10).
 4. **Nunca `nativeReschedule()` directo**: usar `pedirReprogramacion()`.
-5. **Escapar siempre** el contenido creado por la persona con `esc()`.
+5. **Escapar siempre** el contenido creado por la persona con `esc()`; los enlaces,
+   con `esc(enlaceSeguro(…))`; un valor dentro de `onclick`, con `jsAttr()`. Todo lo
+   que llegue de fuera pasa antes por `saneado.js` (ver `AUDITORIA.md`).
 6. **No introducir temporizadores periódicos** sin justificarlo y sin apagarlos
    en segundo plano.
-7. **Subir `APP_VERSION` y `CACHE`** en cada entrega.
+7. **Subir `APP_VERSION`** (en `www/js/base.js`) en cada entrega; la caché va sola.
 8. **Si se añade una clave de idioma, subir también `i18n.js`.** Si no, la app
    muestra el nombre de la clave en pantalla (`ef_times` en vez del texto). Los
    textos ya no viven en `index.html`: van en archivo aparte y es fácil olvidarlo.
