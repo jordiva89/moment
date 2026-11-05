@@ -469,6 +469,16 @@ mk(async (w,d)=>{
     const r=w.buildDayEntries('2026-01-05').some(e=>e.time===1265 && e.pid==='p039');
     w.eval("paused=paused.filter(x=>x!=='p039');"); return r;
   })());
+  ok('pausa: lo escogido a mano se hace; lo que elige la app, no', (function(){
+    // momento propio con una práctica en pausa: sale; visualización del día en pausa: sale
+    w.eval("cfg.constSem={on:true,filas:[{d:1,h:1265,pid:'p039'}]}; paused.push('p039','p001',VIS_ID); cfg.visDia=true;"
+      +"userEvents=[{id:'eP',title:'x',time:615,pid:'p001',rep:'daily',n:2,startY:2026,startM:1,startD:1}];");
+    const e=w.buildDayEntries('2026-01-05');
+    const aMano=e.some(x=>x.time===615 && x.pid==='p001') && e.some(x=>x.pid===w.eval('VIS_ID')) && e.some(x=>x.time===1265 && x.pid==='p039' && x.fija);
+    const app=e.filter(x=>!x.ev && !x.fija && x.pid!==w.eval('VIS_ID')).every(x=>!w.eval('paused').includes(x.pid));
+    w.eval("paused=paused.filter(x=>!['p039','p001',VIS_ID].includes(x)); userEvents=[]; cfg.visDia=false; cfg.constSem={on:true,filas:[{d:1,h:1265,pid:'p039'}]};");
+    return aMano && app;
+  })());
   ok('x por semana: si la elegida ya no existe, vuelve a ser al azar', (function(){
     w.eval("cfg.constSem={on:true,filas:[{d:1,h:1265,pid:'uBorrada'}]};");
     const c=w.buildDayEntries('2026-01-05').find(e=>e.time===1265);

@@ -59,11 +59,13 @@ function franjasConstelacion(n){
   if(cfg.constFin) f.add(n-1);
   return f;
 }
-// Si el usuario lo activa, la visualización del día entra una vez, en un hueco libre
+// Si el usuario lo activa, la visualización del día entra una vez, en un hueco libre.
+// Es una práctica concreta que la persona ha pedido: entra aunque esté en pausa
+// (la pausa solo vale para lo que elige la app; ver DOCUMENTACION-TECNICA §5).
 function placeVisualization(ids){
   if(!cfg || !cfg.visDia || !ids.length) return ids;
   const vis=practicaVis();
-  if(!vis || paused.includes(vis.id) || ids.includes(vis.id)) return ids;
+  if(!vis || ids.includes(vis.id)) return ids;
   const franjas=franjasConstelacion(ids.length);
   let cand=ids.map((id,k)=>k).filter(k=>!franjas.has(k) && !favs.includes(ids[k]));
   if(!cand.length) cand=ids.map((id,k)=>k).filter(k=>!franjas.has(k));
@@ -211,17 +213,17 @@ function buildDayEntries(dstr){
     const usados=new Set(entries.map(e=>e.pid));
     constSemanaDe(dstr).forEach(({h, pid})=>{
       if(excl.has(h)) return;                 // un momento propio pidió esa hora para él solo
-      // La elegida se propone tal cual, aunque esté en pausa en la biblioteca: la
-      // persona la ha escogido para ese día. Solo si ya sale ese día no se repite.
-      // Si ya no existe (una propia que se borró), vuelve a ser al azar.
-      let c;
-      if(pid && byId(pid)){ if(usados.has(pid)) return; c=pid; }
+      // La elegida se propone tal cual, aunque esté en pausa en la biblioteca: lo que
+      // la persona escoge se hace. Solo si ya sale ese día no se repite. Si ya no
+      // existe (una propia que se borró), vuelve a ser al azar.
+      let c, fija=false;
+      if(pid && byId(pid)){ if(usados.has(pid)) return; c=pid; fija=true; }
       else c=elegirConstelacion(usados);
       if(!c) return;
       usados.add(c);
       const k=entries.findIndex(e=>!e.ev && e.time===h);
-      if(k>=0){ usados.delete(entries[k].pid); entries[k].pid=c; }
-      else entries.push({time:h, pid:c});
+      if(k>=0){ usados.delete(entries[k].pid); entries[k].pid=c; if(fija) entries[k].fija=true; }
+      else entries.push(fija ? {time:h, pid:c, fija:true} : {time:h, pid:c});
     });
   }
   // Prácticas al azar: a horas que no pisan las anteriores y sin repetir ninguna
@@ -274,7 +276,7 @@ function ensureDayPlan(){
   Object.keys(plans).forEach(k=>{ if(k<=todayStr()) delete plans[k]; });
   LS.set('mpt_plans', plans);
   dayState={date:todayStr(), used:[...new Set(entries.map(e=>e.pid))],
-    plan: entries.map(e=>({time:e.time, pid:e.pid, ev:e.ev, done:false, snoozes:0, snoozeUntil:null}))};
+    plan: entries.map(e=>Object.assign({time:e.time, pid:e.pid, ev:e.ev, done:false, snoozes:0, snoozeUntil:null}, e.fija?{fija:true}:{}))};
   LS.set('mpt_day', dayState);
 }
 function saveDay(){ LS.set('mpt_day', dayState); }
