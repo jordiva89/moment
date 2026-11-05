@@ -3,7 +3,7 @@
 Inventario completo de funciones, para tenerlo a la vista al escribir sobre la
 app, preparar la ficha de Google Play o explicársela a alguien.
 
-Versión 3.90 · 208 prácticas · español e inglés
+Versión 3.91 · 208 prácticas · español e inglés
 
 ---
 
@@ -52,7 +52,9 @@ quieran:
   constelación una y otra vez (7, 13, 21 o 28 veces), a la hora y los días que
   elijas, para trabajar un tema a fondo. Se pausa y se retoma desde la casilla.
 - **Una visualización cada día**, si la activas.
-- **Pausar prácticas** que no te encajan: dejan de proponerse.
+- **Pausar prácticas** que no te encajan: dejan de proponerse en el patrón
+  estándar y al azar. Lo que escoges tú a mano (tus momentos, Profundizar, una
+  constelación concreta de «x por semana», la visualización del día) se hace igual.
 
 ## 3. Tus propios momentos
 

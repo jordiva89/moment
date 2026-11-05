@@ -267,6 +267,13 @@ Cómo se construye el plan (`buildDayEntries`):
    consigue, se eligen entre los minutos libres (`azarLibres`, `azarVoraz`) y, si
    ni así caben, vale el sorteo con menos choques.
 
+**La pausa solo vale para lo que elige la app.** Una práctica en pausa no la
+proponen ni el patrón estándar (huecos, favoritas, categorías, constelaciones de
+principio, mediodía o final) ni el azar. Lo que la persona escoge a mano se hace
+igualmente: sus momentos propios (y Profundizar), la constelación concreta de una
+fila de «x por semana» y la visualización del día. Esas entradas llevan `fija` en
+el plan y `togglePause` no las sustituye.
+
 «Profundizar en una constelación» no es un paso aparte: son momentos propios con
 `prof: true`, que Ajustes lista también junto a las demás opciones de
 constelaciones (casilla marcada = alguno en marcha; al desmarcarla se pausan).

@@ -312,11 +312,14 @@ function togglePause(id){
   if(k>=0){ paused.splice(k,1); toast(t('ts_unpaused')); }
   else{
     paused.push(id);
-    // solo se sustituyen sus apariciones FUTURAS de hoy (no hechas, no momentos propios);
-    // las de hora ya pasada (Día pasado) se respetan: fueron lo que fueron
+    // solo se sustituyen sus apariciones FUTURAS de hoy que eligió la app: no las
+    // hechas, ni los momentos propios, ni lo que la persona escogió a mano (una
+    // constelación concreta de «x por semana», la visualización del día): eso se
+    // hace aunque esté en pausa. Las de hora ya pasada se respetan.
     if(dayState){
       dayState.plan.forEach(sl=>{
-        if(sl.pid===id && !sl.done && !sl.ev && eff(sl)>nowMins()){
+        const aMano = sl.ev || sl.fija || (cfg && cfg.visDia && sl.pid===VIS_ID);
+        if(sl.pid===id && !sl.done && !aMano && eff(sl)>nowMins()){
           const f=pickRandom(dayState.used);
           if(f){ sl.pid=f; sl.snoozes=0; sl.snoozeUntil=null; sl.notified=false; dayState.used.push(f); }
         }
