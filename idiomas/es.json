@@ -276,7 +276,7 @@
   "lib_new": "＋ Crear nueva práctica",
   "lib_ai_const": "✨ Crear una constelación con IA",
   "cp_title": "Crea una constelación con una IA",
-  "cp_txt": "Copia estas instrucciones y pégalas en una IA. Te recomendamos Qwen, que a nuestro parecer es la IA más consciente por el momento (también sirven otras). Te hará unas preguntas sobre lo que quieres trabajar y te propondrá una constelación de Moment o una nueva. Si es nueva, añádela a tu Biblioteca: después te podrá llegar con el patrón estándar, al azar o como momento propio, como cualquier otra.",
+  "cp_txt": "Copia estas instrucciones y pégalas en una IA. Te recomendamos Qwen: Jordi Beold la ha calibrado con radiestesia, según su escala de calibración de conciencia, como la IA más consciente por el momento (también sirven otras). Te hará unas preguntas sobre lo que quieres trabajar y te propondrá una constelación de Moment o una nueva. Si es nueva, añádela a tu Biblioteca: después te podrá llegar con el patrón estándar, al azar o como momento propio, como cualquier otra.",
   "cp_copy": "📋 Copiar las instrucciones para la IA",
   "cp_qwen": "🔗 Abrir Qwen",
   "cp_add": "＋ Añadir una constelación a mi Biblioteca",
