@@ -252,6 +252,8 @@ function catSelectValue(selId, inpId){
    Si es nueva, la añade aquí a su Biblioteca, en Constelaciones: a partir de ahí
    puede llegarle con el patrón, al azar o como momento propio, como cualquier otra.
    No está atada a ninguna función: por eso vive en la Biblioteca. */
+// IA que se recomienda para crear constelaciones (decisión del autor)
+const QWEN_URL='https://chat.qwen.ai/';
 function promptConstelacion(){
   const lista=ALL().filter(p=>esCatConst(p.cat)).map((p,i)=>(i+1)+'. '+p.title).join('\n');
   return t('cp_prompt').replace('{lista}', lista);
@@ -261,6 +263,7 @@ function abrirConstelacionIA(){
     <h2>${t('cp_title')}</h2>
     <p class="muted" style="line-height:1.55">${t('cp_txt')}</p>
     <button class="btn primary block" onclick="copyText(promptConstelacion()).then(ok=>toast(ok?t('tr_prompt_ok'):t('sr_copy_fail')))">${t('cp_copy')}</button>
+    <a class="btn ghost block" href="${QWEN_URL}" target="_blank" rel="noopener noreferrer">${t('cp_qwen')}</a>
     <button class="btn gold block" onclick="openAddForm('constelaciones')">${t('cp_add')}</button>
     <button class="btn ghost block" onclick="closeModal()">${t('gd_ok')}</button>`;
   openModal();

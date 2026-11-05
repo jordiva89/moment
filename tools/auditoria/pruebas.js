@@ -644,7 +644,8 @@ mk(async (w,d)=>{
   ok('crear constelación con IA: copiar y añadirla a la Biblioteca, en Constelaciones', (function(){
     w.abrirConstelacionIA();
     const h=d.getElementById('modalContent').innerHTML;
-    const r=h.includes('copyText(promptConstelacion())') && h.includes("openAddForm('constelaciones')");
+    const r=h.includes('copyText(promptConstelacion())') && h.includes("openAddForm('constelaciones')")
+      && h.includes('href="https://chat.qwen.ai/"') && h.includes('Te recomendamos Qwen');
     w.openAddForm('constelaciones');
     const sel=d.getElementById('np_c').value==='constelaciones';
     w.closeModal(); return r && sel;
