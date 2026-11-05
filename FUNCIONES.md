@@ -3,7 +3,7 @@
 Inventario completo de funciones, para tenerlo a la vista al escribir sobre la
 app, preparar la ficha de Google Play o explicársela a alguien.
 
-Versión 3.89 · 208 prácticas · español e inglés
+Versión 3.90 · 208 prácticas · español e inglés
 
 ---
 
@@ -86,7 +86,8 @@ Aquí está el control fino: cuando ya conoces las prácticas, montas tu día ex
 - **Crea una constelación con una IA:** copias unas instrucciones, las pegas en
   ChatGPT, Claude, Gemini…, la IA te hace unas preguntas sobre lo que quieres
   trabajar y te propone una constelación de Moment o una nueva, que añades a tu
-  biblioteca. Desde ahí puede llegarte como cualquier otra.
+  biblioteca. Desde ahí puede llegarte como cualquier otra. El botón está en la
+  Biblioteca y al final de «Constelaciones del día», en Ajustes.
 
 ## 5. La biblioteca base
 
