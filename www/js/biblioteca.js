@@ -61,7 +61,9 @@ function renderLibList(){
     ${boxHead(`${t('lib_box_practices')} (${visibles.length})`, showLibBox, 'showLibBox', 'renderLibList()', 'expandLibGroup()', todos, !!visibles.length)}
     ${showLibBox?(visibles.map(p=>libItem(p)).join('') || `<p class="muted center">${t('lib_no_results')}</p>`):''}
   </div>`;
-  el.innerHTML = renderPropiasBox() + caja + renderFavBox();
+  // Las favoritas van primero (la caja solo existe si hay alguna); luego las propias
+  // y, al final, la biblioteca completa.
+  el.innerHTML = renderFavBox() + renderPropiasBox() + caja;
   renderPausedBox();
 }
 // Resuelve un conjunto de expandidos por su nombre (los onclick usan el nombre; aquí el objeto)

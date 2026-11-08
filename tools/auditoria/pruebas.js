@@ -198,6 +198,19 @@ mk(async (w,d)=>{
     w.eval(`toggleFicha(expandedLib,'${id}',renderLibList,'expandedLib')`);
     return w.eval(`expandedLib.has('${id}')`)===true && d.querySelectorAll('.ditem').length===antes;
   })());
+  // las favoritas, cuando las hay, son la primera caja de la biblioteca
+  ok('biblioteca: favoritas primero; sin favoritas no hay caja', (function(){
+    const antesFavs=w.eval('JSON.stringify(favs)');
+    w.gotoTab('lib');
+    w.eval('favs=[]'); w.eval('renderLibList()');
+    const sin=d.getElementById('liblist').innerHTML;
+    const sinCaja=!sin.includes(w.t('lib_box_fav')) && sin.includes(w.t('lib_box_practices'));
+    w.eval("favs=['p002']"); w.eval('renderLibList()');
+    const con=d.getElementById('liblist').innerHTML;
+    const iFav=con.indexOf(w.t('lib_box_fav')), iBib=con.indexOf(w.t('lib_box_practices'));
+    w.eval('favs='+antesFavs); w.eval('renderLibList()');
+    return sinCaja && iFav>=0 && iBib>=0 && iFav<iBib;
+  })());
   // separación de archivos
   ok('i18n.js y contenido.js existen', (function(){
     const p=require('path').join(__dirname,'..','..','www');

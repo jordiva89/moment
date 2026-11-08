@@ -11,7 +11,7 @@ const LS = {
   remove(k){ try{ localStorage.removeItem(k); }catch(e){} }
 };
 
-const APP_VERSION = '3.95';   // visible en Ajustes: confirma qué versión está corriendo
+const APP_VERSION = '3.96';   // visible en Ajustes: confirma qué versión está corriendo
 
 const IS_NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
 const CapLN  = IS_NATIVE ? window.Capacitor.Plugins.LocalNotifications : null;

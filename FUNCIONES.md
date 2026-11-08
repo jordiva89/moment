@@ -3,7 +3,7 @@
 Inventario completo de funciones, para tenerlo a la vista al escribir sobre la
 app, preparar la ficha de Google Play o explicársela a alguien.
 
-Versión 3.95 · 208 prácticas · español e inglés
+Versión 3.96 · 208 prácticas · español e inglés
 
 ---
 
@@ -103,6 +103,8 @@ Aquí está el control fino: cuando ya conoces las prácticas, montas tu día ex
 - Todas **en solitario**, sin materiales y sin necesitar guía externa.
 - **62 con vídeo** enlazado.
 - **Buscador** por texto y **filtro** por categoría.
+- **Orden de las cajas:** primero tus favoritas (la caja solo aparece si tienes
+  alguna), luego tus prácticas propias y después la biblioteca completa.
 - **Caja de hechas** con el recuento de cada práctica.
 - **Preparada para archivos:** cualquier práctica de la biblioteca puede llevar
   audio, imagen o vídeo dentro de la app, cada uno con su idioma.
