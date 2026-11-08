@@ -244,7 +244,7 @@ function toggleDone(i){
     s.done=false;
     const enFuturo = eff(s) > nowMins();
     s.notified = !enFuturo;
-    saveDay(); statDone(false, s.pid, s.extraDone);
+    saveDay(); statDone(false, s.pid, s.extraDone, origenStat(s));
     s.extraDone=false;
     if(enFuturo) nativeScheduleSlot(i);
     startWatch();
@@ -257,7 +257,7 @@ function toggleDone(i){
     const esExtra = esFutura || !!s.doneOnce;
     if(esFutura){
       // registrar la extra sobre esta práctica
-      statDone(true, s.pid, true);
+      statDone(true, s.pid, true, origenStat(s));
       const pidHecha=s.pid;
       // regenerar la franja con otra práctica no usada hoy
       const fresh=pickRandom(dayState.used);
@@ -277,7 +277,7 @@ function toggleDone(i){
     // si este momento ya tuvo una hecha antes (se cambió tras completarla), esta cuenta como EXTRA
     s.extraDone = esExtra;
     s.doneOnce = true;
-    saveDay(); statDone(true, s.pid, esExtra); nativeCancelSlot(i); startWatch();
+    saveDay(); statDone(true, s.pid, esExtra, origenStat(s)); nativeCancelSlot(i); startWatch();
     toast(esExtra ? t('ts_done_extra') : t('ts_done_ok'));
   }
 }

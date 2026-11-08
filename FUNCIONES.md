@@ -3,7 +3,7 @@
 Inventario completo de funciones, para tenerlo a la vista al escribir sobre la
 app, preparar la ficha de Google Play o explicársela a alguien.
 
-Versión 3.96 · 208 prácticas · español e inglés
+Versión 3.97 · 208 prácticas · español e inglés
 
 ---
 
@@ -83,6 +83,13 @@ Aquí está el control fino: cuando ya conoces las prácticas, montas tu día ex
 - **Añade un archivo a cualquier práctica**, también a las de la biblioteca de la
   app, desde su ficha. Las imágenes, audios, vídeos y textos se ven en la propia
   ficha; el resto se guarda en el móvil con un botón.
+- **Archivos para muchas prácticas a la vez (ZIP):** metes en un ZIP un archivo
+  por práctica, cada uno llamado como el título de su práctica («Respiración
+  consciente.mp3»). Dan igual mayúsculas, tildes y signos, y vale el título en
+  español o en inglés. Sirve para la biblioteca y para las tuyas. Antes de guardar
+  nada, la app enseña qué va con qué y qué no encaja (sin práctica con ese título,
+  título repetido, archivo de más de 100 MB…). Está en la Biblioteca y en «Nueva
+  práctica».
 - **Tus propias categorías**, que entran en el reparto como las demás.
 - **Impórtalas en bloque** desde un documento Word o un archivo de texto, con una
   plantilla descargable. El lector entiende las etiquetas en cualquier idioma
@@ -114,8 +121,16 @@ Aquí está el control fino: cuando ya conoces las prácticas, montas tu día ex
 - **Marcar hecha**, desde la app o desde el aviso.
 - **Práctica extra**: hacer una fuera de hora también cuenta.
 - **Días pasados**: puedes marcar lo que hiciste ayer.
-- **Estadísticas** de uso, guardadas en el móvil, que puedes enviar al autor si
-  quieres ayudar a mejorar la app. Nunca se envían solas.
+- **Estadísticas** de uso, guardadas en el móvil (30 días), que puedes enviar al
+  autor si quieres ayudar a mejorar la app. Nunca se envían solas. Incluyen:
+  hechas, extra, pospuestas y descartadas; cumplimiento (hechas de las
+  propuestas); hechas por origen (patrón, azar, momentos propios, Profundizar,
+  constelaciones de la semana, visualización del día, fuera del plan); franjas
+  con más hechas y con más posposiciones; racha actual y mejor; hechas por
+  categoría; la configuración de cada modo; versión, plataforma e idioma;
+  prácticas en pausa, propias y con archivo; y el uso de funciones (ventana de la
+  IA, Qwen, ZIP, importaciones). Solo recuentos: nunca textos, títulos de
+  prácticas propias ni nombres de archivos.
 
 ## 7. Idiomas
 

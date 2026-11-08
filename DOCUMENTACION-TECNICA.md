@@ -474,6 +474,36 @@ compara sin acentos ni mayúsculas. Así, una plantilla rellenada en francés
 > plantilla en otro idioma daba «no se encontraron prácticas».
 
 
+**Lector de ZIP (`archivos.js`).** `zipEntradas(blob)` lee el índice del ZIP y
+`zipLeer(blob, entrada, max)` los bytes de un archivo, con `Blob.slice`: un ZIP
+grande no se carga entero en memoria. Métodos 0 y 8 (deflate, con
+`DecompressionStream`); la descompresión se corta si pasa del tamaño declarado o
+del máximo (ZIP «bomba»). Sin ZIP cifrados ni ZIP64; máximo `ZIP_MAX_ENTRADAS`.
+`zipNombre()` lee el nombre: campo Unicode 0x7075, marca UTF-8, UTF-8 sin marcar
+y, si no, página de códigos 850 (lo que hace Windows en español). `docxToText()`
+usa el mismo lector.
+
+**Archivos para varias prácticas (ZIP).** `abrirZipInfo()` → `analizarZip(file)`
+empareja cada archivo con su práctica por **título** (`normTitulo()`: sin tildes,
+mayúsculas ni signos, cualquier alfabeto; `indiceTitulos()` incluye los títulos
+en español e inglés y los de las propias). Descarta carpetas, `__MACOSX`, ocultos,
+títulos ambiguos, repetidos, demasiado grandes y cifrados, y lo enseña todo antes
+de guardar. `aplicarZip()` guarda uno a uno en IndexedDB (`ADJ.guardar`) y deja la
+ficha en `p.adj` (propias) o `adjLibreria` (biblioteca), como al adjuntar a mano.
+Se emparejó por título y no por código porque la persona reconoce sus prácticas
+por el título.
+
+**Métricas (`registro.js`).** Por día, en `mpt_stats.days[fecha]`: `h`, `extra`,
+`ps`/`pv`, `hor` (posposiciones por hora), `camb` (descartes) y, desde la 3.97,
+`org` (hechas por origen, `STAT_ORIGENES`, que da `origenStat(franja)`), `hh`
+(hechas por hora), `u` (uso de funciones, `STAT_USOS`, con `statUso()`) y `prop`
+(propuestas del día, que guarda `ensureDayPlan()`). Las franjas de «x por semana»
+llevan `cs:true` para distinguirlas. `sanearStats()` solo admite esas claves.
+`cuerpoMetricas()` compone el correo; `datosUso()` los recuentos de configuración
+y biblioteca. **Regla:** solo recuentos y ajustes. Los descartes solo listan
+prácticas de la biblioteca oficial, y las categorías propias se agrupan como
+«propias», porque esos textos los escribe la persona.
+
 **Copias de seguridad.** `exportarDatos()` guarda el archivo directamente en la
 carpeta Descargas (`guardarDescarga`), y luego ofrece enviarlo a otro sitio con
 `compartirBytes()`. La bienvenida incluye un paso para cargar una copia antes de

@@ -131,8 +131,14 @@ function sanearStats(s){
   if (s.days && typeof s.days === 'object') Object.keys(s.days).slice(0, 400).forEach(k => {
     const d = s.days[k];
     if (!/^\d{4}-\d{2}-\d{2}$/.test(k) || !d || typeof d !== 'object') return;
+    // org/hh/u (3.97): solo claves conocidas; son recuentos, nunca textos
+    const claves = (obj, ok) => { const r = cuenta(obj); Object.keys(r).forEach(x => { if (!ok(x)) delete r[x]; }); return r; };
     o.days[k] = { h: entero(d.h, 0, 1e4, 0), ps: sanearIds(d.ps, 500), pv: entero(d.pv, 0, 1e5, 0),
-                  hor: cuenta(d.hor), camb: cuenta(d.camb), extra: entero(d.extra, 0, 1e4, 0) };
+                  hor: cuenta(d.hor), camb: cuenta(d.camb), extra: entero(d.extra, 0, 1e4, 0),
+                  org: claves(d.org, x => STAT_ORIGENES.includes(x)),
+                  hh: claves(d.hh, x => /^\d{1,2}$/.test(x) && +x < 24),
+                  u: claves(d.u, x => STAT_USOS.includes(x)) };
+    if (d.prop !== undefined) o.days[k].prop = entero(d.prop, 0, 1e4, 0);
   });
   return o;
 }

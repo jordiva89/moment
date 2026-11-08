@@ -332,3 +332,6 @@ button.hpart:focus-visible{ outline:2px solid var(--dorado); outline-offset:1px 
 /* Pasos de «Traduce Moment a tu idioma» */
 .pasotr{ margin:12px 0 6px; font-size:.9rem; font-weight:600; color:var(--oscuro); text-align:left }
 [dir="rtl"] .pasotr{ text-align:right }
+/* Resultado de la importación de archivos por ZIP: listas que se desplazan solas */
+.ziplista{margin:0;padding:0 0 0 18px;max-height:180px;overflow-y:auto;font-size:.86rem;line-height:1.45;overflow-wrap:anywhere}
+.ziplista li{margin:2px 0}

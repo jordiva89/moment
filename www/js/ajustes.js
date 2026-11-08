@@ -306,6 +306,8 @@ function renderSet(){
       <b>${t('st_last_done')}</b> ${fmtFecha(stats.lastDone)}</p>
       ${resumenModosHTML()}
       <p class="muted"><b>${t('st_last_days_a')} ${r.dias||0} ${t('st_last_days_b')}</b> ${r.h} ${t('st_done')} · ${r.extra} ${t('st_extra')} · ${r.pPract} ${t('st_snoozed_a')} (${r.pVeces} ${t('st_snoozed_b')})</p>
+      <p class="muted"><b>${t('mx_rate')}</b> ${r.tasa===null?'—':r.tasa+'% ('+r.hProp+' / '+r.prop+')'}<br>
+      <b>${t('mx_by_origin')}</b> ${esc(origenesTxt(r.org))}</p>
       <p class="muted"><b>${t('st_top_slots')}</b> ${r.topHoras.length?r.topHoras.join(', '):'—'}</p>
       <p class="muted"><b>${t('st_top_disc')}</b> ${r.topCamb.length?r.topCamb.map(c=>esc(c.t)+' ('+c.n+')').join(' · '):'—'}</p>
       <p class="muted">${t('st_last_send')} ${fmtFecha(stats.lastSend)}</p>`; })():`

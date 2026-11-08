@@ -68,14 +68,14 @@ const LEGAL_COND_EN=`Terms of use:
 4. The app is provided "as is", with no guarantees of availability or accuracy.`;
 const LEGAL_PRIV_ES=`Política de privacidad:
 1. Responsable: Jordi Beold (contacto: ${METRICS_EMAIL}).
-2. Datos tratados: la dirección de email que facilitas al suscribirte, y métricas de uso de la app (prácticas hechas, pospuestas, descartadas y configuración horaria).
+2. Datos tratados: la dirección de email que facilitas al suscribirte, y métricas de uso de la app: recuentos de prácticas hechas, pospuestas y descartadas, del uso de cada modo y función, y la configuración (nunca tus textos, los títulos de tus prácticas propias ni los nombres de tus archivos).
 3. Finalidad: enviarte comunicaciones sobre la app y estudiar los patrones de práctica para mejorar el servicio. La lista de correo se gestiona con Mailchimp: la app no envía tu email a ningún sitio; el alta la completas tú en el formulario de Mailchimp, que recoge allí tu consentimiento.
 4. Base legal: tu consentimiento, que puedes retirar en cualquier momento escribiendo al contacto indicado o mediante el enlace de baja de los correos.
 5. Conservación: mientras dure tu suscripción. Las métricas se guardan en tu dispositivo (30 días) y solo se envían asociadas a tu email con tu consentimiento.
 6. Derechos: acceso, rectificación, supresión, oposición y portabilidad, ante el contacto indicado.`;
 const LEGAL_PRIV_EN=`Privacy policy:
 1. Controller: Jordi Beold (contact: ${METRICS_EMAIL}).
-2. Data processed: the email address you provide when subscribing, and app usage metrics (practices done, snoozed, skipped, and time settings).
+2. Data processed: the email address you provide when subscribing, and app usage metrics: counts of practices done, snoozed and skipped, of the use of each mode and feature, and the settings (never your texts, the titles of your own practices or the names of your files).
 3. Purpose: to send you communications about the app and to study practice patterns to improve the service. The mailing list is managed with Mailchimp: the app does not send your email anywhere; you complete the sign-up yourself in the Mailchimp form, which collects your consent there.
 4. Legal basis: your consent, which you may withdraw at any time by writing to the contact indicated or via the unsubscribe link in the emails.
 5. Retention: for as long as your subscription lasts. Metrics are stored on your device (30 days) and are only sent associated with your email with your consent.

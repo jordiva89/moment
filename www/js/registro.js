@@ -114,8 +114,10 @@ async function enviarFeedback(){
 let stats = LS.get('mpt_stats', {lastOpen:0, lastDone:0, lastSend:0, days:{}});
 function statsDay(){
   const d=todayStr();
-  if(!stats.days[d]) stats.days[d]={h:0, ps:[], pv:0, hor:{}, camb:{}, extra:0};
-  if(stats.days[d].extra===undefined) stats.days[d].extra=0;
+  if(!stats.days[d]) stats.days[d]={h:0, ps:[], pv:0, hor:{}, camb:{}, extra:0, org:{}, hh:{}, u:{}};
+  const dd=stats.days[d];
+  if(dd.extra===undefined) dd.extra=0;
+  ['org','hh','u'].forEach(k=>{ if(!dd[k] || typeof dd[k]!=='object') dd[k]={}; });   // días de antes de la 3.97
   // poda: solo se conservan 30 días
   const lim=new Date(); lim.setDate(lim.getDate()-30);
   const limS=dateStrOf(lim);
@@ -131,16 +133,42 @@ function modosTxt(){
 }
 function saveStats(){ LS.set('mpt_stats', stats); }
 function statOpen(){ stats.lastOpen=Date.now(); statsDay(); saveStats(); }
-function statDone(marcada, pid, extra){
+/* MÉTRICAS: solo recuentos y ajustes. Nunca textos, títulos de prácticas propias,
+   nombres de categorías propias ni nombres de archivos. Por día (se podan a los 30):
+     org  hechas por origen (STAT_ORIGENES)        hh   hechas por hora (0–23)
+     u    uso de funciones (STAT_USOS)             prop propuestas del día */
+const STAT_ORIGENES=['pat','az','own','prof','csem','vis','fuera'];
+const STAT_USOS=['ia','iacopy','qwen','iaadd','zip','imp','adj'];
+// De dónde sale una práctica del día: patrón, azar, momento propio, Profundizar,
+// constelación de la semana o visualización del día. Sin franja: fuera del plan.
+function origenStat(s){
+  if(!s) return 'fuera';
+  if(s.ev){ const ev=(typeof getEvent==='function')?getEvent(s.ev):null; return ev && ev.prof ? 'prof' : 'own'; }
+  if(s.cs) return 'csem';
+  if(s.az) return 'az';
+  if(cfg && cfg.visDia && typeof VIS_ID!=='undefined' && s.pid===VIS_ID) return 'vis';
+  return 'pat';
+}
+function statUso(k, n){
+  if(!STAT_USOS.includes(k)) return;
+  const d=statsDay(); d.u[k]=(d.u[k]||0)+(n||1); saveStats();
+}
+function statPropuestas(n){ const d=statsDay(); d.prop=Math.max(0, n|0); saveStats(); }
+function statDone(marcada, pid, extra, origen){
   const d=statsDay();
   const log=LS.get('mpt_donelog', {});
+  const o=STAT_ORIGENES.includes(origen) ? origen : 'fuera', h=new Date().getHours();
   if(marcada){
     if(extra) d.extra++; else d.h++;
     stats.lastDone=Date.now();
     if(pid) log[pid]=(log[pid]||0)+1;
+    d.org[o]=(d.org[o]||0)+1;
+    d.hh[h]=(d.hh[h]||0)+1;
   } else {
     if(extra) d.extra=Math.max(0,d.extra-1); else d.h=Math.max(0,d.h-1);
     if(pid && log[pid]) { log[pid]--; if(log[pid]<=0) delete log[pid]; }
+    if(d.org[o]) d.org[o]--;
+    if(d.hh[h]) d.hh[h]--;
   }
   LS.set('mpt_donelog', log);
   saveStats();
@@ -162,26 +190,73 @@ function statDiscard(pid){
 }
 function statsResumen(){
   const dias=Object.keys(stats.days).sort();
-  let h=0, pPract=0, pVeces=0, extra=0; const hor={}, camb={};
+  let h=0, pPract=0, pVeces=0, extra=0, activos=0, prop=0, hProp=0;
+  const hor={}, camb={}, org={}, hh={}, u={};
+  const suma=(dst, src)=>Object.entries(src||{}).forEach(([k,n])=>dst[k]=(dst[k]||0)+n);
   dias.forEach(k=>{
     const d=stats.days[k];
     h+=d.h; pPract+=d.ps.length; pVeces+=d.pv; extra+=(d.extra||0);
-    Object.entries(d.hor).forEach(([hh,n])=>hor[hh]=(hor[hh]||0)+n);
-    Object.entries(d.camb).forEach(([pid,n])=>camb[pid]=(camb[pid]||0)+n);
+    if(d.h+(d.extra||0)>0) activos++;
+    // cumplimiento: solo los días en que se sabe cuántas se propusieron
+    if(d.prop>0){ prop+=d.prop; hProp+=Math.min(d.h, d.prop); }
+    suma(hor, d.hor); suma(camb, d.camb); suma(org, d.org); suma(hh, d.hh); suma(u, d.u);
   });
-  const topHoras=Object.entries(hor).sort((a,b)=>b[1]-a[1]).slice(0,3)
-    .map(([hh,n])=>`${pad(hh)}:00–${pad((+hh+1)%24)}:00 (${n})`);
-  const topCamb=Object.entries(camb).sort((a,b)=>b[1]-a[1]).slice(0,5)
-    .map(([pid,n])=>({t:(byId(pid)||{}).title||pid, n}));
-  return {dias:dias.length, h, pPract, pVeces, extra, topHoras, topCamb};
+  const franja=([x,n])=>`${pad(x)}:00–${pad((+x+1)%24)}:00 (${n})`;
+  const topHoras=Object.entries(hor).sort((a,b)=>b[1]-a[1]).slice(0,3).map(franja);
+  const topHechas=Object.entries(hh).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,3).map(franja);
+  // Solo prácticas de la biblioteca oficial: el título de una propia lo escribió la
+  // persona y no sale de su teléfono.
+  const topCamb=Object.entries(camb).filter(([pid])=>!String(pid).startsWith('u') && byId(pid))
+    .sort((a,b)=>b[1]-a[1]).slice(0,5).map(([pid,n])=>({t:byId(pid).title, n}));
+  const tasa=prop ? Math.round(100*hProp/prop) : null;
+  return {dias:dias.length, h, pPract, pVeces, extra, topHoras, topCamb, activos, prop, hProp, tasa, org, topHechas, u};
 }
+// «patrón estándar 5 · al azar 2 …» (solo los orígenes con alguna)
+function origenesTxt(org){
+  const l=STAT_ORIGENES.filter(k=>org[k]>0).map(k=>t('mx_o_'+k)+' '+org[k]);
+  return l.length ? l.join(' · ') : '—';
+}
+// Hechas por categoría (desde el último borrado). Las propias van juntas: el nombre
+// de una categoría propia lo escribió la persona.
+function categoriasHechas(){
+  const log=LS.get('mpt_donelog', {}), c={};
+  Object.entries(log).forEach(([pid,n])=>{
+    const p=byId(pid); if(!p) return;
+    const k=String(pid).startsWith('u') ? t('mx_own_bucket') : catLabel(p.cat);
+    c[k]=(c[k]||0)+n;
+  });
+  return Object.entries(c).sort((a,b)=>b[1]-a[1]).map(([k,n])=>k+' '+n).join(' · ') || '—';
+}
+// Configuración y biblioteca, en recuentos
+function datosUso(){
+  const cs=(cfg && cfg.constSem && Array.isArray(cfg.constSem.filas)) ? cfg.constSem : {on:false, filas:[]};
+  const filas=cs.on ? cs.filas : [];
+  const elegidas=filas.filter(f=>f && f.pid).length;
+  const adjs=userLib.map(p=>p.adj).filter(Boolean).concat(Object.values(adjLibreria||{}));
+  const porTipo={}; adjs.forEach(a=>{ porTipo[a.tipo]=(porTipo[a.tipo]||0)+1; });
+  return {
+    csem:filas.length, csemFijas:elegidas, csemAzar:filas.length-elegidas,
+    prof:userEvents.filter(ev=>ev.prof && !evPaused.includes(ev.id)).length,
+    evPausados:userEvents.filter(ev=>evPaused.includes(ev.id)).length,
+    pausadas:paused.length, propias:userLib.length,
+    propiasConst:userLib.filter(p=>typeof esCatConst==='function' && esCatConst(p.cat)).length,
+    adj:adjs.length, porTipo,
+    instalada:LS.get('mpt_install',0)
+  };
+}
+function siNo(v){ return v ? t('mx_yes') : t('mx_no'); }
 function fmtFecha(ts){ if(!ts) return '—'; const d=new Date(ts); return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear()+' '+pad(d.getHours())+':'+pad(d.getMinutes()); }
 function cuerpoMetricas(){
-  const r=statsResumen();
+  const r=statsResumen(), x=datosUso();
   const L=[];
   L.push(t('mx_title'));
   L.push(t('mx_date')+' '+fmtFecha(Date.now()));
-  L.push(t('mx_installed')+' '+fmtFecha(LS.get('mpt_install',0)));
+  L.push(t('mx_installed')+' '+fmtFecha(x.instalada)
+    +(x.instalada?' ('+Math.max(0, Math.floor((Date.now()-x.instalada)/864e5))+' '+t('mx_days')+')':''));
+  L.push('');
+  L.push(t('mx_app'));
+  L.push(t('mx_version')+' '+APP_VERSION+' · '+(IS_NATIVE?'Android':'web'));
+  L.push(t('mx_lang')+' '+getLang());
   L.push('');
   L.push(t('mx_freq'));
   L.push(t('mx_last_conn')+' '+fmtFecha(stats.lastOpen));
@@ -194,16 +269,37 @@ function cuerpoMetricas(){
   L.push(t('mx_interval')+' '+cfg.freq+' '+t('mx_interval_h'));
   L.push(t('mx_active')+' '+cfg.span+' '+t('mx_active_h'));
   L.push(t('mx_fav_def')+' '+cfg.favPerDay);
+  L.push(t('mx_csem')+' '+(x.csem ? x.csem+' ('+t('mx_csem_fix')+' '+x.csemFijas+' · '+t('mx_csem_rnd')+' '+x.csemAzar+')' : t('mx_no')));
+  L.push(t('mx_prof')+' '+x.prof);
+  L.push(t('mx_ev_paused')+' '+x.evPausados);
+  L.push(t('mx_vis')+' '+siNo(cfg.visDia));
+  L.push(t('mx_notif')+' '+(notifOn?t('dv_on'):t('dv_off'))+(IS_NATIVE?' · '+t('dv_mode')+' '+(alarmMode?t('dv_alarm'):t('dv_normal')):''));
+  L.push('');
+  L.push(t('mx_lib'));
+  L.push(t('mx_fav_saved')+' '+favs.length);
+  L.push(t('mx_paused')+' '+x.pausadas);
+  L.push(t('mx_own')+' '+x.propias+' ('+t('mx_own_const')+' '+x.propiasConst+')');
+  L.push(t('mx_adj')+' '+x.adj+(x.adj?' ('+ADJ_TIPOS_OK.filter(k=>x.porTipo[k]).map(k=>adjIcono(k)+' '+x.porTipo[k]).join(' · ')+')':''));
   L.push('');
   L.push(t('mx_last_a')+' '+r.dias+' '+t('mx_last_b'));
+  L.push(t('mx_active_days')+' '+r.activos);
   L.push(t('mx_done')+' '+r.h);
   L.push(t('mx_extra')+' '+r.extra);
+  L.push(t('mx_rate')+' '+(r.tasa===null ? '—' : r.tasa+'% ('+r.hProp+' / '+r.prop+')'));
+  L.push(t('mx_by_origin')+' '+origenesTxt(r.org));
+  L.push(t('mx_top_done')+' '+(r.topHechas.length?r.topHechas.join(', '):'—'));
   L.push(t('mx_snoozed')+' '+r.pPract+' ('+r.pVeces+' '+t('mx_snoozes')+')');
   L.push(t('mx_top_slots')+' '+(r.topHoras.length?r.topHoras.join(', '):'—'));
-  L.push(t('mx_fav_saved')+' '+favs.length);
+  try{ const g=hechasStats(); L.push(t('mx_streak')+' '+g.racha+' / '+g.mejor+' '+t('mx_days')); }catch(e){}
   L.push(t('mx_top_disc'));
   if(r.topCamb.length) r.topCamb.forEach(c=>L.push('  · '+c.t+' ('+c.n+')'));
   else L.push('  · '+t('mx_none'));
+  L.push(t('mx_cats')+' '+categoriasHechas());
+  L.push('');
+  L.push(t('mx_features').replace('{n}', r.dias));
+  STAT_USOS.forEach(k=>L.push(t('mx_f_'+k)+' '+(r.u[k]||0)));
+  L.push('');
+  L.push(t('mx_privacy'));
   return L.join('\n');
 }
 function sendMetrics(){
