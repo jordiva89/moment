@@ -222,8 +222,9 @@ function buildDayEntries(dstr){
       if(!c) return;
       usados.add(c);
       const k=entries.findIndex(e=>!e.ev && e.time===h);
-      if(k>=0){ usados.delete(entries[k].pid); entries[k].pid=c; if(fija) entries[k].fija=true; }
-      else entries.push(fija ? {time:h, pid:c, fija:true} : {time:h, pid:c});
+      // cs: viene de «x por semana» (para las métricas de origen)
+      if(k>=0){ usados.delete(entries[k].pid); entries[k].pid=c; entries[k].cs=true; if(fija) entries[k].fija=true; }
+      else entries.push(fija ? {time:h, pid:c, fija:true, cs:true} : {time:h, pid:c, cs:true});
     });
   }
   // Prácticas al azar: a horas que no pisan las anteriores y sin repetir ninguna
@@ -276,8 +277,9 @@ function ensureDayPlan(){
   Object.keys(plans).forEach(k=>{ if(k<=todayStr()) delete plans[k]; });
   LS.set('mpt_plans', plans);
   dayState={date:todayStr(), used:[...new Set(entries.map(e=>e.pid))],
-    plan: entries.map(e=>Object.assign({time:e.time, pid:e.pid, ev:e.ev, done:false, snoozes:0, snoozeUntil:null}, e.fija?{fija:true}:{}, e.az?{az:true}:{}))};
+    plan: entries.map(e=>Object.assign({time:e.time, pid:e.pid, ev:e.ev, done:false, snoozes:0, snoozeUntil:null}, e.fija?{fija:true}:{}, e.az?{az:true}:{}, e.cs?{cs:true}:{}))};
   LS.set('mpt_day', dayState);
+  try{ statPropuestas(dayState.plan.filter(s=>s.pid).length); }catch(e){}
 }
 function saveDay(){ LS.set('mpt_day', dayState); }
 // Reconstruye el plan de hoy inmediatamente (tras crear/pausar/borrar momentos) para que
@@ -297,7 +299,7 @@ function currentSlotIndex(){
 }
 
 function getPlanFor(dstr){
-  if(dstr===todayStr()){ ensureDayPlan(); return dayState.plan.map(s=>Object.assign({time:s.time, pid:s.pid, ev:s.ev}, s.az?{az:true}:{})); }
+  if(dstr===todayStr()){ ensureDayPlan(); return dayState.plan.map(s=>Object.assign({time:s.time, pid:s.pid, ev:s.ev}, s.az?{az:true}:{}, s.cs?{cs:true}:{})); }
   const plans=LS.get('mpt_plans', {});
   if(plans[dstr]) return plans[dstr];
   const plan=buildDayEntries(dstr);

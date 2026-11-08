@@ -181,31 +181,84 @@ function parseFriendlyPracticas(txt){
   if(cur) out.push(cur);
   return out.filter(p=>p.title && (p.text||p.link));
 }
-// Lector mínimo de .docx: localiza word/document.xml dentro del ZIP y extrae el texto.
-async function docxToText(buf){
-  const u8=new Uint8Array(buf), dv=new DataView(buf);
+/* ---- Lector de ZIP, sin dependencias ----
+   Lee el índice del ZIP (que está al final) y, de cada archivo, solo sus bytes,
+   con Blob.slice: un ZIP de cientos de MB no se carga entero en memoria.
+   Admite archivos sin comprimir (método 0) o con deflate (8), que es lo que usan
+   Windows, macOS, Android y cualquier compresor. No admite ZIP cifrados ni ZIP64
+   (más de 65.535 archivos o más de 4 GB). Lo usan los .docx (que son ZIP) y la
+   importación de archivos para varias prácticas. */
+const ZIP_MAX_ENTRADAS=2000;
+// Windows guarda los nombres con tildes en la página de códigos del sistema (la 850
+// en España) cuando no los marca como UTF-8. Bytes 0x80–0xFF de esa página:
+const CP850_ALTO='ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜø£Ø×ƒáíóúñÑªº¿®¬½¼¡«»░▒▓│┤ÁÂÀ©╣║╗╝¢¥┐└┴┬├─┼ãÃ╚╔╩╦╠═╬¤ðÐÊËÈıÍÎÏ┘┌█▄¦Ì▀ÓßÔÒõÕµþÞÚÛÙýÝ¯´\u00AD±‗¾¶§÷¸°¨·¹³²■\u00A0';
+async function zipBytes(blob, ini, fin){ return new Uint8Array(await blob.slice(ini, fin).arrayBuffer()); }
+function zipNombre(crudo, flags, extra){
+  // 1º el campo «Info-ZIP Unicode Path» (0x7075): el nombre en UTF-8 aunque no se marque
+  for(let i=0;i+4<=extra.length;){
+    const id=extra[i]|(extra[i+1]<<8), l=extra[i+2]|(extra[i+3]<<8);
+    if(id===0x7075 && l>5){ try{ return new TextDecoder('utf-8',{fatal:true}).decode(extra.slice(i+9, i+4+l)); }catch(e){} }
+    i+=4+l;
+  }
+  if(flags & 0x800) return new TextDecoder().decode(crudo);       // marcado como UTF-8
+  try{ return new TextDecoder('utf-8',{fatal:true}).decode(crudo); }  // UTF-8 sin marcar
+  catch(e){ let s=''; crudo.forEach(b=>{ s+= b<128 ? String.fromCharCode(b) : CP850_ALTO[b-128]; }); return s; }
+}
+// Índice del ZIP: [{nombre, metodo, cifrado, csize, usize, lho}]
+async function zipEntradas(blob){
+  const tam=blob.size;
+  if(tam<22) throw new Error('zip');
+  const desde=Math.max(0, tam-22-65535);   // el final del índice, con su comentario
+  const cola=await zipBytes(blob, desde, tam), dv=new DataView(cola.buffer);
   let e=-1;
-  for(let i=u8.length-22;i>=0;i--){ if(dv.getUint32(i,true)===0x06054b50){ e=i; break; } }
+  for(let i=cola.length-22;i>=0;i--){ if(dv.getUint32(i,true)===0x06054b50){ e=i; break; } }
   if(e<0) throw new Error('zip');
-  const nEnt=dv.getUint16(e+10,true); let p=dv.getUint32(e+16,true), target=null;
-  for(let k=0;k<nEnt;k++){
-    if(dv.getUint32(p,true)!==0x02014b50) break;
-    const method=dv.getUint16(p+10,true), csize=dv.getUint32(p+20,true),
-          nlen=dv.getUint16(p+28,true), xlen=dv.getUint16(p+30,true), clen=dv.getUint16(p+32,true),
-          lho=dv.getUint32(p+42,true);
-    const name=new TextDecoder().decode(u8.slice(p+46,p+46+nlen));
-    if(name==='word/document.xml'){ target={method,csize,lho}; break; }
+  const n=dv.getUint16(e+10,true), cdTam=dv.getUint32(e+12,true), cdIni=dv.getUint32(e+16,true);
+  if(n===0xFFFF || cdIni===0xFFFFFFFF || cdTam===0xFFFFFFFF) throw new Error('zip64');
+  if(n>ZIP_MAX_ENTRADAS) throw new Error('zip-muchos');
+  const cd=await zipBytes(blob, cdIni, cdIni+cdTam), cv=new DataView(cd.buffer);
+  const out=[]; let p=0;
+  for(let k=0;k<n && p+46<=cd.length;k++){
+    if(cv.getUint32(p,true)!==0x02014b50) break;
+    const flags=cv.getUint16(p+8,true), metodo=cv.getUint16(p+10,true),
+          csize=cv.getUint32(p+20,true), usize=cv.getUint32(p+24,true),
+          nlen=cv.getUint16(p+28,true), xlen=cv.getUint16(p+30,true), clen=cv.getUint16(p+32,true),
+          lho=cv.getUint32(p+42,true);
+    const crudo=cd.slice(p+46, p+46+nlen), extra=cd.slice(p+46+nlen, p+46+nlen+xlen);
+    out.push({nombre:zipNombre(crudo, flags, extra), metodo, cifrado:!!(flags&1), csize, usize, lho});
     p+=46+nlen+xlen+clen;
   }
-  if(!target) throw new Error('docx');
-  const q=target.lho, n2=dv.getUint16(q+26,true), x2=dv.getUint16(q+28,true);
-  const data=u8.slice(q+30+n2+x2, q+30+n2+x2+target.csize);
-  let xmlBytes=data;
-  if(target.method===8){
-    const ds=new DecompressionStream('deflate-raw');
-    xmlBytes=new Uint8Array(await new Response(new Blob([data]).stream().pipeThrough(ds)).arrayBuffer());
+  return out;
+}
+// Bytes de un archivo del ZIP. Se descomprime por trozos y se corta en cuanto pasa
+// del tamaño declarado o del máximo: un ZIP «bomba» no llena la memoria.
+async function zipLeer(blob, en, maxBytes){
+  if(en.cifrado || (en.metodo!==0 && en.metodo!==8)) throw new Error('zip-metodo');
+  if(en.usize>maxBytes) throw new Error('zip-grande');
+  const cab=await zipBytes(blob, en.lho, en.lho+30), cv=new DataView(cab.buffer);
+  if(cab.length<30 || cv.getUint32(0,true)!==0x04034b50) throw new Error('zip');
+  const ini=en.lho+30+cv.getUint16(26,true)+cv.getUint16(28,true);
+  const datos=blob.slice(ini, ini+en.csize);
+  if(en.metodo===0) return new Uint8Array(await datos.arrayBuffer());
+  const tope=Math.min(maxBytes, en.usize||maxBytes);
+  const lector=datos.stream().pipeThrough(new DecompressionStream('deflate-raw')).getReader();
+  const trozos=[]; let total=0;
+  for(;;){
+    const r=await lector.read(); if(r.done) break;
+    total+=r.value.length;
+    if(total>tope){ try{ lector.cancel(); }catch(e){} throw new Error('zip-grande'); }
+    trozos.push(r.value);
   }
-  let xml=new TextDecoder().decode(xmlBytes);
+  const out=new Uint8Array(total); let o=0;
+  trozos.forEach(x=>{ out.set(x,o); o+=x.length; });
+  return out;
+}
+// Lector mínimo de .docx: localiza word/document.xml dentro del ZIP y extrae el texto.
+async function docxToText(buf){
+  const blob=new Blob([buf]);
+  const en=(await zipEntradas(blob)).find(x=>x.nombre==='word/document.xml');
+  if(!en) throw new Error('docx');
+  let xml=new TextDecoder().decode(await zipLeer(blob, en, 50*1024*1024));
   xml=xml.replace(/<w:tab[^>]*\/>/g,' ').replace(/<\/w:p>/g,'\n').replace(/<[^>]+>/g,'');
   return xml.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'");
 }
@@ -426,6 +479,7 @@ function addImportedPracticas(arr){
   }
   LS.set('mpt_userlib', userLib); libCacheDirty();
   LS.set('mpt_plans', {});
+  statUso('imp', n);
   scheduleNext();
   closeModal(); renderLib();
   toast(t('im_added').replace('{n}',n));
@@ -460,4 +514,141 @@ function importPracticesFile(file){
     }catch(e){ toast(t('ts_json_fail')); }
   };
   r.readAsText(file);
+}
+
+/* ---- Archivos para varias prácticas a la vez (ZIP) ----
+   Cada archivo del ZIP se llama como el título de su práctica: «Respiración
+   consciente.mp3». La persona reconoce cada práctica por su título, no por su
+   código, así que el emparejamiento es por título. Dan igual las mayúsculas, las
+   tildes y los signos (un nombre de archivo no admite «?» ni «:»), y vale el
+   título en cualquiera de los idiomas de la biblioteca. Sirve para las prácticas
+   de la biblioteca y para las propias. Los archivos se guardan en el dispositivo,
+   igual que al añadirlos uno a uno. Primero se muestra qué va con qué y qué no
+   encaja; no se guarda nada hasta confirmar. */
+const ZIP_MIME={jpg:'image/jpeg', jpeg:'image/jpeg', png:'image/png', gif:'image/gif', webp:'image/webp',
+  heic:'image/heic', avif:'image/avif', svg:'image/svg+xml',
+  mp3:'audio/mpeg', m4a:'audio/mp4', aac:'audio/aac', ogg:'audio/ogg', oga:'audio/ogg', opus:'audio/ogg',
+  wav:'audio/wav', flac:'audio/flac',
+  mp4:'video/mp4', m4v:'video/mp4', webm:'video/webm', mov:'video/quicktime', '3gp':'video/3gpp',
+  txt:'text/plain', md:'text/markdown', pdf:'application/pdf', epub:'application/epub+zip',
+  doc:'application/msword', docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  odt:'application/vnd.oasis.opendocument.text'};
+// Título comparable: sin tildes, sin mayúsculas y sin signos (letras y números de cualquier alfabeto)
+function normTitulo(s){
+  return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu,' ').trim();
+}
+// título comparable → ids de las prácticas que lo tienen (en cualquier idioma)
+function indiceTitulos(){
+  const idx=new Map();
+  const pon=p=>{ if(!p || !p.id) return; const k=normTitulo(p.title); if(!k) return;
+    if(!idx.has(k)) idx.set(k, new Set()); idx.get(k).add(p.id); };
+  ALL().forEach(pon);
+  [typeof PRACTICES_ES!=='undefined'?PRACTICES_ES:[], typeof PRACTICES_EN!=='undefined'?PRACTICES_EN:[]]
+    .forEach(l=>l.forEach(pon));
+  return idx;
+}
+// Lo que sobra en cualquier ZIP: carpetas, la basura de macOS y Windows, ocultos
+function zipEsBasura(ruta){
+  const base=ruta.split(/[\/\\]/).pop();
+  return !base || /\/$/.test(ruta) || /(^|[\/\\])__MACOSX[\/\\]/.test(ruta) || base.startsWith('.')
+    || /^(thumbs\.db|desktop\.ini)$/i.test(base);
+}
+// Explicación y botón para elegir el ZIP (desde la Biblioteca o desde «Nueva práctica»)
+function abrirZipInfo(){
+  document.getElementById('modalContent').innerHTML=`
+    <h3>${t('zip_title_info')}</h3>
+    <p class="muted" style="line-height:1.55">${t('zip_help').replace('{n}', ADJ_MAX_MB)}</p>
+    <button class="btn primary block" onclick="abrirZipAdjuntos()">${t('zip_choose')}</button>
+    <button class="btn ghost block" onclick="closeModal()">${t('na_cancel')}</button>`;
+  openModal();
+}
+let _zip=null;   // {blob, va:[…]} mientras se revisa el resultado
+function abrirZipAdjuntos(){
+  let el=document.getElementById('zip_file');
+  if(!el){
+    el=document.createElement('input'); el.type='file'; el.id='zip_file'; el.accept='.zip,application/zip';
+    el.style.display='none'; el.onchange=()=>{ const f=el.files[0]; el.value=''; analizarZip(f); };
+    document.body.appendChild(el);
+  }
+  el.click();
+}
+async function analizarZip(file){
+  if(!file) return;
+  let entradas;
+  try{ entradas=await zipEntradas(file); }
+  catch(e){ anota('zip', e); toast(e && e.message==='zip-muchos' ? t('zip_many').replace('{n}', ZIP_MAX_ENTRADAS) : t('zip_fail')); return; }
+  const idx=indiceTitulos(), max=ADJ_MAX_MB*1024*1024, usados=new Set();
+  const r={va:[], sin:[], varias:[], repes:[], grandes:[], malos:[]};
+  entradas.forEach(en=>{
+    if(zipEsBasura(en.nombre)) return;
+    const nombre=en.nombre.split(/[\/\\]/).pop();
+    const punto=nombre.lastIndexOf('.');
+    const raiz=punto>0 ? nombre.slice(0, punto) : nombre, ext=punto>0 ? nombre.slice(punto+1).toLowerCase() : '';
+    const ids=idx.get(normTitulo(raiz));
+    if(!ids){ r.sin.push(nombre); return; }
+    if(ids.size>1){ r.varias.push(nombre); return; }
+    const pid=[...ids][0];
+    if(usados.has(pid)){ r.repes.push(nombre); return; }
+    if(en.usize>max){ r.grandes.push(nombre); return; }
+    if(en.cifrado || (en.metodo!==0 && en.metodo!==8)){ r.malos.push(nombre); return; }
+    usados.add(pid);
+    r.va.push({en, pid, nombre, mime:ZIP_MIME[ext]||'application/octet-stream', cambia:!!adjDe(byId(pid))});
+  });
+  _zip={blob:file, va:r.va};
+  pintarZip(r);
+}
+function pintarZip(r){
+  const lista=(arr, f)=>{
+    const vis=arr.slice(0, 40).map(f).join('');
+    return `<ul class="ziplista">${vis}${arr.length>40?`<li class="muted">${t('zip_more').replace('{n}', arr.length-40)}</li>`:''}</ul>`;
+  };
+  const grupo=(clave, arr)=>arr.length ? `<p class="muted" style="margin:12px 0 4px"><b>${t(clave).replace('{n}', arr.length).replace('{m}', ADJ_MAX_MB)}</b></p>`
+    + lista(arr, n=>`<li>${esc(n)}</li>`) : '';
+  const p=x=>byId(x.pid)||{title:x.pid};
+  document.getElementById('modalContent').innerHTML=`
+    <h3>${t('zip_title')}</h3>
+    ${r.va.length ? `<p class="muted" style="margin:0 0 4px"><b>${t('zip_ok').replace('{n}', r.va.length)}</b></p>
+      ${lista(r.va, x=>`<li>${adjIcono(adjTipo(x.mime, x.nombre))} ${esc(x.nombre)} → <b>${esc(p(x).title)}</b>${x.cambia?` <span class="muted">(${t('zip_replace')})</span>`:''}</li>`)}`
+      : `<p class="muted">${t('zip_none')}</p>`}
+    ${grupo('zip_nomatch', r.sin)}${grupo('zip_ambig', r.varias)}${grupo('zip_dup', r.repes)}${grupo('zip_big', r.grandes)}${grupo('zip_bad', r.malos)}
+    <p id="zip_estado" class="muted" style="margin:10px 0 0"></p>
+    <div class="row" style="margin-top:14px">
+      ${r.va.length?`<button id="zip_si" class="btn primary" style="flex:1" onclick="aplicarZip()">${t('zip_apply').replace('{n}', r.va.length)}</button>`:''}
+      <button id="zip_no" class="btn ghost" style="flex:1" onclick="_zip=null;closeModal()">${t('na_cancel')}</button>
+    </div>`;
+  openModal(true);
+}
+// Guarda los archivos uno a uno (así un ZIP grande no ocupa toda la memoria a la vez)
+async function aplicarZip(){
+  const z=_zip; if(!z || !z.va.length) return;
+  _zip=null;
+  ['zip_si','zip_no'].forEach(id=>{ const b=document.getElementById(id); if(b) b.disabled=true; });
+  const estado=document.getElementById('zip_estado');
+  let hechos=0, fallos=0;
+  for(let i=0;i<z.va.length;i++){
+    const x=z.va[i];
+    if(estado) estado.textContent=t('zip_working').replace('{i}', i+1).replace('{n}', z.va.length);
+    try{
+      const datos=await zipLeer(z.blob, x.en, ADJ_MAX_MB*1024*1024);
+      const id='a'+Date.now()+Math.floor(Math.random()*1000)+'z'+i;
+      await ADJ.guardar(id, new Blob([datos], {type:x.mime}));
+      const ficha={id, tipo:adjTipo(x.mime, x.nombre), nombre:x.nombre, mime:x.mime, kb:Math.round(datos.length/1024)};
+      let antes=null;
+      if(esUserPractice(x.pid)){
+        const k=userLib.findIndex(u=>u.id===x.pid);
+        if(k<0){ ADJ.borrar(id).catch(()=>{}); fallos++; continue; }
+        antes=userLib[k].adj; userLib[k].adj=ficha;
+      } else { antes=adjLibreria[x.pid]; adjLibreria[x.pid]=ficha; }
+      if(antes && antes.id) adjBorrar(antes.id).catch(()=>{});
+      hechos++;
+    }catch(e){ anota('zip-archivo', e); fallos++; }
+  }
+  LS.set('mpt_userlib', userLib); LS.set('mpt_adjlib', adjLibreria); libCacheDirty();
+  try{ if(!IS_NATIVE && navigator.storage && navigator.storage.persist) navigator.storage.persist(); }catch(e){}
+  if(hechos) statUso('zip', hechos);
+  closeModal();
+  try{ if(document.getElementById('liblist')) renderLibList(); }catch(e){}
+  try{ hidratarAdjuntos(); }catch(e){}
+  toast(fallos ? t('zip_partial').replace('{n}', hechos).replace('{f}', fallos) : t('zip_done').replace('{n}', hechos));
 }

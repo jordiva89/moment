@@ -171,6 +171,7 @@ function evAdjAplicar(p){
     const f=_evAdj.nuevo, id='a'+Date.now()+Math.floor(Math.random()*1000);
     if(p.adj && p.adj.id) adjBorrar(p.adj.id).catch(()=>{});
     p.adj={id, tipo:adjTipo(f.type, f.name), nombre:f.name||'', mime:f.type||'', kb:Math.round(f.size/1024)};
+    try{ statUso('adj'); }catch(e){}
     // el archivo ya está en memoria como Blob: se muestra al instante mientras se guarda
     try{ _adjURL.set(id, URL.createObjectURL(f)); }catch(e){}
     ADJ.guardar(id, f).then(()=>{

@@ -22,6 +22,10 @@ function mk(cb){
       w.localStorage.setItem('mpt_accept', JSON.stringify({v:1,ts:1}));
       w.localStorage.setItem('mpt_stats', JSON.stringify({lastOpen:0,lastDone:0,lastSend:FD.now(),days:{}}));
       w.scrollTo=()=>{}; w.requestAnimationFrame=f=>{try{f()}catch(e){}};
+      // jsdom no trae DecompressionStream ni Blob.stream (el WebView de Android sí): se toman de Node
+      w.DecompressionStream=DecompressionStream;
+      if(!w.Blob.prototype.stream) w.Blob.prototype.stream=function(){ const b=this;
+        return new ReadableStream({async start(c){ c.enqueue(new Uint8Array(await b.arrayBuffer())); c.close(); }}); };
       w.confirm=()=>true; w.fetch=()=>Promise.reject();
       w.Notification=function(){}; w.Notification.permission='granted';
       w.Capacitor={ isNativePlatform:()=>true, Plugins:{
@@ -1023,6 +1027,129 @@ mk(async (w,d)=>{
     return JSON.stringify(nombres)===JSON.stringify(['🕐 Patrón estándar','🎲 Al azar','✍️ Momentos propios'])
       && w.t('ob_mode_sub').includes('Prácticas propuestas') && w.t('ob_pr_next').includes('Prácticas propuestas');
   })());
+  // ---------- 3.97: archivos por ZIP ----------
+  const zlib=require('zlib');
+  // ZIP de prueba: [{nombre, datos, deflate, crudo (bytes del nombre sin marca UTF-8)}]
+  const zipDe=arch=>{
+    const partes=[], cd=[]; let ofs=0;
+    arch.forEach(a=>{
+      const nombre=a.crudo || Buffer.from(a.nombre,'utf8'), flags=a.crudo?0:0x800, met=a.deflate?8:0;
+      const comp=a.deflate?zlib.deflateRawSync(a.datos):a.datos;
+      const loc=Buffer.alloc(30); loc.writeUInt32LE(0x04034b50,0); loc.writeUInt16LE(20,4); loc.writeUInt16LE(flags,6); loc.writeUInt16LE(met,8);
+      loc.writeUInt32LE(comp.length,18); loc.writeUInt32LE(a.datos.length,22); loc.writeUInt16LE(nombre.length,26);
+      const c=Buffer.alloc(46); c.writeUInt32LE(0x02014b50,0); c.writeUInt16LE(20,4); c.writeUInt16LE(20,6); c.writeUInt16LE(flags,8); c.writeUInt16LE(met,10);
+      c.writeUInt32LE(comp.length,20); c.writeUInt32LE(a.datos.length,24); c.writeUInt16LE(nombre.length,28); c.writeUInt32LE(ofs,42);
+      cd.push(Buffer.concat([c,nombre]));
+      const b=Buffer.concat([loc,nombre,comp]); partes.push(b); ofs+=b.length;
+    });
+    const cdb=Buffer.concat(cd), e=Buffer.alloc(22);
+    e.writeUInt32LE(0x06054b50,0); e.writeUInt16LE(arch.length,8); e.writeUInt16LE(arch.length,10); e.writeUInt32LE(cdb.length,12); e.writeUInt32LE(ofs,16);
+    return Buffer.concat([...partes, cdb, e]);
+  };
+  ok('zip: el .docx de la plantilla se sigue leyendo', await (async()=>{
+    const txt=await w.docxToText(w.plantillaDocxBytes().buffer);
+    return txt.includes(w.t('fmt_title').trim());
+  })());
+  ok('zip: lee un .docx comprimido (deflate)', await (async()=>{
+    const z=zipDe([{nombre:'word/document.xml', datos:Buffer.from('<w:document><w:p><w:r><w:t>Hola &amp; adiós</w:t></w:r></w:p></w:document>'), deflate:true}]);
+    return (await w.docxToText(z.buffer.slice(z.byteOffset, z.byteOffset+z.length))).trim()==='Hola & adiós';
+  })());
+  ok('zip: nombres de Windows sin UTF-8 (página 850) y campo Unicode', (function(){
+    const cp=w.zipNombre(new Uint8Array([0x52,0x65,0x73,0x70,0x69,0x72,0x61,0x63,0x69,0xA2,0x6E]), 0, new Uint8Array(0));
+    const u=Buffer.from('Meditación','utf8'), ex=Buffer.alloc(9+u.length);
+    ex.writeUInt16LE(0x7075,0); ex.writeUInt16LE(5+u.length,2); ex[4]=1; u.copy(ex,9);
+    const uni=w.zipNombre(new Uint8Array([0x4d,0x3f]), 0, new Uint8Array(ex));
+    return cp==='Respiración' && uni==='Meditación';
+  })());
+  ok('zip: el título se compara sin tildes, mayúsculas ni signos', w.normTitulo('¿Quién SOY? · Respiración-consciente')==='quien soy respiracion consciente'
+    && w.normTitulo('Привет, мир')==='привет мир');
+  {
+    const pidL=w.eval("PRACTICES.find(p=>/[áéíóú]/.test(p.title) && ALL().filter(q=>normTitulo(q.title)===normTitulo(p.title)).length===1).id");
+    const titL=w.eval("byId('"+pidL+"').title");
+    w.eval("userLib.push({id:'u97001', cat:'Mías', title:'Mi práctica: luz', text:'x'}); libCacheDirty();");
+    const sinTildes=titL.normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/[?¿:]/g,'');
+    const audio=Buffer.alloc(5000, 7);
+    const z=zipDe([
+      {nombre:'carpeta/'+sinTildes+'.mp3', datos:audio, deflate:true},
+      {nombre:'mi practica luz.txt', datos:Buffer.from('nota')},
+      {nombre:titL+'.jpg', datos:Buffer.from('jpg')},
+      {nombre:'Nada que ver.png', datos:Buffer.from('x')},
+      {nombre:'__MACOSX/._basura.mp3', datos:Buffer.from('x')}]);
+    w.eval("adjLibreria={}; LS.set('mpt_adjlib',{});");
+    await w.analizarZip(new w.File([z], 'archivos.zip', {type:'application/zip'}));
+    const modal=d.getElementById('modalContent').innerHTML;
+    ok('zip: empareja por título y avisa de lo que no encaja', w.eval('_zip.va.length')===2
+      && modal.includes('Nada que ver.png') && modal.includes(w.t('zip_nomatch').replace('{n}',1))
+      && modal.includes(w.t('zip_dup').replace('{n}',1)) && !modal.includes('basura')
+      && modal.includes(w.t('zip_apply').replace('{n}',2)));
+    await w.aplicarZip();
+    const fl=w.eval("adjLibreria['"+pidL+"']"), fp=w.eval("userLib.find(p=>p.id==='u97001').adj");
+    const blobL=w.eval("_adjMem.get(adjLibreria['"+pidL+"'].id)");
+    ok('zip: guarda cada archivo en su práctica (biblioteca y propia)', !!fl && fl.tipo==='audio' && fl.mime==='audio/mpeg'
+      && fl.nombre===sinTildes+'.mp3' && !!blobL && blobL.size===audio.length
+      && !!fp && fp.tipo==='text' && JSON.parse(w.localStorage.getItem('mpt_adjlib'))[pidL].id===fl.id
+      && JSON.parse(w.localStorage.getItem('mpt_userlib')).find(p=>p.id==='u97001').adj.id===fp.id);
+    ok('zip: cuenta en las métricas', w.eval("stats.days[todayStr()].u.zip")===2);
+    ok('zip: el botón está en la Biblioteca y en Nueva práctica', (function(){
+      w.gotoTab('lib'); const enLib=d.getElementById('main').innerHTML.includes('abrirZipInfo()');
+      w.openAddForm(); const enForm=d.getElementById('modalContent').innerHTML.includes('abrirZipInfo()');
+      w.closeModal(); return enLib && enForm;
+    })());
+    // ---------- 3.97: métricas ----------
+    ok('métricas: origen de cada práctica hecha', (function(){
+      w.eval("userEvents.push({id:'e97p', pid:'p002', prof:true, h:600}, {id:'e97o', pid:'p002', h:600})");
+      const r=w.origenStat({ev:'e97p'})==='prof' && w.origenStat({ev:'e97o'})==='own' && w.origenStat({cs:true})==='csem'
+        && w.origenStat({az:true})==='az' && w.origenStat({pid:'p002'})==='pat' && w.origenStat(null)==='fuera';
+      w.eval("userEvents=userEvents.filter(e=>!e.id.startsWith('e97'))"); return r;
+    })());
+    ok('métricas: marcar y desmarcar cuentan por origen y por hora', (function(){
+      const d0=w.eval("JSON.stringify(stats.days[todayStr()])");
+      w.statDone(true,'p002',false,'az'); w.statDone(true,'p003',true,'csem');
+      const dd=w.eval("stats.days[todayStr()]");
+      const r1=dd.org.az>=1 && dd.org.csem>=1 && dd.hh[new w.Date().getHours()]>=2;
+      w.statDone(false,'p003',true,'csem');
+      const r2=w.eval("stats.days[todayStr()].org.csem||0")===(JSON.parse(d0).org.csem||0);
+      return r1 && r2;
+    })());
+    ok('métricas: las constelaciones de la semana se marcan como tales', (function(){
+      const c0=w.eval('JSON.stringify(cfg)');
+      const dia=new w.Date().getDay();
+      w.eval("cfg.patron=true; cfg.constNo=false; cfg.constSem={on:true, filas:[{d:"+dia+", h:777, pid:null}]};");
+      const e=w.buildDayEntries(w.eval("todayStr()")).find(x=>x.time===777);
+      w.eval('cfg='+c0); return !!e && e.cs===true;
+    })());
+    ok('métricas: se guardan las propuestas del día', (function(){
+      w.rebuildToday();
+      return w.eval("stats.days[todayStr()].prop")===w.eval("dayState.plan.filter(s=>s.pid).length");
+    })());
+    ok('métricas: el correo no lleva títulos propios ni nombres de archivo', (function(){
+      w.statDiscard('u97001'); w.statDiscard('p002'); w.statDone(true,'u97001',true,'fuera');
+      const c=w.cuerpoMetricas(), r=w.statsResumen();
+      return !c.includes('Mi práctica') && !c.includes('Mías') && !c.includes('.mp3') && !c.includes('.txt')
+        && !r.topCamb.some(x=>x.t.includes('Mi práctica')) && r.topCamb.some(x=>x.t===w.eval("byId('p002').title"))
+        && c.includes(w.t('mx_own_bucket'));
+    })());
+    ok('métricas: el correo trae lo nuevo', (function(){
+      w.statUso('qwen');
+      const c=w.cuerpoMetricas();
+      return c.includes(w.t('mx_version')+' '+w.eval('APP_VERSION')) && c.includes(w.t('mx_by_origin')) && c.includes(w.t('mx_rate'))
+        && c.includes(w.t('mx_f_qwen')+' 1') && c.includes(w.t('mx_f_zip')+' 2') && c.includes(w.t('mx_adj')+' 2')
+        && c.includes(w.t('mx_csem')) && c.includes(w.t('mx_streak')) && c.includes(w.t('mx_privacy'));
+    })());
+    ok('métricas: el saneado conserva lo nuevo y tira lo desconocido', (function(){
+      const o=w.sanearStats({days:{'2026-08-29':{h:1, ps:[], pv:0, hor:{}, camb:{}, extra:0,
+        org:{az:2, raro:5}, hh:{'9':1, '30':4, 'x':1}, u:{zip:3, mal:1}, prop:6}}});
+      const d1=o.days['2026-08-29'];
+      return d1.org.az===2 && !('raro' in d1.org) && d1.hh['9']===1 && !('30' in d1.hh) && !('x' in d1.hh)
+        && d1.u.zip===3 && !('mal' in d1.u) && d1.prop===6;
+    })());
+    ok('métricas: Ajustes muestra cumplimiento y origen', (function(){
+      w.eval("setCollapsed={stats:false}"); w.gotoTab('set'); w.renderSet();
+      const h=d.getElementById('main').innerHTML; return h.includes(w.t('mx_rate')) && h.includes(w.t('mx_by_origin'));
+    })());
+    ok('privacidad: dice qué métricas se envían', w.eval("LEGAL_PRIV_ES").includes('uso de cada modo y función') && w.eval("LEGAL_PRIV_EN").includes('each mode and feature'));
+    w.eval("userLib=userLib.filter(p=>p.id!=='u97001'); delete adjLibreria['"+pidL+"']; LS.set('mpt_userlib',userLib); LS.set('mpt_adjlib',adjLibreria); libCacheDirty();");
+  }
   restaurar(); w.eval('setCollapsed={}'); w.renderSet();
   ok('el .gitignore no deja fuera los iconos (resources/android)', (function(){
     const lineas=fs.readFileSync(require('path').join(entorno.RAIZ,'.gitignore'),'utf8').split('\n').map(l=>l.trim());

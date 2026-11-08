@@ -33,7 +33,8 @@ function renderLib(){
       <option value="">${t('lib_all_cats')} (${ALL().length})</option>
       ${cats.map(c=>`<option ${libCat===c?'selected':''} value="${esc(c)}">${esc(catLabel(c))}</option>`).join('')}
     </select>
-    <button class="btn gold block" style="margin:0 0 14px" onclick="openAddForm()">${t('lib_new')}</button>
+    <button class="btn gold block" style="margin:0 0 6px" onclick="openAddForm()">${t('lib_new')}</button>
+    <p class="center cbtn" style="margin:0 0 14px"><button type="button" class="tbtn" onclick="abrirZipInfo()">${t('zip_btn')}</button></p>
     <p class="muted" style="margin:0 2px 8px">${t('lib_offline')}</p>
     ${botonPlegarTodo('toggleAllLib()', !showLibBox && !showFavBox && !showPropias && !showPausedBox && !showHechas)}
     <div id="liblist"></div>
@@ -261,12 +262,13 @@ function promptConstelacion(){
   return t('cp_prompt').replace('{lista}', lista);
 }
 function abrirConstelacionIA(){
+  statUso('ia');
   document.getElementById('modalContent').innerHTML=`
     <h2>${t('cp_title')}</h2>
     <p class="muted" style="line-height:1.55">${t('cp_txt')}</p>
-    <button class="btn primary block" onclick="copyText(promptConstelacion()).then(ok=>toast(ok?t('tr_prompt_ok'):t('sr_copy_fail')))">${t('cp_copy')}</button>
-    <a class="btn ghost block" href="${QWEN_URL}" target="_blank" rel="noopener noreferrer">${t('cp_qwen')}</a>
-    <button class="btn gold block" onclick="openAddForm('constelaciones')">${t('cp_add')}</button>
+    <button class="btn primary block" onclick="statUso('iacopy');copyText(promptConstelacion()).then(ok=>toast(ok?t('tr_prompt_ok'):t('sr_copy_fail')))">${t('cp_copy')}</button>
+    <a class="btn ghost block" href="${QWEN_URL}" target="_blank" rel="noopener noreferrer" onclick="statUso('qwen')">${t('cp_qwen')}</a>
+    <button class="btn gold block" onclick="statUso('iaadd');openAddForm('constelaciones')">${t('cp_add')}</button>
     <button class="btn ghost block" onclick="closeModal()">${t('gd_ok')}</button>`;
   openModal();
 }
@@ -295,6 +297,7 @@ function openAddForm(selCat){
     <input type="file" id="np_file" accept=".docx,.json,.txt,.js" style="display:none" onchange="importPracticesFile(this.files[0])">
     <button class="btn ghost block" style="margin-top:16px" onclick="document.getElementById('np_file').click()">${t('na_upload')}</button>
     <p class="center cbtn" style="margin-top:8px"><button type="button" class="tbtn" onclick="descargarPlantilla()">${t('na_download_tpl')}</button></p>
+    <p class="center cbtn" style="margin-top:8px"><button type="button" class="tbtn" onclick="abrirZipInfo()">${t('zip_btn')}</button></p>
     <p class="muted" style="margin-top:6px">${t('na_formats')}</p>`;
   openModal(true);
 }
